@@ -1,0 +1,25 @@
+--cpu Cortex-M3
+"tim1_1pwm\startup_stm32f103xb.o"
+"tim1_1pwm\main.o"
+"tim1_1pwm\gpio.o"
+"tim1_1pwm\tim.o"
+"tim1_1pwm\stm32f1xx_it.o"
+"tim1_1pwm\stm32f1xx_hal_msp.o"
+"tim1_1pwm\stm32f1xx_hal_gpio_ex.o"
+"tim1_1pwm\stm32f1xx_hal_tim.o"
+"tim1_1pwm\stm32f1xx_hal_tim_ex.o"
+"tim1_1pwm\stm32f1xx_hal.o"
+"tim1_1pwm\stm32f1xx_hal_rcc.o"
+"tim1_1pwm\stm32f1xx_hal_rcc_ex.o"
+"tim1_1pwm\stm32f1xx_hal_gpio.o"
+"tim1_1pwm\stm32f1xx_hal_dma.o"
+"tim1_1pwm\stm32f1xx_hal_cortex.o"
+"tim1_1pwm\stm32f1xx_hal_pwr.o"
+"tim1_1pwm\stm32f1xx_hal_flash.o"
+"tim1_1pwm\stm32f1xx_hal_flash_ex.o"
+"tim1_1pwm\stm32f1xx_hal_exti.o"
+"tim1_1pwm\system_stm32f1xx.o"
+--strict --scatter "TIM1_1PWM\TIM1_1PWM.sct"
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "TIM1_1PWM.map" -o TIM1_1PWM\TIM1_1PWM.axf

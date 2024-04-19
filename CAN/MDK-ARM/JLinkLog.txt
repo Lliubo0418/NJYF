@@ -1,0 +1,438 @@
+
+TB90C 000:304 SEGGER J-Link V5.10h Log File (0000ms, 0273ms total)
+TB90C 000:304 DLL Compiled: Jan 21 2016 19:24:29 (0000ms, 0273ms total)
+TB90C 000:304 Logging started @ 2024-04-09 10:14 (0000ms, 0273ms total)
+TB90C 000:304 JLINK_SetWarnOutHandler(...) (0000ms, 0273ms total)
+TB90C 000:304 JLINK_OpenEx(...)
+Firmware: J-Link V9 compiled May  7 2021 16:26:12
+Hardware: V9.40
+S/N: 69407112
+Feature(s): RDI, GDB, FlashDL, FlashBP, JFlash  returns O.K. (0277ms, 0550ms total)
+TB90C 000:581 JLINK_SetErrorOutHandler(...) (0000ms, 0550ms total)
+TB90C 000:581 JLINK_ExecCommand("ProjectFile = "C:\Users\52876\Desktop\cubemx\CAN\MDK-ARM\JLinkSettings.ini"", ...)  returns 0x00 (0000ms, 0550ms total)
+TB90C 000:581 JLINK_ExecCommand("Device = STM32F103C8", ...)Device "STM32F103C8" selected.  returns 0x00 (0000ms, 0550ms total)
+TB90C 000:581 JLINK_ExecCommand("DisableConnectionTimeout", ...)  returns 0x01 (0000ms, 0550ms total)
+TB90C 000:581 JLINK_GetHardwareVersion()  returns 0x16F30 (0000ms, 0550ms total)
+TB90C 000:581 JLINK_GetDLLVersion()  returns 51008 (0000ms, 0550ms total)
+TB90C 000:581 JLINK_GetFirmwareString(...) (0000ms, 0550ms total)
+TB90C 000:581 JLINK_GetDLLVersion()  returns 51008 (0000ms, 0550ms total)
+TB90C 000:581 JLINK_GetCompileDateTime() (0000ms, 0550ms total)
+TB90C 000:581 JLINK_GetFirmwareString(...) (0000ms, 0550ms total)
+TB90C 000:582 JLINK_GetHardwareVersion()  returns 0x16F30 (0000ms, 0550ms total)
+TB90C 000:582 JLINK_TIF_Select(JLINKARM_TIF_JTAG)  returns 0x00 (0003ms, 0553ms total)
+TB90C 000:585 JLINK_SetSpeed(5000) (0000ms, 0553ms total)
+TB90C 000:585 JLINK_GetIdData(...) >0x2F8 JTAG>TotalIRLen = 9, IRPrint = 0x0011 >0x30 JTAG> >0x210 JTAG> >0x40 JTAG> >0x40 JTAG> >0x40 JTAG> >0x30 JTAG> >0x40 JTAG> >0x40 JTAG> >0x40 JTAG> >0x40 JTAG> >0x40 JTAG> >0x40 JTAG> >0x40 JTAG> >0x40 JTAG> >0x40 JTAG> >0x40 JTAG> >0x40 JTAG> >0x40 JTAG> >0x40 JTAG> >0x40 JTAG> >0x2F8 JTAG>TotalIRLen = 9, IRPrint = 0x0011 >0x30 JTAG> >0x210 JTAG> >0x70 JTAG> >0x50 JTAG> >0x40 JTAG> >0x50 JTAG> >0x80 JTAG> >0x40 JTAG> >0x30 JTAG> >0x40 JTAG> >0x40 JTAG>
+ >0x30 JTAG> >0x40 JTAG> >0x50 JTAG>Found Cortex-M3 r1p1, Little endian. -- CPU_ReadMem(4 bytes @ 0xE000EDF0) -- CPU_ReadMem(4 bytes @ 0xE0002000)FPUnit: 6 code (BP) slots and 2 literal slots -- CPU_ReadMem(4 bytes @ 0xE000EDFC) -- CPU_ReadMem(4 bytes @ 0xE0001000) -- CPU_WriteMem(4 bytes @ 0xE0001000) -- CPU_ReadMem(4 bytes @ 0xE000ED88) -- CPU_WriteMem(4 bytes @ 0xE000ED88) -- CPU_ReadMem(4 bytes @ 0xE000ED88) -- CPU_WriteMem(4 bytes @ 0xE000ED88)CoreSight components:ROMTbl 0 @ E00FF000
+ -- CPU_ReadMem(16 bytes @ 0xE00FF000) -- CPU_ReadMem(16 bytes @ 0xE000EFF0) -- CPU_ReadMem(16 bytes @ 0xE000EFE0)ROMTbl 0 [0]: FFF0F000, CID: B105E00D, PID: 001BB000 SCS -- CPU_ReadMem(16 bytes @ 0xE0001FF0) -- CPU_ReadMem(16 bytes @ 0xE0001FE0)ROMTbl 0 [1]: FFF02000, CID: B105E00D, PID: 001BB002 DWT -- CPU_ReadMem(16 bytes @ 0xE0002FF0) -- CPU_ReadMem(16 bytes @ 0xE0002FE0)ROMTbl 0 [2]: FFF03000, CID: B105E00D, PID: 000BB003 FPB -- CPU_ReadMem(16 bytes @ 0xE0000FF0)
+ -- CPU_ReadMem(16 bytes @ 0xE0000FE0)ROMTbl 0 [3]: FFF01000, CID: B105E00D, PID: 001BB001 ITM -- CPU_ReadMem(16 bytes @ 0xE00FF010) -- CPU_ReadMem(16 bytes @ 0xE0040FF0) -- CPU_ReadMem(16 bytes @ 0xE0040FE0)ROMTbl 0 [4]: FFF41000, CID: B105900D, PID: 001BB923 TPIU-Lite -- CPU_ReadMem(16 bytes @ 0xE0041FF0) -- CPU_ReadMem(16 bytes @ 0xE0041FE0)ROMTbl 0 [5]: FFF42000, CID: B105900D, PID: 101BB924 ETM-M3 ScanLen=9 NumDevices=2 aId[0]=0x3BA00477 aIrRead[0]=0 aScanLen[0]=0 aScanRead[0]=0
+ (0039ms, 0592ms total)
+TB90C 000:624 JLINK_JTAG_GetDeviceID(DeviceIndex = 0)  returns 0x3BA00477 (0000ms, 0592ms total)
+TB90C 000:624 JLINK_JTAG_GetDeviceInfo(DeviceIndex = 0)  returns 0x00 (0000ms, 0592ms total)
+TB90C 000:624 JLINK_JTAG_GetDeviceID(DeviceIndex = 1)  returns 0x6414041 (0000ms, 0592ms total)
+TB90C 000:624 JLINK_JTAG_GetDeviceInfo(DeviceIndex = 1)  returns 0x00 (0000ms, 0592ms total)
+TB90C 000:624 JLINK_GetDLLVersion()  returns 51008 (0000ms, 0592ms total)
+TB90C 000:624 JLINK_CORE_GetFound()  returns 0x30000FF (0000ms, 0592ms total)
+TB90C 000:624 JLINK_GetDebugInfo(0x100) -- Value=0xE00FF003  returns 0x00 (0000ms, 0592ms total)
+TB90C 000:624 JLINK_GetDebugInfo(0x100) -- Value=0xE00FF003  returns 0x00 (0000ms, 0592ms total)
+TB90C 000:624 JLINK_GetDebugInfo(0x101) -- Value=0xE0041000  returns 0x00 (0000ms, 0592ms total)
+TB90C 000:624 JLINK_GetDebugInfo(0x102) -- Value=0x00000000  returns 0x00 (0000ms, 0592ms total)
+TB90C 000:624 JLINK_GetDebugInfo(0x103) -- Value=0xE0040000  returns 0x00 (0000ms, 0592ms total)
+TB90C 000:624 JLINK_GetDebugInfo(0x104) -- Value=0xE0000000  returns 0x00 (0000ms, 0592ms total)
+TB90C 000:624 JLINK_GetDebugInfo(0x105) -- Value=0xE0001000  returns 0x00 (0000ms, 0592ms total)
+TB90C 000:624 JLINK_GetDebugInfo(0x106) -- Value=0xE0002000  returns 0x00 (0000ms, 0592ms total)
+TB90C 000:624 JLINK_GetDebugInfo(0x107) -- Value=0xE000E000  returns 0x00 (0000ms, 0592ms total)
+TB90C 000:624 JLINK_GetDebugInfo(0x10C) -- Value=0xE000EDF0  returns 0x00 (0000ms, 0592ms total)
+TB90C 000:624 JLINK_ReadMemU32(0xE000ED00, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE000ED00) - Data: 31 C2 1F 41  returns 0x01 (0001ms, 0593ms total)
+TB90C 000:625 JLINK_SetResetType(JLINKARM_RESET_TYPE_NORMAL)  returns JLINKARM_RESET_TYPE_NORMAL (0000ms, 0593ms total)
+TB90C 000:625 JLINK_Reset() -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE000EDF0) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE000EDFC) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE000ED0C) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE000EDF0) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE000EDF0) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE000EDF0) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE000EDFC) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE000EDF0) >0x80 JTAG> >0x40 JTAG> >0x30 JTAG>
+ >0x40 JTAG> >0x50 JTAG> >0x40 JTAG> -- CPU_WriteMem(4 bytes @ 0xE000EDFC) -- CPU_WriteMem(4 bytes @ 0xE0001028) -- CPU_WriteMem(4 bytes @ 0xE0001038) -- CPU_WriteMem(4 bytes @ 0xE0001048) -- CPU_WriteMem(4 bytes @ 0xE0001058) -- CPU_WriteMem(4 bytes @ 0xE0002000) -- CPU_ReadMem(4 bytes @ 0xE000EDFC) -- CPU_ReadMem(4 bytes @ 0xE0001000) (0028ms, 0621ms total)
+TB90C 000:653 JLINK_ReadReg(R15 (PC))  returns 0x08000188 (0000ms, 0621ms total)
+TB90C 000:653 JLINK_ReadReg(XPSR)  returns 0x01000000 (0000ms, 0621ms total)
+TB90C 000:653 JLINK_Halt()  returns 0x00 (0000ms, 0621ms total)
+TB90C 000:653 JLINK_IsHalted()  returns TRUE (0000ms, 0621ms total)
+TB90C 000:653 JLINK_ReadMemU32(0xE000EDF0, 0x0001 Items, ...) -- CPU_ReadMem(4 bytes @ 0xE000EDF0) - Data: 03 00 03 00  returns 0x01 (0001ms, 0622ms total)
+TB90C 000:654 JLINK_WriteU32(0xE000EDF0, 0xA05F0003) -- CPU_WriteMem(4 bytes @ 0xE000EDF0)  returns 0x00 (0000ms, 0622ms total)
+TB90C 000:654 JLINK_WriteU32(0xE000EDFC, 0x01000000) -- CPU_WriteMem(4 bytes @ 0xE000EDFC)  returns 0x00 (0001ms, 0623ms total)
+TB90C 000:655 JLINK_GetHWStatus(...)  returns 0x00 (0001ms, 0624ms total)
+TB90C 000:656 JLINK_GetNumBPUnits(Type = 0xFFFFFF00)  returns 0x06 (0000ms, 0624ms total)
+TB90C 000:656 JLINK_GetNumBPUnits(Type = 0xF0)  returns 0x2000 (0000ms, 0624ms total)
+TB90C 000:656 JLINK_GetNumWPUnits()  returns 0x04 (0000ms, 0624ms total)
+TB90C 000:656 JLINK_GetSpeed()  returns 0x1366 (0000ms, 0624ms total)
+TB90C 000:656 JLINK_ReadMemU32(0xE000E004, 0x0001 Items, ...) -- CPU_ReadMem(4 bytes @ 0xE000E004) - Data: 01 00 00 00  returns 0x01 (0000ms, 0624ms total)
+TB90C 000:656 JLINK_ReadMemU32(0xE000E004, 0x0001 Items, ...) -- CPU_ReadMem(4 bytes @ 0xE000E004) - Data: 01 00 00 00  returns 0x01 (0001ms, 0625ms total)
+TB90C 000:657 JLINK_WriteMem(0xE0001000, 0x001C Bytes, ...) - Data: 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ... -- CPU_WriteMem(28 bytes @ 0xE0001000)  returns 0x1C (0001ms, 0626ms total)
+TB90C 000:658 JLINK_ReadMem (0xE0001000, 0x001C Bytes, ...) -- CPU_ReadMem(28 bytes @ 0xE0001000) - Data: 01 00 00 40 00 00 00 00 00 00 00 00 00 00 00 00 ...  returns 0x00 (0001ms, 0627ms total)
+TB90C 000:659 JLINK_ReadReg(R15 (PC))  returns 0x08000188 (0000ms, 0627ms total)
+TB90C 000:659 JLINK_ReadReg(XPSR)  returns 0x01000000 (0000ms, 0627ms total)
+TB90C 000:728 JLINK_SetResetType(JLINKARM_RESET_TYPE_NORMAL)  returns JLINKARM_RESET_TYPE_NORMAL (0000ms, 0627ms total)
+TB90C 000:728 JLINK_Reset() -- CPU_WriteMem(4 bytes @ 0xE000EDF0) -- CPU_WriteMem(4 bytes @ 0xE000EDFC) -- CPU_WriteMem(4 bytes @ 0xE000ED0C) -- CPU_ReadMem(4 bytes @ 0xE000EDF0) -- CPU_ReadMem(4 bytes @ 0xE000EDF0) -- CPU_WriteMem(4 bytes @ 0xE000EDF0) -- CPU_WriteMem(4 bytes @ 0xE000EDFC) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE000EDF0) >0x80 JTAG> >0x40 JTAG> >0x30 JTAG> >0x40 JTAG> >0x50 JTAG> >0x40 JTAG> -- CPU_WriteMem(4 bytes @ 0xE000EDFC) -- CPU_WriteMem(4 bytes @ 0xE0001028)
+ -- CPU_WriteMem(4 bytes @ 0xE0001038) -- CPU_WriteMem(4 bytes @ 0xE0001048) -- CPU_WriteMem(4 bytes @ 0xE0001058) -- CPU_WriteMem(4 bytes @ 0xE0002000) -- CPU_ReadMem(4 bytes @ 0xE000EDFC) -- CPU_ReadMem(4 bytes @ 0xE0001000) (0028ms, 0655ms total)
+TB90C 000:756 JLINK_ReadReg(R15 (PC))  returns 0x08000188 (0000ms, 0655ms total)
+TB90C 000:756 JLINK_ReadReg(XPSR)  returns 0x01000000 (0000ms, 0655ms total)
+TB90C 000:756 JLINK_ReadMem (0x080000EC, 0x003C Bytes, ...) -- CPU_ReadMem(128 bytes @ 0x080000C0) -- Updating C cache (128 bytes @ 0x080000C0) -- Read from C cache (60 bytes @ 0x080000EC) - Data: 00 F0 02 F8 00 F0 3A F8 0A A0 90 E8 00 0C 82 44 ...  returns 0x00 (0002ms, 0657ms total)
+TB90C 000:758 JLINK_ReadMem (0x08000128, 0x003C Bytes, ...) -- CPU_ReadMem(64 bytes @ 0x08000140) -- Updating C cache (64 bytes @ 0x08000140) -- Read from C cache (60 bytes @ 0x08000128) - Data: 10 3A 24 BF 78 C8 78 C1 FA D8 52 07 24 BF 30 C8 ...  returns 0x00 (0002ms, 0659ms total)
+TB90C 000:760 JLINK_ReadMem (0x08000164, 0x003C Bytes, ...) -- CPU_ReadMem(64 bytes @ 0x08000180) -- Updating C cache (64 bytes @ 0x08000180) -- Read from C cache (60 bytes @ 0x08000164) - Data: 10 B5 10 BD 00 F0 58 F8 11 46 FF F7 F7 FF 01 F0 ...  returns 0x00 (0001ms, 0660ms total)
+TB78C 001:733 JLINK_SetBPEx(Addr = 0x080013B4, Type = 0xFFFFFFF2)  returns 0x00000001 (0000ms, 0660ms total)
+TB78C 001:733 JLINK_SetBPEx(Addr = 0x080013E2, Type = 0xFFFFFFF2)  returns 0x00000002 (0000ms, 0660ms total)
+TB78C 001:733 JLINK_Go() -- CPU_ReadMem(4 bytes @ 0xE0001000) -- CPU_WriteMem(4 bytes @ 0xE0002008) -- CPU_WriteMem(4 bytes @ 0xE000200C) -- CPU_WriteMem(4 bytes @ 0xE0002010) -- CPU_WriteMem(4 bytes @ 0xE0002014) -- CPU_WriteMem(4 bytes @ 0xE0002018) -- CPU_WriteMem(4 bytes @ 0xE000201C) -- CPU_WriteMem(4 bytes @ 0xE0001004) (0004ms, 0664ms total)
+TB78C 001:837 JLINK_IsHalted()  returns TRUE (0002ms, 0666ms total)
+TB78C 001:839 JLINK_Halt()  returns 0x00 (0000ms, 0664ms total)
+TB78C 001:839 JLINK_IsHalted()  returns TRUE (0000ms, 0664ms total)
+TB78C 001:839 JLINK_IsHalted()  returns TRUE (0000ms, 0664ms total)
+TB78C 001:839 JLINK_IsHalted()  returns TRUE (0000ms, 0664ms total)
+TB78C 001:839 JLINK_ReadReg(R15 (PC))  returns 0x080013B4 (0000ms, 0664ms total)
+TB78C 001:839 JLINK_ReadReg(XPSR)  returns 0x21000000 (0000ms, 0664ms total)
+TB78C 001:839 JLINK_ClrBPEx(BPHandle = 0x00000001)  returns 0x00 (0000ms, 0664ms total)
+TB78C 001:839 JLINK_ClrBPEx(BPHandle = 0x00000002)  returns 0x00 (0000ms, 0664ms total)
+TB78C 001:839 JLINK_ReadMemU32(0xE000ED30, 0x0001 Items, ...) -- CPU_ReadMem(4 bytes @ 0xE000ED30) - Data: 02 00 00 00  returns 0x01 (0002ms, 0666ms total)
+TB78C 001:841 JLINK_ReadMemU32(0xE0001028, 0x0001 Items, ...) -- CPU_ReadMem(4 bytes @ 0xE0001028) - Data: 00 00 00 00  returns 0x01 (0000ms, 0666ms total)
+TB78C 001:841 JLINK_ReadMemU32(0xE0001038, 0x0001 Items, ...) -- CPU_ReadMem(4 bytes @ 0xE0001038) - Data: 00 02 00 00  returns 0x01 (0001ms, 0667ms total)
+TB78C 001:842 JLINK_ReadMemU32(0xE0001048, 0x0001 Items, ...) -- CPU_ReadMem(4 bytes @ 0xE0001048) - Data: 00 00 00 00  returns 0x01 (0000ms, 0667ms total)
+TB78C 001:842 JLINK_ReadMemU32(0xE0001058, 0x0001 Items, ...) -- CPU_ReadMem(4 bytes @ 0xE0001058) - Data: 00 00 00 00  returns 0x01 (0001ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(R0)  returns 0x20000100 (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(R1)  returns 0x20000300 (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(R2)  returns 0x20000300 (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(R3)  returns 0x20000300 (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(R4)  returns 0x00000000 (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(R5)  returns 0x2000009C (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(R6)  returns 0x00000000 (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(R7)  returns 0x00000000 (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(R8)  returns 0x00000000 (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(R9)  returns 0x20000160 (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(R10)  returns 0x08001444 (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(R11)  returns 0x00000000 (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(R12)  returns 0x200000DC (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(R13 (SP))  returns 0x20000700 (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(R14)  returns 0x08000177 (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(R15 (PC))  returns 0x080013B4 (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(XPSR)  returns 0x21000000 (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(MSP)  returns 0x20000700 (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(PSP)  returns 0x20001000 (0000ms, 0668ms total)
+TB78C 001:843 JLINK_ReadReg(CFBP)  returns 0x00000000 (0000ms, 0668ms total)
+TB90C 001:843 JLINK_ReadMem (0x200006F0, 0x0008 Bytes, ...) -- CPU_ReadMem(64 bytes @ 0x200006C0) -- Updating C cache (64 bytes @ 0x200006C0) -- Read from C cache (8 bytes @ 0x200006F0) - Data: 00 03 00 20 00 03 00 20  returns 0x00 (0001ms, 0669ms total)
+TB90C 001:848 JLINK_ReadMemU32(0xE0001004, 0x0001 Items, ...) -- CPU_ReadMem(4 bytes @ 0xE0001004) - Data: 30 04 00 00  returns 0x01 (0001ms, 0670ms total)
+TB90C 001:850 JLINK_ReadMem (0x080012B4, 0x003C Bytes, ...) -- CPU_ReadMem(128 bytes @ 0x08001280) -- Updating C cache (128 bytes @ 0x08001280) -- Read from C cache (60 bytes @ 0x080012B4) - Data: 02 94 03 94 81 69 41 F0 20 01 81 61 81 69 01 F0 ...  returns 0x00 (0002ms, 0672ms total)
+TB90C 001:852 JLINK_ReadMem (0x080012F0, 0x003C Bytes, ...) -- CPU_ReadMem(64 bytes @ 0x08001300) -- Updating C cache (64 bytes @ 0x08001300) -- Read from C cache (60 bytes @ 0x080012F0) - Data: 29 46 30 46 FF F7 8C FC 01 20 00 95 CD E9 01 04 ...  returns 0x00 (0001ms, 0673ms total)
+TB90C 001:853 JLINK_ReadMem (0x0800132C, 0x003C Bytes, ...) -- CPU_ReadMem(64 bytes @ 0x08001340) -- Updating C cache (64 bytes @ 0x08001340) -- Read from C cache (60 bytes @ 0x0800132C) - Data: FE F7 4C FF 14 21 0A A8 FE F7 48 FF 01 21 08 04 ...  returns 0x00 (0001ms, 0674ms total)
+TB90C 001:854 JLINK_ReadMem (0x08001368, 0x003C Bytes, ...) -- CPU_ReadMem(64 bytes @ 0x08001380) -- Updating C cache (64 bytes @ 0x08001380) -- Read from C cache (60 bytes @ 0x08001368) - Data: CD E9 0C 40 02 21 0A A8 0E 94 FF F7 F1 FC 00 28 ...  returns 0x00 (0001ms, 0675ms total)
+TB90C 001:855 JLINK_ReadMem (0x080013A4, 0x003C Bytes, ...) -- CPU_ReadMem(64 bytes @ 0x080013C0) -- Updating C cache (64 bytes @ 0x080013C0) -- Read from C cache (60 bytes @ 0x080013A4) - Data: 00 F0 0F 00 00 F1 E0 20 80 F8 14 1D 70 47 00 00 ...  returns 0x00 (0002ms, 0677ms total)
+TB78C 004:014 JLINK_SetBPEx(Addr = 0x080013E2, Type = 0xFFFFFFF2)  returns 0x00000003 (0000ms, 0677ms total)
+TB78C 004:014 JLINK_Go() -- CPU_ReadMem(4 bytes @ 0xE0001000) -- CPU_WriteMem(4 bytes @ 0xE0002008) -- CPU_WriteMem(4 bytes @ 0xE000200C) (0003ms, 0680ms total)
+TB78C 004:118 JLINK_IsHalted()  returns ERROR (0019ms, 0699ms total)
+TB78C 004:137 JLINK_Halt()CPU could not be halted  returns 0x01 (0012ms, 0692ms total)
+TB78C 004:149 JLINK_IsHalted()  returns ERROR (0019ms, 0711ms total)
+TB78C 004:168 JLINK_IsHalted()  returns ERROR (0019ms, 0711ms total)
+TB78C 004:187 JLINK_IsHalted()  returns ERROR (0020ms, 0712ms total)
+TB78C 004:207 JLINK_ReadReg(R15 (PC)) -- CPU is running
+  ***** Error: Can not read register 15 (R15) while CPU is running  returns 0x00000000 (0020ms, 0712ms total)
+TB78C 004:227 JLINK_ReadReg(XPSR) -- CPU is running
+  ***** Error: Can not read register 16 (XPSR) while CPU is running  returns 0x00000000 (0020ms, 0732ms total)
+TB78C 004:248 JLINK_ClrBPEx(BPHandle = 0x00000003) -- CPU is running -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002008) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE000200C) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002010) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002014) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002018) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE000201C)  returns 0x00 (0060ms, 0792ms total)
+TB78C 004:308 JLINK_ReadMemU32(0xE000ED30, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE000ED30)  returns 0xFFFFFFFF (0007ms, 0799ms total)
+TB78C 004:315 JLINK_ReadMemU32(0xE0001028, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001028)  returns 0xFFFFFFFF (0007ms, 0806ms total)
+TB78C 004:322 JLINK_ReadMemU32(0xE0001038, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001038)  returns 0xFFFFFFFF (0007ms, 0813ms total)
+TB78C 004:329 JLINK_ReadMemU32(0xE0001048, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001048)  returns 0xFFFFFFFF (0007ms, 0820ms total)
+TB78C 004:336 JLINK_ReadMemU32(0xE0001058, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001058)  returns 0xFFFFFFFF (0007ms, 0827ms total)
+TB78C 004:343 JLINK_ReadReg(R0) -- CPU is running
+  ***** Error: Can not read register 0 (R0) while CPU is running  returns 0x00000000 (0020ms, 0847ms total)
+TB78C 004:363 JLINK_ReadReg(R1) -- CPU is running
+  ***** Error: Can not read register 1 (R1) while CPU is running  returns 0x00000000 (0019ms, 0866ms total)
+TB78C 004:382 JLINK_ReadReg(R2) -- CPU is running
+  ***** Error: Can not read register 2 (R2) while CPU is running  returns 0x00000000 (0020ms, 0886ms total)
+TB78C 004:402 JLINK_ReadReg(R3) -- CPU is running
+  ***** Error: Can not read register 3 (R3) while CPU is running  returns 0x00000000 (0019ms, 0905ms total)
+TB78C 004:421 JLINK_ReadReg(R4) -- CPU is running
+  ***** Error: Can not read register 4 (R4) while CPU is running  returns 0x00000000 (0020ms, 0925ms total)
+TB78C 004:441 JLINK_ReadReg(R5) -- CPU is running
+  ***** Error: Can not read register 5 (R5) while CPU is running  returns 0x00000000 (0019ms, 0944ms total)
+TB78C 004:460 JLINK_ReadReg(R6) -- CPU is running
+  ***** Error: Can not read register 6 (R6) while CPU is running  returns 0x00000000 (0020ms, 0964ms total)
+TB78C 004:480 JLINK_ReadReg(R7) -- CPU is running
+  ***** Error: Can not read register 7 (R7) while CPU is running  returns 0x00000000 (0019ms, 0983ms total)
+TB78C 004:501 JLINK_ReadReg(R8) -- CPU is running
+  ***** Error: Can not read register 8 (R8) while CPU is running  returns 0x00000000 (0019ms, 1002ms total)
+TB78C 004:520 JLINK_ReadReg(R9) -- CPU is running
+  ***** Error: Can not read register 9 (R9) while CPU is running  returns 0x00000000 (0020ms, 1022ms total)
+TB78C 004:540 JLINK_ReadReg(R10) -- CPU is running
+  ***** Error: Can not read register 10 (R10) while CPU is running  returns 0x00000000 (0019ms, 1041ms total)
+TB78C 004:562 JLINK_ReadReg(R11) -- CPU is running
+  ***** Error: Can not read register 11 (R11) while CPU is running  returns 0x00000000 (0020ms, 1061ms total)
+TB78C 004:582 JLINK_ReadReg(R12) -- CPU is running
+  ***** Error: Can not read register 12 (R12) while CPU is running  returns 0x00000000 (0020ms, 1081ms total)
+TB78C 004:602 JLINK_ReadReg(R13 (SP)) -- CPU is running
+  ***** Error: Can not read register 13 (R13) while CPU is running  returns 0x00000000 (0019ms, 1100ms total)
+TB78C 004:621 JLINK_ReadReg(R14) -- CPU is running
+  ***** Error: Can not read register 14 (R14) while CPU is running  returns 0x00000000 (0019ms, 1119ms total)
+TB78C 004:641 JLINK_ReadReg(R15 (PC)) -- CPU is running
+  ***** Error: Can not read register 15 (R15) while CPU is running  returns 0x00000000 (0019ms, 1138ms total)
+TB78C 004:660 JLINK_ReadReg(XPSR) -- CPU is running
+  ***** Error: Can not read register 16 (XPSR) while CPU is running  returns 0x00000000 (0020ms, 1158ms total)
+TB78C 004:680 JLINK_ReadReg(MSP) -- CPU is running
+  ***** Error: Can not read register 17 (MSP) while CPU is running  returns 0x00000000 (0019ms, 1177ms total)
+TB78C 004:703 JLINK_ReadReg(PSP) -- CPU is running
+  ***** Error: Can not read register 18 (PSP) while CPU is running  returns 0x00000000 (0020ms, 1197ms total)
+TB78C 004:723 JLINK_ReadReg(CFBP) -- CPU is running
+  ***** Error: Can not read register 20 (CFBP) while CPU is running  returns 0x00000000 (0020ms, 1217ms total)
+TB90C 004:751 JLINK_ReadMemU32(0xE0001004, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001004)  returns 0xFFFFFFFF (0008ms, 1225ms total)
+TB90C 004:760 JLINK_ReadMem (0x00000000, 0x003C Bytes, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0x00000004) -- CPU is running -- CPU_ReadMem(60 bytes @ 0x08000000) - Data: AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA ...  returns 0x01 (0014ms, 1239ms total)
+TB90C 004:774 JLINK_ReadMem (0x00000000, 0x003C Bytes, ...) -- CPU is running -- CPU_ReadMem(60 bytes @ 0x08000000) - Data: AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA ...  returns 0x01 (0007ms, 1246ms total)
+TB90C 004:781 JLINK_ReadMem (0x00000000, 0x003C Bytes, ...) -- CPU is running -- CPU_ReadMem(60 bytes @ 0x08000000) - Data: AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA ...  returns 0x01 (0007ms, 1253ms total)
+TB90C 004:788 JLINK_ReadMem (0x00000002, 0x0002 Bytes, ...) -- CPU is running -- CPU_ReadMem(2 bytes @ 0x08000002) - Data: AA AA  returns 0x01 (0007ms, 1260ms total)
+TB90C 004:795 JLINK_ReadMem (0x00000002, 0x0002 Bytes, ...) -- CPU is running -- CPU_ReadMem(2 bytes @ 0x08000002) - Data: AA AA  returns 0x01 (0006ms, 1266ms total)
+TB90C 004:801 JLINK_ReadMem (0x00000002, 0x0002 Bytes, ...) -- CPU is running -- CPU_ReadMem(2 bytes @ 0x08000002) - Data: AA AA  returns 0x01 (0007ms, 1273ms total)
+TB90C 004:808 JLINK_ReadMem (0x00000004, 0x003C Bytes, ...) -- CPU is running -- CPU_ReadMem(60 bytes @ 0x08000004) - Data: AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA ...  returns 0x01 (0007ms, 1280ms total)
+TB90C 004:815 JLINK_ReadMem (0x00000004, 0x003C Bytes, ...) -- CPU is running -- CPU_ReadMem(60 bytes @ 0x08000004) - Data: AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA ...  returns 0x01 (0008ms, 1288ms total)
+TB90C 004:823 JLINK_ReadMem (0x00000004, 0x003C Bytes, ...) -- CPU is running -- CPU_ReadMem(60 bytes @ 0x08000004) - Data: AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA ...  returns 0x01 (0007ms, 1295ms total)
+TB90C 004:830 JLINK_ReadMem (0x00000006, 0x0002 Bytes, ...) -- CPU is running -- CPU_ReadMem(2 bytes @ 0x08000006) - Data: AA AA  returns 0x01 (0007ms, 1302ms total)
+TB90C 004:837 JLINK_ReadMem (0x00000006, 0x0002 Bytes, ...) -- CPU is running -- CPU_ReadMem(2 bytes @ 0x08000006) - Data: AA AA  returns 0x01 (0006ms, 1308ms total)
+TB90C 004:843 JLINK_ReadMem (0x00000006, 0x0002 Bytes, ...) -- CPU is running -- CPU_ReadMem(2 bytes @ 0x08000006) - Data: AA AA  returns 0x01 (0008ms, 1316ms total)
+TB90C 004:851 JLINK_ReadMem (0x00000008, 0x003C Bytes, ...) -- CPU is running -- CPU_ReadMem(60 bytes @ 0x08000008) - Data: AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA ...  returns 0x01 (0013ms, 1329ms total)
+TB90C 004:864 JLINK_ReadMem (0x00000008, 0x003C Bytes, ...) -- CPU is running -- CPU_ReadMem(60 bytes @ 0x08000008) - Data: AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA ...  returns 0x01 (0007ms, 1336ms total)
+TB90C 004:871 JLINK_ReadMem (0x00000008, 0x003C Bytes, ...) -- CPU is running -- CPU_ReadMem(60 bytes @ 0x08000008) - Data: AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA ...  returns 0x01 (0008ms, 1344ms total)
+TB90C 004:879 JLINK_ReadMem (0x0000000A, 0x0002 Bytes, ...) -- CPU is running -- CPU_ReadMem(2 bytes @ 0x0800000A) - Data: AA AA  returns 0x01 (0006ms, 1350ms total)
+TB90C 004:885 JLINK_ReadMem (0x0000000A, 0x0002 Bytes, ...) -- CPU is running -- CPU_ReadMem(2 bytes @ 0x0800000A) - Data: AA AA  returns 0x01 (0007ms, 1357ms total)
+TB90C 004:892 JLINK_ReadMem (0x0000000A, 0x0002 Bytes, ...) -- CPU is running -- CPU_ReadMem(2 bytes @ 0x0800000A) - Data: AA AA  returns 0x01 (0007ms, 1364ms total)
+TB90C 004:899 JLINK_ReadMem (0x0000000C, 0x003C Bytes, ...) -- CPU is running -- CPU_ReadMem(60 bytes @ 0x0800000C) - Data: AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA ...  returns 0x01 (0007ms, 1371ms total)
+TB90C 004:906 JLINK_ReadMem (0x0000000C, 0x003C Bytes, ...) -- CPU is running -- CPU_ReadMem(60 bytes @ 0x0800000C) - Data: AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA ...  returns 0x01 (0007ms, 1378ms total)
+TB90C 004:913 JLINK_ReadMem (0x0000000C, 0x003C Bytes, ...) -- CPU is running -- CPU_ReadMem(60 bytes @ 0x0800000C) - Data: AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA ...  returns 0x01 (0007ms, 1385ms total)
+TB78C 009:068 JLINK_SetBPEx(Addr = 0x080013E2, Type = 0xFFFFFFF2) -- CPU is running -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002008)  returns 0x00000004 (0007ms, 1392ms total)
+TB78C 009:075 JLINK_Go()
+  ***** Error: CPU is not halted (0020ms, 1412ms total)
+TB78C 009:196 JLINK_IsHalted()  returns ERROR (0018ms, 1430ms total)
+TB78C 009:215 JLINK_Halt()CPU could not be halted  returns 0x01 (0013ms, 1425ms total)
+TB78C 009:228 JLINK_IsHalted()  returns ERROR (0019ms, 1444ms total)
+TB78C 009:247 JLINK_IsHalted()  returns ERROR (0020ms, 1445ms total)
+TB78C 009:267 JLINK_IsHalted()  returns ERROR (0019ms, 1444ms total)
+TB78C 009:286 JLINK_ReadReg(R15 (PC)) -- CPU is running
+  ***** Error: Can not read register 15 (R15) while CPU is running  returns 0x00000000 (0020ms, 1445ms total)
+TB78C 009:306 JLINK_ReadReg(XPSR) -- CPU is running
+  ***** Error: Can not read register 16 (XPSR) while CPU is running  returns 0x00000000 (0020ms, 1465ms total)
+TB78C 009:326 JLINK_ClrBPEx(BPHandle = 0x00000004) -- CPU is running -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002008) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE000200C) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002010) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002014) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002018) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE000201C)  returns 0x00 (0060ms, 1525ms total)
+TB78C 009:386 JLINK_ReadMemU32(0xE000ED30, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE000ED30)  returns 0xFFFFFFFF (0007ms, 1532ms total)
+TB78C 009:393 JLINK_ReadMemU32(0xE0001028, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001028)  returns 0xFFFFFFFF (0007ms, 1539ms total)
+TB78C 009:400 JLINK_ReadMemU32(0xE0001038, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001038)  returns 0xFFFFFFFF (0007ms, 1546ms total)
+TB78C 009:407 JLINK_ReadMemU32(0xE0001048, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001048)  returns 0xFFFFFFFF (0007ms, 1553ms total)
+TB78C 009:414 JLINK_ReadMemU32(0xE0001058, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001058)  returns 0xFFFFFFFF (0007ms, 1560ms total)
+TB78C 009:421 JLINK_ReadReg(R0) -- CPU is running
+  ***** Error: Can not read register 0 (R0) while CPU is running  returns 0x00000000 (0019ms, 1579ms total)
+TB78C 009:440 JLINK_ReadReg(R1) -- CPU is running
+  ***** Error: Can not read register 1 (R1) while CPU is running  returns 0x00000000 (0020ms, 1599ms total)
+TB78C 009:461 JLINK_ReadReg(R2) -- CPU is running
+  ***** Error: Can not read register 2 (R2) while CPU is running  returns 0x00000000 (0020ms, 1619ms total)
+TB78C 009:481 JLINK_ReadReg(R3) -- CPU is running
+  ***** Error: Can not read register 3 (R3) while CPU is running  returns 0x00000000 (0019ms, 1638ms total)
+TB78C 009:500 JLINK_ReadReg(R4) -- CPU is running
+  ***** Error: Can not read register 4 (R4) while CPU is running  returns 0x00000000 (0020ms, 1658ms total)
+TB78C 009:520 JLINK_ReadReg(R5) -- CPU is running
+  ***** Error: Can not read register 5 (R5) while CPU is running  returns 0x00000000 (0020ms, 1678ms total)
+TB78C 009:540 JLINK_ReadReg(R6) -- CPU is running
+  ***** Error: Can not read register 6 (R6) while CPU is running  returns 0x00000000 (0020ms, 1698ms total)
+TB78C 009:560 JLINK_ReadReg(R7) -- CPU is running
+  ***** Error: Can not read register 7 (R7) while CPU is running  returns 0x00000000 (0020ms, 1718ms total)
+TB78C 009:580 JLINK_ReadReg(R8) -- CPU is running
+  ***** Error: Can not read register 8 (R8) while CPU is running  returns 0x00000000 (0019ms, 1737ms total)
+TB78C 009:599 JLINK_ReadReg(R9) -- CPU is running
+  ***** Error: Can not read register 9 (R9) while CPU is running  returns 0x00000000 (0020ms, 1757ms total)
+TB78C 009:619 JLINK_ReadReg(R10) -- CPU is running
+  ***** Error: Can not read register 10 (R10) while CPU is running  returns 0x00000000 (0019ms, 1776ms total)
+TB78C 009:638 JLINK_ReadReg(R11) -- CPU is running
+  ***** Error: Can not read register 11 (R11) while CPU is running  returns 0x00000000 (0020ms, 1796ms total)
+TB78C 009:658 JLINK_ReadReg(R12) -- CPU is running
+  ***** Error: Can not read register 12 (R12) while CPU is running  returns 0x00000000 (0020ms, 1816ms total)
+TB78C 009:678 JLINK_ReadReg(R13 (SP)) -- CPU is running
+  ***** Error: Can not read register 13 (R13) while CPU is running  returns 0x00000000 (0019ms, 1835ms total)
+TB78C 009:698 JLINK_ReadReg(R14) -- CPU is running
+  ***** Error: Can not read register 14 (R14) while CPU is running  returns 0x00000000 (0020ms, 1855ms total)
+TB78C 009:718 JLINK_ReadReg(R15 (PC)) -- CPU is running
+  ***** Error: Can not read register 15 (R15) while CPU is running  returns 0x00000000 (0019ms, 1874ms total)
+TB78C 009:737 JLINK_ReadReg(XPSR) -- CPU is running
+  ***** Error: Can not read register 16 (XPSR) while CPU is running  returns 0x00000000 (0019ms, 1893ms total)
+TB78C 009:758 JLINK_ReadReg(MSP) -- CPU is running
+  ***** Error: Can not read register 17 (MSP) while CPU is running  returns 0x00000000 (0020ms, 1913ms total)
+TB78C 009:779 JLINK_ReadReg(PSP) -- CPU is running
+  ***** Error: Can not read register 18 (PSP) while CPU is running  returns 0x00000000 (0020ms, 1933ms total)
+TB78C 009:799 JLINK_ReadReg(CFBP) -- CPU is running
+  ***** Error: Can not read register 20 (CFBP) while CPU is running  returns 0x00000000 (0019ms, 1952ms total)
+TB90C 009:820 JLINK_ReadMemU32(0xE0001004, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001004)  returns 0xFFFFFFFF (0008ms, 1960ms total)
+TB78C 011:133 JLINK_SetBPEx(Addr = 0x080013E2, Type = 0xFFFFFFF2) -- CPU is running -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002008)  returns 0x00000005 (0008ms, 1968ms total)
+TB78C 011:141 JLINK_Go()
+  ***** Error: CPU is not halted (0018ms, 1986ms total)
+TB78C 011:261 JLINK_IsHalted()  returns ERROR (0019ms, 2005ms total)
+TB78C 011:280 JLINK_Halt()CPU could not be halted  returns 0x01 (0011ms, 1997ms total)
+TB78C 011:291 JLINK_IsHalted()  returns ERROR (0019ms, 2016ms total)
+TB78C 011:310 JLINK_IsHalted()  returns ERROR (0020ms, 2017ms total)
+TB78C 011:330 JLINK_IsHalted()  returns ERROR (0019ms, 2016ms total)
+TB78C 011:349 JLINK_ReadReg(R15 (PC)) -- CPU is running
+  ***** Error: Can not read register 15 (R15) while CPU is running  returns 0x00000000 (0020ms, 2017ms total)
+TB78C 011:369 JLINK_ReadReg(XPSR) -- CPU is running
+  ***** Error: Can not read register 16 (XPSR) while CPU is running  returns 0x00000000 (0019ms, 2036ms total)
+TB78C 011:388 JLINK_ClrBPEx(BPHandle = 0x00000005) -- CPU is running -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002008) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE000200C) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002010) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002014) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002018) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE000201C)  returns 0x00 (0061ms, 2097ms total)
+TB78C 011:449 JLINK_ReadMemU32(0xE000ED30, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE000ED30)  returns 0xFFFFFFFF (0007ms, 2104ms total)
+TB78C 011:456 JLINK_ReadMemU32(0xE0001028, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001028)  returns 0xFFFFFFFF (0007ms, 2111ms total)
+TB78C 011:463 JLINK_ReadMemU32(0xE0001038, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001038)  returns 0xFFFFFFFF (0007ms, 2118ms total)
+TB78C 011:470 JLINK_ReadMemU32(0xE0001048, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001048)  returns 0xFFFFFFFF (0007ms, 2125ms total)
+TB78C 011:477 JLINK_ReadMemU32(0xE0001058, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001058)  returns 0xFFFFFFFF (0007ms, 2132ms total)
+TB78C 011:484 JLINK_ReadReg(R0) -- CPU is running
+  ***** Error: Can not read register 0 (R0) while CPU is running  returns 0x00000000 (0019ms, 2151ms total)
+TB78C 011:504 JLINK_ReadReg(R1) -- CPU is running
+  ***** Error: Can not read register 1 (R1) while CPU is running  returns 0x00000000 (0019ms, 2170ms total)
+TB78C 011:524 JLINK_ReadReg(R2) -- CPU is running
+  ***** Error: Can not read register 2 (R2) while CPU is running  returns 0x00000000 (0020ms, 2190ms total)
+TB78C 011:544 JLINK_ReadReg(R3) -- CPU is running
+  ***** Error: Can not read register 3 (R3) while CPU is running  returns 0x00000000 (0019ms, 2209ms total)
+TB78C 011:563 JLINK_ReadReg(R4) -- CPU is running
+  ***** Error: Can not read register 4 (R4) while CPU is running  returns 0x00000000 (0019ms, 2228ms total)
+TB78C 011:584 JLINK_ReadReg(R5) -- CPU is running
+  ***** Error: Can not read register 5 (R5) while CPU is running  returns 0x00000000 (0020ms, 2248ms total)
+TB78C 011:604 JLINK_ReadReg(R6) -- CPU is running
+  ***** Error: Can not read register 6 (R6) while CPU is running  returns 0x00000000 (0019ms, 2267ms total)
+TB78C 011:623 JLINK_ReadReg(R7) -- CPU is running
+  ***** Error: Can not read register 7 (R7) while CPU is running  returns 0x00000000 (0020ms, 2287ms total)
+TB78C 011:643 JLINK_ReadReg(R8) -- CPU is running
+  ***** Error: Can not read register 8 (R8) while CPU is running  returns 0x00000000 (0027ms, 2314ms total)
+TB78C 011:670 JLINK_ReadReg(R9) -- CPU is running
+  ***** Error: Can not read register 9 (R9) while CPU is running  returns 0x00000000 (0020ms, 2334ms total)
+TB78C 011:690 JLINK_ReadReg(R10) -- CPU is running
+  ***** Error: Can not read register 10 (R10) while CPU is running  returns 0x00000000 (0019ms, 2353ms total)
+TB78C 011:711 JLINK_ReadReg(R11) -- CPU is running
+  ***** Error: Can not read register 11 (R11) while CPU is running  returns 0x00000000 (0020ms, 2373ms total)
+TB78C 011:731 JLINK_ReadReg(R12) -- CPU is running
+  ***** Error: Can not read register 12 (R12) while CPU is running  returns 0x00000000 (0019ms, 2392ms total)
+TB78C 011:750 JLINK_ReadReg(R13 (SP)) -- CPU is running
+  ***** Error: Can not read register 13 (R13) while CPU is running  returns 0x00000000 (0020ms, 2412ms total)
+TB78C 011:772 JLINK_ReadReg(R14) -- CPU is running
+  ***** Error: Can not read register 14 (R14) while CPU is running  returns 0x00000000 (0020ms, 2432ms total)
+TB78C 011:792 JLINK_ReadReg(R15 (PC)) -- CPU is running
+  ***** Error: Can not read register 15 (R15) while CPU is running  returns 0x00000000 (0020ms, 2452ms total)
+TB78C 011:812 JLINK_ReadReg(XPSR) -- CPU is running
+  ***** Error: Can not read register 16 (XPSR) while CPU is running  returns 0x00000000 (0020ms, 2472ms total)
+TB78C 011:832 JLINK_ReadReg(MSP) -- CPU is running
+  ***** Error: Can not read register 17 (MSP) while CPU is running  returns 0x00000000 (0019ms, 2491ms total)
+TB78C 011:851 JLINK_ReadReg(PSP) -- CPU is running
+  ***** Error: Can not read register 18 (PSP) while CPU is running  returns 0x00000000 (0020ms, 2511ms total)
+TB78C 011:871 JLINK_ReadReg(CFBP) -- CPU is running
+  ***** Error: Can not read register 20 (CFBP) while CPU is running  returns 0x00000000 (0020ms, 2531ms total)
+TB90C 011:891 JLINK_ReadMemU32(0xE0001004, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001004)  returns 0xFFFFFFFF (0007ms, 2538ms total)
+TB78C 014:278 JLINK_SetBPEx(Addr = 0x080013E2, Type = 0xFFFFFFF2) -- CPU is running -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002008)  returns 0x00000006 (0008ms, 2546ms total)
+TB78C 014:286 JLINK_Go()
+  ***** Error: CPU is not halted (0019ms, 2565ms total)
+TB78C 014:408 JLINK_IsHalted()  returns ERROR (0020ms, 2585ms total)
+TB78C 014:428 JLINK_Halt()CPU could not be halted  returns 0x01 (0010ms, 2575ms total)
+TB78C 014:438 JLINK_IsHalted()  returns ERROR (0019ms, 2594ms total)
+TB78C 014:457 JLINK_IsHalted()  returns ERROR (0020ms, 2595ms total)
+TB78C 014:477 JLINK_IsHalted()  returns ERROR (0020ms, 2595ms total)
+TB78C 014:497 JLINK_ReadReg(R15 (PC)) -- CPU is running
+  ***** Error: Can not read register 15 (R15) while CPU is running  returns 0x00000000 (0019ms, 2594ms total)
+TB78C 014:516 JLINK_ReadReg(XPSR) -- CPU is running
+  ***** Error: Can not read register 16 (XPSR) while CPU is running  returns 0x00000000 (0020ms, 2614ms total)
+TB78C 014:536 JLINK_ClrBPEx(BPHandle = 0x00000006) -- CPU is running -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002008) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE000200C) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002010) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002014) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002018) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE000201C)  returns 0x00 (0061ms, 2675ms total)
+TB78C 014:597 JLINK_ReadMemU32(0xE000ED30, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE000ED30)  returns 0xFFFFFFFF (0006ms, 2681ms total)
+TB78C 014:603 JLINK_ReadMemU32(0xE0001028, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001028)  returns 0xFFFFFFFF (0008ms, 2689ms total)
+TB78C 014:611 JLINK_ReadMemU32(0xE0001038, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001038)  returns 0xFFFFFFFF (0006ms, 2695ms total)
+TB78C 014:617 JLINK_ReadMemU32(0xE0001048, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001048)  returns 0xFFFFFFFF (0008ms, 2703ms total)
+TB78C 014:625 JLINK_ReadMemU32(0xE0001058, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001058)  returns 0xFFFFFFFF (0006ms, 2709ms total)
+TB78C 014:631 JLINK_ReadReg(R0) -- CPU is running
+  ***** Error: Can not read register 0 (R0) while CPU is running  returns 0x00000000 (0020ms, 2729ms total)
+TB78C 014:651 JLINK_ReadReg(R1) -- CPU is running
+  ***** Error: Can not read register 1 (R1) while CPU is running  returns 0x00000000 (0020ms, 2749ms total)
+TB78C 014:671 JLINK_ReadReg(R2) -- CPU is running
+  ***** Error: Can not read register 2 (R2) while CPU is running  returns 0x00000000 (0019ms, 2768ms total)
+TB78C 014:690 JLINK_ReadReg(R3) -- CPU is running
+  ***** Error: Can not read register 3 (R3) while CPU is running  returns 0x00000000 (0020ms, 2788ms total)
+TB78C 014:711 JLINK_ReadReg(R4) -- CPU is running
+  ***** Error: Can not read register 4 (R4) while CPU is running  returns 0x00000000 (0020ms, 2808ms total)
+TB78C 014:731 JLINK_ReadReg(R5) -- CPU is running
+  ***** Error: Can not read register 5 (R5) while CPU is running  returns 0x00000000 (0020ms, 2828ms total)
+TB78C 014:751 JLINK_ReadReg(R6) -- CPU is running
+  ***** Error: Can not read register 6 (R6) while CPU is running  returns 0x00000000 (0019ms, 2847ms total)
+TB78C 014:770 JLINK_ReadReg(R7) -- CPU is running
+  ***** Error: Can not read register 7 (R7) while CPU is running  returns 0x00000000 (0020ms, 2867ms total)
+TB78C 014:790 JLINK_ReadReg(R8) -- CPU is running
+  ***** Error: Can not read register 8 (R8) while CPU is running  returns 0x00000000 (0020ms, 2887ms total)
+TB78C 014:810 JLINK_ReadReg(R9) -- CPU is running
+  ***** Error: Can not read register 9 (R9) while CPU is running  returns 0x00000000 (0020ms, 2907ms total)
+TB78C 014:830 JLINK_ReadReg(R10) -- CPU is running
+  ***** Error: Can not read register 10 (R10) while CPU is running  returns 0x00000000 (0019ms, 2926ms total)
+TB78C 014:849 JLINK_ReadReg(R11) -- CPU is running
+  ***** Error: Can not read register 11 (R11) while CPU is running  returns 0x00000000 (0020ms, 2946ms total)
+TB78C 014:869 JLINK_ReadReg(R12) -- CPU is running
+  ***** Error: Can not read register 12 (R12) while CPU is running  returns 0x00000000 (0020ms, 2966ms total)
+TB78C 014:889 JLINK_ReadReg(R13 (SP)) -- CPU is running
+  ***** Error: Can not read register 13 (R13) while CPU is running  returns 0x00000000 (0019ms, 2985ms total)
+TB78C 014:908 JLINK_ReadReg(R14) -- CPU is running
+  ***** Error: Can not read register 14 (R14) while CPU is running  returns 0x00000000 (0020ms, 3005ms total)
+TB78C 014:928 JLINK_ReadReg(R15 (PC)) -- CPU is running
+  ***** Error: Can not read register 15 (R15) while CPU is running  returns 0x00000000 (0020ms, 3025ms total)
+TB78C 014:948 JLINK_ReadReg(XPSR) -- CPU is running
+  ***** Error: Can not read register 16 (XPSR) while CPU is running  returns 0x00000000 (0019ms, 3044ms total)
+TB78C 014:967 JLINK_ReadReg(MSP) -- CPU is running
+  ***** Error: Can not read register 17 (MSP) while CPU is running  returns 0x00000000 (0020ms, 3064ms total)
+TB78C 014:987 JLINK_ReadReg(PSP) -- CPU is running
+  ***** Error: Can not read register 18 (PSP) while CPU is running  returns 0x00000000 (0019ms, 3083ms total)
+TB78C 015:008 JLINK_ReadReg(CFBP) -- CPU is running
+  ***** Error: Can not read register 20 (CFBP) while CPU is running  returns 0x00000000 (0019ms, 3102ms total)
+TB90C 015:028 JLINK_ReadMemU32(0xE0001004, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001004)  returns 0xFFFFFFFF (0008ms, 3110ms total)
+TB78C 119:788 JLINK_SetBPEx(Addr = 0x080013E2, Type = 0xFFFFFFF2) -- CPU is running -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002008)  returns 0x00000007 (0008ms, 3118ms total)
+TB78C 119:796 JLINK_Go()
+  ***** Error: CPU is not halted (0020ms, 3138ms total)
+TB78C 119:916 JLINK_IsHalted()  returns ERROR (0019ms, 3157ms total)
+TB78C 119:935 JLINK_Halt()CPU could not be halted  returns 0x01 (0011ms, 3149ms total)
+TB78C 119:946 JLINK_IsHalted()  returns ERROR (0020ms, 3169ms total)
+TB78C 119:966 JLINK_IsHalted()  returns ERROR (0019ms, 3168ms total)
+TB78C 119:985 JLINK_IsHalted()  returns ERROR (0020ms, 3169ms total)
+TB78C 120:005 JLINK_ReadReg(R15 (PC)) -- CPU is running
+  ***** Error: Can not read register 15 (R15) while CPU is running  returns 0x00000000 (0019ms, 3168ms total)
+TB78C 120:025 JLINK_ReadReg(XPSR) -- CPU is running
+  ***** Error: Can not read register 16 (XPSR) while CPU is running  returns 0x00000000 (0020ms, 3188ms total)
+TB78C 120:045 JLINK_ClrBPEx(BPHandle = 0x00000007) -- CPU is running -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002008) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE000200C) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002010) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002014) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002018) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE000201C)  returns 0x00 (0060ms, 3248ms total)
+TB78C 120:105 JLINK_ReadMemU32(0xE000ED30, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE000ED30)  returns 0xFFFFFFFF (0007ms, 3255ms total)
+TB78C 120:112 JLINK_ReadMemU32(0xE0001028, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001028)  returns 0xFFFFFFFF (0007ms, 3262ms total)
+TB78C 120:119 JLINK_ReadMemU32(0xE0001038, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001038)  returns 0xFFFFFFFF (0007ms, 3269ms total)
+TB78C 120:126 JLINK_ReadMemU32(0xE0001048, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001048)  returns 0xFFFFFFFF (0007ms, 3276ms total)
+TB78C 120:133 JLINK_ReadMemU32(0xE0001058, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001058)  returns 0xFFFFFFFF (0006ms, 3282ms total)
+TB78C 120:139 JLINK_ReadReg(R0) -- CPU is running
+  ***** Error: Can not read register 0 (R0) while CPU is running  returns 0x00000000 (0019ms, 3301ms total)
+TB78C 120:159 JLINK_ReadReg(R1) -- CPU is running
+  ***** Error: Can not read register 1 (R1) while CPU is running  returns 0x00000000 (0019ms, 3320ms total)
+TB78C 120:179 JLINK_ReadReg(R2) -- CPU is running
+  ***** Error: Can not read register 2 (R2) while CPU is running  returns 0x00000000 (0019ms, 3339ms total)
+TB78C 120:198 JLINK_ReadReg(R3) -- CPU is running
+  ***** Error: Can not read register 3 (R3) while CPU is running  returns 0x00000000 (0019ms, 3358ms total)
+TB78C 120:217 JLINK_ReadReg(R4) -- CPU is running
+  ***** Error: Can not read register 4 (R4) while CPU is running  returns 0x00000000 (0020ms, 3378ms total)
+TB78C 120:237 JLINK_ReadReg(R5) -- CPU is running
+  ***** Error: Can not read register 5 (R5) while CPU is running  returns 0x00000000 (0019ms, 3397ms total)
+TB78C 120:257 JLINK_ReadReg(R6) -- CPU is running
+  ***** Error: Can not read register 6 (R6) while CPU is running  returns 0x00000000 (0019ms, 3416ms total)
+TB78C 120:276 JLINK_ReadReg(R7) -- CPU is running
+  ***** Error: Can not read register 7 (R7) while CPU is running  returns 0x00000000 (0020ms, 3436ms total)
+TB78C 120:296 JLINK_ReadReg(R8) -- CPU is running
+  ***** Error: Can not read register 8 (R8) while CPU is running  returns 0x00000000 (0019ms, 3455ms total)
+TB78C 120:316 JLINK_ReadReg(R9) -- CPU is running
+  ***** Error: Can not read register 9 (R9) while CPU is running  returns 0x00000000 (0019ms, 3474ms total)
+TB78C 120:336 JLINK_ReadReg(R10) -- CPU is running
+  ***** Error: Can not read register 10 (R10) while CPU is running  returns 0x00000000 (0020ms, 3494ms total)
+TB78C 120:356 JLINK_ReadReg(R11) -- CPU is running
+  ***** Error: Can not read register 11 (R11) while CPU is running  returns 0x00000000 (0019ms, 3513ms total)
+TB78C 120:375 JLINK_ReadReg(R12) -- CPU is running
+  ***** Error: Can not read register 12 (R12) while CPU is running  returns 0x00000000 (0020ms, 3533ms total)
+TB78C 120:395 JLINK_ReadReg(R13 (SP)) -- CPU is running
+  ***** Error: Can not read register 13 (R13) while CPU is running  returns 0x00000000 (0019ms, 3552ms total)
+TB78C 120:414 JLINK_ReadReg(R14) -- CPU is running
+  ***** Error: Can not read register 14 (R14) while CPU is running  returns 0x00000000 (0020ms, 3572ms total)
+TB78C 120:434 JLINK_ReadReg(R15 (PC)) -- CPU is running
+  ***** Error: Can not read register 15 (R15) while CPU is running  returns 0x00000000 (0020ms, 3592ms total)
+TB78C 120:454 JLINK_ReadReg(XPSR) -- CPU is running
+  ***** Error: Can not read register 16 (XPSR) while CPU is running  returns 0x00000000 (0019ms, 3611ms total)
+TB78C 120:473 JLINK_ReadReg(MSP) -- CPU is running
+  ***** Error: Can not read register 17 (MSP) while CPU is running  returns 0x00000000 (0019ms, 3630ms total)
+TB78C 120:495 JLINK_ReadReg(PSP) -- CPU is running
+  ***** Error: Can not read register 18 (PSP) while CPU is running  returns 0x00000000 (0020ms, 3650ms total)
+TB78C 120:515 JLINK_ReadReg(CFBP) -- CPU is running
+  ***** Error: Can not read register 20 (CFBP) while CPU is running  returns 0x00000000 (0019ms, 3669ms total)
+TB90C 120:535 JLINK_ReadMemU32(0xE0001004, 0x0001 Items, ...) -- CPU is running -- CPU_ReadMem(4 bytes @ 0xE0001004)  returns 0xFFFFFFFF (0007ms, 3676ms total)
+TB90C 124:220 JLINK_Close() -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002008) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE000200C) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002010) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002014) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE0002018) -- CPU is running -- CPU_WriteMem(4 bytes @ 0xE000201C) >0x80 JTAG>
+  ***** Error: Bad JTAG communication: Write to IR: Expected 0x1, got 0xF (TAP Command : 10) @ Off 0x5. (0042ms, 3718ms total)
+TB90C 124:220  (0043ms, 3719ms total)
+TB90C 124:220  (0043ms, 3719ms total)
+TB90C 124:220 Closed (0043ms, 3719ms total)
