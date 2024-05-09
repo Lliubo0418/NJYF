@@ -16,8 +16,7 @@
  * MCU_CX2EN¿Ú¿ØÖÆMCU_CX2P¿ÚÄÜ·ñ·¢ËÍ²éÑ¯Âö³å
  *
  */
-
-
+ 
  
  void Set_MCU_CXCON_ON_OFF(unsigned char status){
 		if(status==0){
@@ -44,28 +43,3 @@ void Set_MCU_CX2EN_ON_OFF(unsigned char flag)//ÉèÖÃÊÇ·ñÔÊĞíÔÚCX2´¦·¢ËÍĞÅºÅ 1 ÔÊĞ
 	else
 		HAL_GPIO_WritePin(MCU_CX2EN_GPIO_Port,MCU_CX2EN_Pin,GPIO_PIN_RESET);
 }
-
-//void Set_MCU_CX1P(uint16_t Pulse_width)//ÏòMCU_CX1P¿Ú·¢ËÍÂö¿íÎªPulse_widthµÄ·½²¨
-//{
-//	if(Pulse_width)
-//	{
-//		MCU_CX1P_Pulse_width = 	Pulse_width;
-//		MCU_CX1P_enable = 1;
-//	}
-//	else
-//	{
-//		MCU_CX1P_enable = 0;	
-//	}
-//}
-//void Set_MCU_CX2P(uint16_t Pulse_width)//ÏòMCU_CX1P¿Ú·¢ËÍÂö¿íÎªPulse_widthµÄ·½²¨
-//{
-//	if(Pulse_width)
-//	{
-//		MCU_CX2P_Pulse_width = 	Pulse_width;
-//		MCU_CX2P_enable = 1;
-//	}
-//	else
-//	{
-//		MCU_CX2P_enable = 0;	
-//	}
-//}

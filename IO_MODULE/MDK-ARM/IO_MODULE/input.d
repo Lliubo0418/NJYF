@@ -1,5 +1,6 @@
 io_module\input.o: ..\Core\Src\input.c
 io_module\input.o: ../Core/Inc/input.h
+io_module\input.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 io_module\input.o: ../Core/Inc/main.h
 io_module\input.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h
 io_module\input.o: ../Core/Inc/stm32f1xx_hal_conf.h
@@ -30,3 +31,5 @@ io_module\input.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
 io_module\input.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 io_module\input.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 io_module\input.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+io_module\input.o: ../Core/Inc/tim.h
+io_module\input.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h

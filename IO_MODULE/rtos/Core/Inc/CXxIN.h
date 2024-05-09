@@ -1,9 +1,6 @@
 #ifndef __CXXIN_H__
 #define __CXXIN_H__
 
-#include "main.h"
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,7 +9,7 @@ extern "C" {
 	
 
 void TERM_SIGNAL_IC(void);	
-	
+void CPU_SIGNAL_IC(void);
 
 	
 	

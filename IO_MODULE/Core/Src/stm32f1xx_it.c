@@ -41,7 +41,10 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
+extern uint16_t MCU_CX1_Pulse_width;
+extern uint16_t MCU_CX2_Pulse_width;
+extern unsigned char MCU_CX1_Pulse_enable;
+extern unsigned char MCU_CX2_Pulse_enable;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -191,7 +194,16 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-
+	if(MCU_CX2_Pulse_enable){
+	if(uwTick%MCU_CX2_Pulse_width==0){
+		HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_4);
+		}
+	}
+	if(MCU_CX1_Pulse_enable){
+		if(uwTick%MCU_CX1_Pulse_width==0){
+		HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_5);
+		}
+	}
   /* USER CODE END SysTick_IRQn 1 */
 }
 

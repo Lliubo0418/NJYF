@@ -8,10 +8,10 @@ extern "C" {
 
 	
 	
-	
-	
-
-	
+void MCU_F1_freq_get(void);	
+void MCU_F2_freq_get(void);
+void MCU_F3_freq_get(void);
+void MCU_F4_freq_get(void);
 	
 	
 #ifdef __cplusplus

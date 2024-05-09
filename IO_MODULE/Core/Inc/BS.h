@@ -10,7 +10,7 @@ extern "C" {
 	
 void Set_MCU_OUT_status(unsigned char flag);	
 	
-unsigned char Get_CPU_BS0IN_status(void);	
+void Get_CPU_BS0IN_status(void);	
 	
 	
 	

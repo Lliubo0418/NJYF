@@ -81,6 +81,13 @@ const osThreadAttr_t Term_IC_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Definitions for Cpu_IC */
+osThreadId_t Cpu_ICHandle;
+const osThreadAttr_t Cpu_IC_attributes = {
+  .name = "Cpu_IC",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -91,6 +98,7 @@ void StartCX1ENTask(void *argument);
 void StartLEDTask(void *argument);
 void StartCX2ENTask(void *argument);
 void StartTerm_IC(void *argument);
+void StartCpu_IC(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -132,6 +140,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of Term_IC */
   Term_ICHandle = osThreadNew(StartTerm_IC, NULL, &Term_IC_attributes);
+
+  /* creation of Cpu_IC */
+  Cpu_ICHandle = osThreadNew(StartCpu_IC, NULL, &Cpu_IC_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -218,6 +229,25 @@ void StartTerm_IC(void *argument)
     osDelay(10);
   }
   /* USER CODE END StartTerm_IC */
+}
+
+/* USER CODE BEGIN Header_StartCpu_IC */
+/**
+* @brief Function implementing the Cpu_IC thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartCpu_IC */
+void StartCpu_IC(void *argument)
+{
+  /* USER CODE BEGIN StartCpu_IC */
+  /* Infinite loop */
+  for(;;)
+  {
+		CPU_SIGNAL_IC();
+    osDelay(10);
+  }
+  /* USER CODE END StartCpu_IC */
 }
 
 /* Private application code --------------------------------------------------*/

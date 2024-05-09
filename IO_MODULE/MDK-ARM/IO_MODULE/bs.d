@@ -30,3 +30,4 @@ io_module\bs.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
 io_module\bs.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 io_module\bs.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 io_module\bs.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+io_module\bs.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h

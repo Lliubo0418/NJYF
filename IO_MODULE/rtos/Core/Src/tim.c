@@ -89,6 +89,7 @@ void MX_TIM2_Init(void)
   /* USER CODE BEGIN TIM2_Init 2 */
 			//更改为双边沿检测 sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_BOTHEDGE;
 //    HAL_TIM_IC_Start_IT(&htim2,TIM_CHANNEL_4);   //开启TIM2的捕获通道4，并且开启捕获中断
+//		HAL_TIM_IC_Start_IT(&htim2,TIM_CHANNEL_3); 
 //    __HAL_TIM_ENABLE_IT(&htim2,TIM_IT_UPDATE);   //使能更新中断
   /* USER CODE END TIM2_Init 2 */
 
@@ -141,8 +142,14 @@ void MX_TIM3_Init(void)
   {
     Error_Handler();
   }
+  if (HAL_TIM_IC_ConfigChannel(&htim3, &sConfigIC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN TIM3_Init 2 */
-
+		HAL_TIM_IC_Start_IT(&htim3,TIM_CHANNEL_1); 
+		HAL_TIM_IC_Start_IT(&htim3,TIM_CHANNEL_2); 
+    __HAL_TIM_ENABLE_IT(&htim3,TIM_IT_UPDATE);   //使能更新中断
   /* USER CODE END TIM3_Init 2 */
 
 }
@@ -195,7 +202,8 @@ void MX_TIM4_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN TIM4_Init 2 */
-
+		HAL_TIM_IC_Start_IT(&htim4,TIM_CHANNEL_1); 
+    __HAL_TIM_ENABLE_IT(&htim4,TIM_IT_UPDATE);   //使能更新中断
   /* USER CODE END TIM4_Init 2 */
 
 }
@@ -232,7 +240,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
     __HAL_AFIO_REMAP_TIM2_PARTIAL_1();
 
     /* TIM2 interrupt Init */
-    HAL_NVIC_SetPriority(TIM2_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(TIM2_IRQn);
   /* USER CODE BEGIN TIM2_MspInit 1 */
 
@@ -249,16 +257,17 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
     __HAL_RCC_GPIOB_CLK_ENABLE();
     /**TIM3 GPIO Configuration
     PB4     ------> TIM3_CH1
+    PB5     ------> TIM3_CH2
     */
-    GPIO_InitStruct.Pin = MCU_F4_Pin;
+    GPIO_InitStruct.Pin = MCU_F4_Pin|MCU_F3_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(MCU_F4_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     __HAL_AFIO_REMAP_TIM3_PARTIAL();
 
     /* TIM3 interrupt Init */
-    HAL_NVIC_SetPriority(TIM3_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(TIM3_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(TIM3_IRQn);
   /* USER CODE BEGIN TIM3_MspInit 1 */
 
@@ -282,7 +291,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
     HAL_GPIO_Init(MCU_F2_GPIO_Port, &GPIO_InitStruct);
 
     /* TIM4 interrupt Init */
-    HAL_NVIC_SetPriority(TIM4_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(TIM4_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(TIM4_IRQn);
   /* USER CODE BEGIN TIM4_MspInit 1 */
 
@@ -326,8 +335,9 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 
     /**TIM3 GPIO Configuration
     PB4     ------> TIM3_CH1
+    PB5     ------> TIM3_CH2
     */
-    HAL_GPIO_DeInit(MCU_F4_GPIO_Port, MCU_F4_Pin);
+    HAL_GPIO_DeInit(GPIOB, MCU_F4_Pin|MCU_F3_Pin);
 
     /* TIM3 interrupt Deinit */
     HAL_NVIC_DisableIRQ(TIM3_IRQn);

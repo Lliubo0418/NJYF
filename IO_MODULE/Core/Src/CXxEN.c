@@ -1,5 +1,6 @@
 #include "CXxEN.h"
 #include "main.h"
+#include "tim.h"
 
 
  /*
@@ -18,6 +19,13 @@
  */
  
  
+uint16_t MCU_CX1_Pulse_width=0;
+uint16_t MCU_CX2_Pulse_width=0;
+unsigned char MCU_CX1_Pulse_enable=0;
+unsigned char MCU_CX2_Pulse_enable=0;
+unsigned char MCU_CX1_enable=0;
+unsigned char MCU_CX2_enable=0;
+ 
  void Set_MCU_CXCON_ON_OFF(unsigned char status){
 		if(status==0){
 			HAL_GPIO_WritePin(GPIOA,GPIO_PIN_6,GPIO_PIN_SET);              //电子开关(高电平导通，低电平断开）
@@ -28,18 +36,53 @@
  
  }
  
- void Set_MCU_CX1EN_ON_OFF(unsigned char flag)//设置是否允许在CX1处发送信号 1 允许 0 禁止
+ void Set_MCU_CX1EN_ON_OFF(unsigned char flag)//设置是否允许在CX1处发送信号 1 禁止 0 允许
 {
-	if(flag==0)//高电平管子关断
+	if(flag==1){//高电平管子关断
 		HAL_GPIO_WritePin(MCU_CX1EN_GPIO_Port,MCU_CX1EN_Pin ,GPIO_PIN_SET);
+		MCU_CX1_enable=0;
+		}
 	else
+	{
 		HAL_GPIO_WritePin(MCU_CX1EN_GPIO_Port,MCU_CX1EN_Pin ,GPIO_PIN_RESET);//低电平导通
+		MCU_CX1_enable=1;
+	}
 }
 
-void Set_MCU_CX2EN_ON_OFF(unsigned char flag)//设置是否允许在CX2处发送信号 1 允许 0 禁止
+void Set_MCU_CX2EN_ON_OFF(unsigned char flag)//设置是否允许在CX2处发送信号 1 禁止 0 允许
 {
-	if(flag==0)//高电平管子关断
-		HAL_GPIO_WritePin(MCU_CX2EN_GPIO_Port,MCU_CX2EN_Pin,GPIO_PIN_SET);
+	if(flag==1){//高电平管子关断
+		HAL_GPIO_WritePin(MCU_CX2EN_GPIO_Port,MCU_CX2EN_Pin ,GPIO_PIN_SET);
+		MCU_CX2_enable=0;
+		}
 	else
-		HAL_GPIO_WritePin(MCU_CX2EN_GPIO_Port,MCU_CX2EN_Pin,GPIO_PIN_RESET);
+	{
+		HAL_GPIO_WritePin(MCU_CX2EN_GPIO_Port,MCU_CX2EN_Pin ,GPIO_PIN_RESET);//低电平导通
+		MCU_CX2_enable=1;
+	}
 }
+
+void Set_MCU_CX1P(uint8_t Pulse_width){       //以ms为单位
+	if(Pulse_width!=0&&MCU_CX1_enable==1){
+	MCU_CX1_Pulse_enable=1;
+	MCU_CX1_Pulse_width=Pulse_width;
+	}
+	else{
+	MCU_CX1_Pulse_enable=0;
+	}
+}
+
+void Set_MCU_CX2P(uint8_t Pulse_width){       //以ms为单位
+	if(Pulse_width&&MCU_CX2_enable==1){
+	MCU_CX2_Pulse_enable=1;
+	MCU_CX2_Pulse_width=Pulse_width;
+	}
+	else{
+	MCU_CX2_Pulse_enable=0;
+	}	
+
+
+}
+
+
+

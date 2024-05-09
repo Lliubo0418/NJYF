@@ -79,10 +79,10 @@ void Error_Handler(void);
 #define MCU_A4_GPIO_Port GPIOB
 #define LED1_Pin GPIO_PIN_12
 #define LED1_GPIO_Port GPIOB
-#define MCU_BS0IN_Pin GPIO_PIN_13
-#define MCU_BS0IN_GPIO_Port GPIOB
-#define MCU_BS1IN_Pin GPIO_PIN_14
+#define MCU_BS1IN_Pin GPIO_PIN_13
 #define MCU_BS1IN_GPIO_Port GPIOB
+#define MCU_BS0IN_Pin GPIO_PIN_14
+#define MCU_BS0IN_GPIO_Port GPIOB
 #define MCU_BS_OUT4_Pin GPIO_PIN_15
 #define MCU_BS_OUT4_GPIO_Port GPIOB
 #define MCU_BS_OUT3_Pin GPIO_PIN_8
@@ -91,6 +91,8 @@ void Error_Handler(void);
 #define MCU_F1_GPIO_Port GPIOB
 #define MCU_F4_Pin GPIO_PIN_4
 #define MCU_F4_GPIO_Port GPIOB
+#define MCU_F3_Pin GPIO_PIN_5
+#define MCU_F3_GPIO_Port GPIOB
 #define MCU_F2_Pin GPIO_PIN_6
 #define MCU_F2_GPIO_Port GPIOB
 #define MCU_A1_Pin GPIO_PIN_7

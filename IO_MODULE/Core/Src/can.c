@@ -80,12 +80,8 @@ void MX_CAN_Init(void)
  {
   Error_Handler();
 	 
-
-	 
  }
 
-		
-	
   /* USER CODE END CAN_Init 2 */
 
 }

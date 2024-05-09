@@ -8,8 +8,8 @@ extern "C" {
 
 	
 
-void TERM_SIGNAL_IC(void);	
-	
+void TERM_CXIN_IC(void);	
+void CPU_CXIN_IC(void);
 
 	
 	

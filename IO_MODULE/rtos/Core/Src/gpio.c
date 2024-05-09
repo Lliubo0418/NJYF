@@ -72,10 +72,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PBPin PBPin PBPin PBPin
-                           PBPin PB5 PBPin */
-  GPIO_InitStruct.Pin = MCU_A2_Pin|MCU_A3_Pin|MCU_A4_Pin|MCU_BS0IN_Pin
-                          |MCU_BS1IN_Pin|GPIO_PIN_5|MCU_A1_Pin;
+  /*Configure GPIO pins : PBPin PBPin PBPin PBPin */
+  GPIO_InitStruct.Pin = MCU_A2_Pin|MCU_A3_Pin|MCU_A4_Pin|MCU_A7_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PBPin PBPin */
+  GPIO_InitStruct.Pin = MCU_BS0IN_Pin|MCU_BS1IN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);

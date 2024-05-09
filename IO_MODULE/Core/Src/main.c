@@ -50,12 +50,9 @@ extern uint32_t high_time;   //高电平时间
 uint8_t overflow_cnt=0;   //是否溢出
 
 
-#define CXCON_ON 1           //电子开关闭合
-#define CXCON_OFF 0          //电子开关断开
-#define CX1EN_ON  0          //查询脉冲使能
-#define CX1EN_OFF  1         //查询脉冲失能
-#define CX2EN_ON  0          //查询脉冲使能
-#define CX2EN_OFF  1         //查询脉冲失能
+
+#define ON  0          
+#define OFF  1         
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -122,12 +119,15 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   MX_USART1_UART_Init();
+  MX_TIM1_Init();
+ 
   /* USER CODE BEGIN 2 */
-	//HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_3);
-	Set_MCU_CXCON_ON_OFF(CXCON_OFF);         //断开电子开关
-	Set_MCU_CX1EN_ON_OFF(CX1EN_OFF);				 //cx1发送脉冲失能
-	Set_MCU_CX2EN_ON_OFF(CX2EN_OFF);					//cx2发送脉冲失能
-	//HAL_GPIO_WritePin(GPIOA,GPIO_PIN_6,GPIO_PIN_SET);              //电子开关(高电平导通，低电平断开）
+	
+	Set_MCU_CXCON_ON_OFF(OFF);         	//断开电子开关
+	Set_MCU_CX1EN_ON_OFF(OFF);				 	//cx1发送脉冲失能
+	Set_MCU_CX2EN_ON_OFF(ON);					//cx2发送脉冲失能
+	Set_MCU_CX1P(10);                   //设置CX1脉宽
+	Set_MCU_CX2P(15);										//设置CX2脉宽  单位：ms
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -136,8 +136,7 @@ int main(void)
   {
     /* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
-	//	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_10,GPIO_PIN_SET);        //MCU_OUT1
+    /* USER CODE BEGIN 3 */ 
 		//HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_6); 
 		              
 		HAL_GPIO_TogglePin(GPIOB,LED1_Pin);                    
@@ -159,35 +158,36 @@ int main(void)
 //  TxHeader.DLC = 8;
 //        
 //        /* Start the Transmission process */
-//	if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
+//			if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
 //        {
 //          /* Transmission request Error */
 //          Error_Handler();
 //        }
 //        HAL_Delay(10);
+				 /* Get an CAN frame from the Rx FIFO zone into the message RAM.*/
 //			if(HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0,&RxHeader, RxData)!=HAL_OK){
 //					Error_Handler();														 
 //				}
 //				
-//	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_SET);           //cx2p使能
-//	HAL_Delay(1000);
 
+		TERM_CXIN_IC();            //终端查询信号捕获
+		CPU_CXIN_IC();							//主板查询信号捕获
+		Get_CPU_BS0IN_status();       //获取BS状态并控制输出状态
+		MCU_F1_freq_get();						//F1频率捕获
+		MCU_F2_freq_get();						//F2频率捕获
+		MCU_F3_freq_get();						//F3频率捕获
+		MCU_F4_freq_get();						//F4频率捕获
 	
-//	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_4,GPIO_PIN_RESET);
+
 
 
 
     /* USER CODE END WHILE */
  
     /* USER CODE BEGIN 3 */
-	
-		TERM_SIGNAL_IC();            //终端查询信号捕获
-
-
-
-
-       
+     
 }
+
   /* USER CODE END 3 */
 }
 
@@ -247,6 +247,30 @@ int fputc(int ch,FILE *f){
 		HAL_UART_Transmit(&huart1,(uint8_t *)&ch,1,0xFFFF);
 	return ch;
 }
+//加入以下代码,支持printf函数,而不需要选择use MicroLIB	  
+//#if 1
+//#pragma import(__use_no_semihosting)             
+////标准库需要的支持函数                 
+//struct __FILE 
+//{ 
+//	int handle; 
+
+//}; 
+
+//FILE __stdout;       
+////定义_sys_exit()以避免使用半主机模式    
+//void _sys_exit(int x) 
+//{ 
+//	x = x; 
+//} 
+////重定义fputc函数 
+//int fputc(int ch, FILE *f)
+//{      
+//	while((USART1->SR&0X40)==0);//循环发送,直到发送完毕   
+//    USART1->DR = (uint8_t) ch;      
+//	return ch;
+//}
+//#endif 
 /* USER CODE END 4 */
 
 /**

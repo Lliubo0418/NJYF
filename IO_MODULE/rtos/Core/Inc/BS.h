@@ -1,10 +1,6 @@
 #ifndef __BS_H__
 #define __BS_H__
 
-
-
-#include "main.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os.h"
 #include "can.h"
 #include "tim.h"
 #include "usart.h"
@@ -77,7 +76,6 @@ uint8_t overflow_cnt=0;   //是否溢出
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -126,24 +124,12 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 	//HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_3);
-	Set_MCU_CXCON_ON_OFF(CXCON_ON);         //断开电子开关
-	Set_MCU_CX1EN_ON_OFF(CX1EN_ON);				 //cx1发送脉冲失能
+	Set_MCU_CXCON_ON_OFF(CXCON_OFF);         //断开电子开关
+	Set_MCU_CX1EN_ON_OFF(CX1EN_OFF);				 //cx1发送脉冲失能
 	Set_MCU_CX2EN_ON_OFF(CX2EN_OFF);					//cx2发送脉冲失能
-	
-
 	//HAL_GPIO_WritePin(GPIOA,GPIO_PIN_6,GPIO_PIN_SET);              //电子开关(高电平导通，低电平断开）
+	
   /* USER CODE END 2 */
-
-  /* Init scheduler */
-  osKernelInitialize();
-
-  /* Call init function for freertos objects (in cmsis_os2.c) */
-  MX_FREERTOS_Init();
-
-  /* Start scheduler */
-  osKernelStart();
-
-  /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -155,7 +141,8 @@ int main(void)
 	//	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_10,GPIO_PIN_SET);        //MCU_OUT1
 		//HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_6); 
 		              
-
+		HAL_GPIO_TogglePin(GPIOB,LED1_Pin);                    
+		HAL_Delay(500);
 		
 //	TxData[0] = 0x11;    //CAN收发正常
 //	TxData[1] = 0xAD;
@@ -195,8 +182,12 @@ int main(void)
  
     /* USER CODE BEGIN 3 */
 	
-//		TERM_SIGNAL_IC();            //终端查询信号捕获
-
+		TERM_SIGNAL_IC();            //终端查询信号捕获
+		CPU_SIGNAL_IC();
+		MCU_F1_freq_get();
+		MCU_F2_freq_get();
+		MCU_F3_freq_get();
+		MCU_F4_freq_get();
 
 
 
@@ -261,28 +252,31 @@ int fputc(int ch,FILE *f){
 		HAL_UART_Transmit(&huart1,(uint8_t *)&ch,1,0xFFFF);
 	return ch;
 }
+//加入以下代码,支持printf函数,而不需要选择use MicroLIB	  
+//#if 1
+//#pragma import(__use_no_semihosting)             
+////标准库需要的支持函数                 
+//struct __FILE 
+//{ 
+//	int handle; 
+
+//}; 
+
+//FILE __stdout;       
+////定义_sys_exit()以避免使用半主机模式    
+//void _sys_exit(int x) 
+//{ 
+//	x = x; 
+//} 
+////重定义fputc函数 
+//int fputc(int ch, FILE *f)
+//{      
+//	while((USART1->SR&0X40)==0);//循环发送,直到发送完毕   
+//    USART1->DR = (uint8_t) ch;      
+//	return ch;
+//}
+//#endif 
 /* USER CODE END 4 */
-
-/**
-  * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM1 interrupt took place, inside
-  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
-  * a global variable "uwTick" used as application time base.
-  * @param  htim : TIM handle
-  * @retval None
-  */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  /* USER CODE BEGIN Callback 0 */
-
-  /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM1) {
-    HAL_IncTick();
-  }
-  /* USER CODE BEGIN Callback 1 */
-
-  /* USER CODE END Callback 1 */
-}
 
 /**
   * @brief  This function is executed in case of error occurrence.

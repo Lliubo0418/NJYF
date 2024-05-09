@@ -1,0 +1,27 @@
+--cpu Cortex-M3
+"terminal\startup_stm32f103xb.o"
+"terminal\main.o"
+"terminal\gpio.o"
+"terminal\can.o"
+"terminal\tim.o"
+"terminal\stm32f1xx_it.o"
+"terminal\stm32f1xx_hal_msp.o"
+"terminal\stm32f1xx_hal_gpio_ex.o"
+"terminal\stm32f1xx_hal_can.o"
+"terminal\stm32f1xx_hal.o"
+"terminal\stm32f1xx_hal_rcc.o"
+"terminal\stm32f1xx_hal_rcc_ex.o"
+"terminal\stm32f1xx_hal_gpio.o"
+"terminal\stm32f1xx_hal_dma.o"
+"terminal\stm32f1xx_hal_cortex.o"
+"terminal\stm32f1xx_hal_pwr.o"
+"terminal\stm32f1xx_hal_flash.o"
+"terminal\stm32f1xx_hal_flash_ex.o"
+"terminal\stm32f1xx_hal_exti.o"
+"terminal\stm32f1xx_hal_tim.o"
+"terminal\stm32f1xx_hal_tim_ex.o"
+"terminal\system_stm32f1xx.o"
+--strict --scatter "Terminal\Terminal.sct"
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "Terminal.map" -o Terminal\Terminal.axf
