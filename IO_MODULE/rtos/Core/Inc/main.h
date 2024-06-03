@@ -95,8 +95,8 @@ void Error_Handler(void);
 #define MCU_F3_GPIO_Port GPIOB
 #define MCU_F2_Pin GPIO_PIN_6
 #define MCU_F2_GPIO_Port GPIOB
-#define MCU_A7_Pin GPIO_PIN_7
-#define MCU_A7_GPIO_Port GPIOB
+#define MCU_A1_Pin GPIO_PIN_7
+#define MCU_A1_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 void BS_SIGNAL_IC(void);

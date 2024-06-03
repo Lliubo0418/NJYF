@@ -39,7 +39,7 @@ extern "C" {
 void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+void Channel_Sel(uint8_t ch);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

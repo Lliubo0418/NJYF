@@ -21,7 +21,13 @@
 #include "tim.h"
 
 /* USER CODE BEGIN 0 */
-
+//uint8_t cnt=0;
+ uint16_t up_edge_cnt=0;
+ uint16_t cnt=0;
+ extern uint8_t count_flag;
+  uint32_t Sync_capture_Buf[3] = {0};   //´æ·Å¼ÆÊýÖµ
+ uint8_t Sync_Cnt = 0;    //×´Ì¬±êÖ¾Î»
+ uint32_t Sync_high_time;   //¸ßµçÆ½Ê±¼ä
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim1;
@@ -312,20 +318,20 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 //[7]:0,Ã»ÓÐ³É¹¦µÄ²¶»ñ;1,³É¹¦²¶»ñµ½Ò»´Î.
 //[6]:0,»¹Ã»²¶»ñµ½µÍµçÆ½;1,ÒÑ¾­²¶»ñµ½µÍµçÆ½ÁË.
 //[5:0]:²¶»ñµÍµçÆ½ºóÒç³öµÄ´ÎÊý
-uint8_t TIM5CH1_CAPTURE_STA=0;							//ÊäÈë²¶»ñ×´Ì¬		    				
-uint16_t	TIM5CH1_CAPTURE_VAL;
+uint8_t TIM2CH2_CAPTURE_STA=0;							//ÊäÈë²¶»ñ×´Ì¬		    				
+uint16_t	TIM2CH2_CAPTURE_VAL;
 //¶¨Ê±Æ÷¸üÐÂÖÐ¶Ï£¨¼ÆÊýÒç³ö£©ÖÐ¶Ï´¦Àí»Øµ÷º¯Êý£¬ ¸Ãº¯ÊýÔÚHAL_TIM_IRQHandlerÖÐ»á±»µ÷ÓÃ
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)//¸üÐÂÖÐ¶Ï£¨Òç³ö£©·¢ÉúÊ±Ö´ÐÐ
 {
-	if((TIM5CH1_CAPTURE_STA&0X80)==0)				//»¹Î´³É¹¦²¶»ñ
+	if((TIM2CH2_CAPTURE_STA&0X80)==0)				//»¹Î´³É¹¦²¶»ñ
 	{
-		if(TIM5CH1_CAPTURE_STA&0X40)				//ÒÑ¾­²¶»ñµ½¸ßµçÆ½ÁË
+		if(TIM2CH2_CAPTURE_STA&0X40)				//ÒÑ¾­²¶»ñµ½¸ßµçÆ½ÁË
 		{
-			if((TIM5CH1_CAPTURE_STA&0X3F)==0X3F)	//¸ßµçÆ½Ì«³¤ÁË
+			if((TIM2CH2_CAPTURE_STA&0X3F)==0X3F)	//¸ßµçÆ½Ì«³¤ÁË
 			{
-				TIM5CH1_CAPTURE_STA|=0X80;			//±ê¼Ç³É¹¦²¶»ñÁËÒ»´Î
-				TIM5CH1_CAPTURE_VAL=0XFFFF;
-			}else TIM5CH1_CAPTURE_STA++;
+				TIM2CH2_CAPTURE_STA|=0X80;			//±ê¼Ç³É¹¦²¶»ñÁËÒ»´Î
+				TIM2CH2_CAPTURE_VAL=0XFFFF;
+			}else TIM2CH2_CAPTURE_STA++;
 		}	 
 	}		
 }
@@ -333,19 +339,45 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)//¸üÐÂÖÐ¶Ï£¨Òç³ö£©·¢É
 //¶¨Ê±Æ÷ÊäÈë²¶»ñÖÐ¶Ï´¦Àí»Øµ÷º¯Êý£¬¸Ãº¯ÊýÔÚHAL_TIM_IRQHandlerÖÐ»á±»µ÷ÓÃ
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)//²¶»ñÖÐ¶Ï·¢ÉúÊ±Ö´ÐÐ
 {
-	if((TIM5CH1_CAPTURE_STA&0X80)==0)				//»¹Î´³É¹¦²¶»ñ
+	
+//	    if(TIM2 == htim->Instance)
+//    {
+//				if(htim->Channel==HAL_TIM_ACTIVE_CHANNEL_2){    //Í¬²½ÐÅºÅ
+////				if(count_flag){
+////					up_edge_cnt++;
+////					if(up_edge_cnt==0x20){
+////						Sync_Cnt = 0;
+////						count_flag=0;
+////					}
+////        }
+////				}
+//        switch(Sync_Cnt){
+//            case 1:
+//                Sync_capture_Buf[0] = HAL_TIM_ReadCapturedValue(&htim2,TIM_CHANNEL_2);//»ñÈ¡µ±Ç°µÄ²¶»ñÖµ.
+//                __HAL_TIM_SET_CAPTUREPOLARITY(&htim2,TIM_CHANNEL_2,TIM_ICPOLARITY_FALLING);  //ÉèÖÃÎªÏÂ½µÑØ²¶»ñ
+//                Sync_Cnt++;
+//                break;
+//            case 2:
+//                Sync_capture_Buf[1] = HAL_TIM_ReadCapturedValue(&htim2,TIM_CHANNEL_2);//»ñÈ¡µ±Ç°µÄ²¶»ñÖµ.
+//                HAL_TIM_IC_Stop_IT(&htim2,TIM_CHANNEL_2); //Í£Ö¹²¶»ñ   
+//                Sync_Cnt++;
+//								break;
+//        }
+//				
+//			}
+	if((TIM2CH2_CAPTURE_STA&0X80)==0)				//»¹Î´³É¹¦²¶»ñ
 	{
-		if(TIM5CH1_CAPTURE_STA&0X40)				//²¶»ñµ½Ò»¸öÏÂ½µÑØ 		
+		if(TIM2CH2_CAPTURE_STA&0X40)				//²¶»ñµ½Ò»¸öÏÂ½µÑØ 		
 		{	  			
-			TIM5CH1_CAPTURE_STA|=0X80;				//±ê¼Ç³É¹¦²¶»ñµ½Ò»´Î¸ßµçÆ½Âö¿í
-            TIM5CH1_CAPTURE_VAL=HAL_TIM_ReadCapturedValue(&htim2,TIM_CHANNEL_2);//»ñÈ¡µ±Ç°µÄ²¶»ñÖµ.
+			TIM2CH2_CAPTURE_STA|=0X80;				//±ê¼Ç³É¹¦²¶»ñµ½Ò»´Î¸ßµçÆ½Âö¿í
+            TIM2CH2_CAPTURE_VAL=HAL_TIM_ReadCapturedValue(&htim2,TIM_CHANNEL_2);//»ñÈ¡µ±Ç°µÄ²¶»ñÖµ.
 			TIM_RESET_CAPTUREPOLARITY(&htim2,TIM_CHANNEL_2);   //Ò»¶¨ÒªÏÈÇå³ýÔ­À´µÄÉèÖÃ£¡£¡
             TIM_SET_CAPTUREPOLARITY(&htim2,TIM_CHANNEL_2,TIM_ICPOLARITY_RISING);//ÅäÖÃTIM5Í¨µÀ1ÉÏÉýÑØ²¶»ñ
 		}else  										//»¹Î´¿ªÊ¼,µÚÒ»´Î²¶»ñÉÏÉýÑØ
 		{
-			TIM5CH1_CAPTURE_STA=0;					//Çå¿Õ
-			TIM5CH1_CAPTURE_VAL=0;
-			TIM5CH1_CAPTURE_STA|=0X40;				//±ê¼Ç²¶»ñµ½ÁËÉÏÉýÑØ
+			TIM2CH2_CAPTURE_STA=0;					//Çå¿Õ
+			TIM2CH2_CAPTURE_VAL=0;
+			TIM2CH2_CAPTURE_STA|=0X40;				//±ê¼Ç²¶»ñµ½ÁËÉÏÉýÑØ
 			__HAL_TIM_DISABLE(&htim2);      	//¹Ø±Õ¶¨Ê±Æ÷5
 			__HAL_TIM_SET_COUNTER(&htim2,0);
 			TIM_RESET_CAPTUREPOLARITY(&htim2,TIM_CHANNEL_2);   //Ò»¶¨ÒªÏÈÇå³ýÔ­À´µÄÉèÖÃ£¡£¡
@@ -353,5 +385,16 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)//²¶»ñÖÐ¶Ï·¢ÉúÊ±Ö´ÐÐ
 			__HAL_TIM_ENABLE(&htim2);		//Ê¹ÄÜ¶¨Ê±Æ÷5
 		}		    
 	}		
+////////////	if(TIM2==htim->Instance){
+////////////		if(htim->Channel==HAL_TIM_ACTIVE_CHANNEL_2){
+////////////			cnt++;
+////////////			if(cnt==33){
+////////////				cnt=0;
+////////////			}
+////////////			
+////////////		}
+////////////	
+////////////	}
+
 }
 /* USER CODE END 1 */

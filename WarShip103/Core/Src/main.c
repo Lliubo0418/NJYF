@@ -59,8 +59,15 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-extern uint8_t  TIM5CH1_CAPTURE_STA;		//输入捕获状态		    				
-extern uint32_t	TIM5CH1_CAPTURE_VAL;	//输入捕获值 
+extern uint8_t  TIM2CH2_CAPTURE_STA;		//输入捕获状态		    				
+extern uint32_t	TIM2CH2_CAPTURE_VAL;	//输入捕获值 
+unsigned long long temp=0; 
+
+ extern uint16_t up_edge_cnt;
+ uint8_t count_flag=0;
+  extern uint32_t Sync_capture_Buf[3];   //存放计数值
+ extern uint8_t Sync_Cnt ;    //状态标志位
+ extern uint32_t Sync_high_time;   //高电平时间
 /* USER CODE END 0 */
 
 /**
@@ -71,7 +78,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	unsigned long long temp=0; 
+	
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -111,14 +118,33 @@ int main(void)
     /* USER CODE BEGIN 3 */
 		HAL_GPIO_TogglePin(GPIOE,GPIO_PIN_5);
 		HAL_Delay(500);
-		if(TIM5CH1_CAPTURE_STA&0X80)        //成功捕获到了一次高电平
+		if(TIM2CH2_CAPTURE_STA&0X80)        //成功捕获到了一次高电平
 		{
-			temp=TIM5CH1_CAPTURE_STA&0X3F; 
-			temp*=65536;		 	    	//溢出时间总和
-			temp+=TIM5CH1_CAPTURE_VAL;      //得到总的高电平时间
-			printf("HIGH:%lld us\r\n",temp);//打印总的高点平时间
-			TIM5CH1_CAPTURE_STA=0;          //开启下一次捕获
+			temp=TIM2CH2_CAPTURE_STA&0X3F; 
+//			temp*=65536;		 	    	//溢出时间总和
+			temp+=TIM2CH2_CAPTURE_VAL;      //得到总的高电平时间
+			printf("HIGH:%lld us\r\n",(unsigned long long)temp);//打印总的高点平时间
+			TIM2CH2_CAPTURE_STA=0;          //开启下一次捕获
 		}
+//////		switch (Sync_Cnt){
+//////	case 0:
+//////		Sync_Cnt++;
+//////		__HAL_TIM_SET_CAPTUREPOLARITY(&htim2, TIM_CHANNEL_2, TIM_INPUTCHANNELPOLARITY_RISING);
+//////		HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_2);	//启动输入捕获       或者: __HAL_TIM_ENABLE(&htim5);
+//////		break;
+//////	case 3:
+//////		if(Sync_capture_Buf[1]<Sync_capture_Buf[0]){                  //不存在先捕获高电平后捕获低电平capture_Buf[1]<capture_Buf[0],肯定是有了溢出
+//////			Sync_high_time = 0xC350+Sync_capture_Buf[1]- Sync_capture_Buf[0];
+//////		}
+//////		else{
+//////		Sync_high_time = Sync_capture_Buf[1]- Sync_capture_Buf[0];    //高电平时间  
+//////			
+//////		}
+//////			
+//////		Sync_Cnt = 0;
+
+//////		break;
+//////	}
   }
   /* USER CODE END 3 */
 }

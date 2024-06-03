@@ -286,9 +286,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 break;
 						case 6:                              //¿ªÆôpulseÂö³å
 								__HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 2);
-								//HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_2);
+								__HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 0);
+						//HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_2);
+							break;
+						case 7:		
+								__HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 2);
 								break;
-            case 38:                             //¹Ø±Õpulse								
+            case 39:                             //¹Ø±Õpulse								
                 __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 0);
 								__HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 0);
 								//HAL_TIM_PWM_Stop(&htim2,TIM_CHANNEL_2);

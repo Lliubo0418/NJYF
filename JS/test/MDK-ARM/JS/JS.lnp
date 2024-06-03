@@ -1,0 +1,26 @@
+--cpu Cortex-M3
+"js\startup_stm32f103xb.o"
+"js\main.o"
+"js\gpio.o"
+"js\dma.o"
+"js\tim.o"
+"js\stm32f1xx_it.o"
+"js\stm32f1xx_hal_msp.o"
+"js\stm32f1xx_hal_gpio_ex.o"
+"js\stm32f1xx_hal_tim.o"
+"js\stm32f1xx_hal_tim_ex.o"
+"js\stm32f1xx_hal.o"
+"js\stm32f1xx_hal_rcc.o"
+"js\stm32f1xx_hal_rcc_ex.o"
+"js\stm32f1xx_hal_gpio.o"
+"js\stm32f1xx_hal_dma.o"
+"js\stm32f1xx_hal_cortex.o"
+"js\stm32f1xx_hal_pwr.o"
+"js\stm32f1xx_hal_flash.o"
+"js\stm32f1xx_hal_flash_ex.o"
+"js\stm32f1xx_hal_exti.o"
+"js\system_stm32f1xx.o"
+--strict --scatter "JS\JS.sct"
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "JS.map" -o JS\JS.axf
