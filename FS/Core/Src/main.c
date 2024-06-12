@@ -144,51 +144,51 @@ extern volatile uint16_t adc_value[8];
 //      temp[i]=(float)adcx[i]*(3.3/4096); 
 //    }
 		
-////    adcx[0]=Get_Adc_Average(ADC_CHANNEL_2,20);//获取通道1的转换值，20次取平均
-////		temp[0]=(float)adcx[0]*(3.3/4096);          //获取计算后的带小数的实际电压值，比如3.1111
-////		HAL_Delay(50);	
-////		
-////    adcx[1]=Get_Adc_Average(ADC_CHANNEL_3,20);//获取通道1的转换值，20次取平均
-////		temp[1]=(float)adcx[1]*(3.3/4096);          //获取计算后的带小数的实际电压值，比如3.1111
-////		HAL_Delay(50);
+    adcx[0]=Get_Adc_Average(ADC_CHANNEL_2,20);//获取通道1的转换值，20次取平均
+		temp[0]=(float)adcx[0]*(3.3/4096);          //获取计算后的带小数的实际电压值，比如3.1111
+		HAL_Delay(50);	
+		
+    adcx[1]=Get_Adc_Average(ADC_CHANNEL_3,20);//获取通道1的转换值，20次取平均
+		temp[1]=(float)adcx[1]*(3.3/4096);          //获取计算后的带小数的实际电压值，比如3.1111
+		HAL_Delay(50);
 
-////    adcx[2]=Get_Adc_Average(ADC_CHANNEL_4,20);//获取通道1的转换值，20次取平均
-////		temp[2]=(float)adcx[2]*(3.3/4096);          //获取计算后的带小数的实际电压值，比如3.1111
-////		HAL_Delay(50);	
-////		
-////    adcx[3]=Get_Adc_Average(ADC_CHANNEL_5,20);//获取通道1的转换值，20次取平均
-////		temp[3]=(float)adcx[3]*(3.3/4096);          //获取计算后的带小数的实际电压值，比如3.1111
-////		HAL_Delay(50);
+    adcx[2]=Get_Adc_Average(ADC_CHANNEL_4,20);//获取通道1的转换值，20次取平均
+		temp[2]=(float)adcx[2]*(3.3/4096);          //获取计算后的带小数的实际电压值，比如3.1111
+		HAL_Delay(50);	
+		
+    adcx[3]=Get_Adc_Average(ADC_CHANNEL_5,20);//获取通道1的转换值，20次取平均
+		temp[3]=(float)adcx[3]*(3.3/4096);          //获取计算后的带小数的实际电压值，比如3.1111
+		HAL_Delay(50);
 
-////    adcx[4]=Get_Adc_Average(ADC_CHANNEL_6,20);//获取通道1的转换值，20次取平均
-////		temp[4]=(float)adcx[4]*(3.3/4096);          //获取计算后的带小数的实际电压值，比如3.1111
-////		HAL_Delay(50);	
-////		
-////    adcx[5]=Get_Adc_Average(ADC_CHANNEL_7,20);//获取通道1的转换值，20次取平均
-////		temp[5]=(float)adcx[5]*(3.3/4096);          //获取计算后的带小数的实际电压值，比如3.1111
-////		HAL_Delay(50);
+    adcx[4]=Get_Adc_Average(ADC_CHANNEL_6,20);//获取通道1的转换值，20次取平均
+		temp[4]=(float)adcx[4]*(3.3/4096);          //获取计算后的带小数的实际电压值，比如3.1111
+		HAL_Delay(50);	
+		
+    adcx[5]=Get_Adc_Average(ADC_CHANNEL_7,20);//获取通道1的转换值，20次取平均
+		temp[5]=(float)adcx[5]*(3.3/4096);          //获取计算后的带小数的实际电压值，比如3.1111
+		HAL_Delay(50);
 
-////    adcx[6]=Get_Adc_Average(ADC_CHANNEL_8,20);//获取通道1的转换值，20次取平均
-////		temp[6]=(float)adcx[6]*(3.3/4096);          //获取计算后的带小数的实际电压值，比如3.1111
-////		HAL_Delay(50);	
-////		
-////    adcx[7]=Get_Adc_Average(ADC_CHANNEL_9,20);//获取通道1的转换值，20次取平均
-////		temp[7]=(float)adcx[7]*(3.3/4096);          //获取计算后的带小数的实际电压值，比如3.1111
-////		HAL_Delay(50);
+    adcx[6]=Get_Adc_Average(ADC_CHANNEL_8,20);//获取通道1的转换值，20次取平均
+		temp[6]=(float)adcx[6]*(3.3/4096);          //获取计算后的带小数的实际电压值，比如3.1111
+		HAL_Delay(50);	
+		
+    adcx[7]=Get_Adc_Average(ADC_CHANNEL_9,20);//获取通道1的转换值，20次取平均
+		temp[7]=(float)adcx[7]*(3.3/4096);          //获取计算后的带小数的实际电压值，比如3.1111
+		HAL_Delay(50);
 	
 
 		
-		for(int i=0;i<8;i++)
-      {
-//          HAL_ADC_Start(&hadc1);
-          HAL_ADC_PollForConversion(&hadc1,10);
-          adc_value[i]=HAL_ADC_GetValue(&hadc1);
-				sp[i+1] = (float)adc_value[i]*3.3/4096;
-      }
-//      HAL_ADC_Stop(&hadc1);
+////////		for(int i=0;i<8;i++)
+////////      {
+//////////          HAL_ADC_Start(&hadc1);
+////////          HAL_ADC_PollForConversion(&hadc1,50);
+////////          adc_value[i]=HAL_ADC_GetValue(&hadc1);
+////////				sp[i] = (float)adc_value[i]*3.3/4096;
+////////      }
+//////////      HAL_ADC_Stop(&hadc1);
 
 	  /*SEL切换*/
-		HAL_Delay(500);
+//		HAL_Delay(500);
 		HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_13);
     /* USER CODE END WHILE */
 
