@@ -1,0 +1,303 @@
+C51 COMPILER V9.60.0.0   F380_USB0_BULK                                                    06/12/2024 09:09:33 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE F380_USB0_BULK
+OBJECT MODULE PLACED IN .\src\F380_USB0_Bulk.OBJ
+COMPILER INVOKED BY: F:\SiliconLabs\SimplicityStudio\v5\developer\toolchains\keil_8051\9.60\BIN\C51.exe C:\Users\52876\S
+                    -implicityStudio\v5_workspace\distance_usb_v1\src\F380_USB0_Bulk.c OMF2 SMALL DEBUG OBJECTEXTEND ROM(LARGE) WARNINGLEVEL(
+                    -2) FLOATFUZZY(3) OPTIMIZE(8,SPEED) DEFINE(DEBUG=1) INTVECTOR(0X0000) INTPROMOTE INCDIR(C:\Users\52876\SimplicityStudio\v
+                    -5_workspace\distance_usb_v1\external_copied_files;F:/SiliconLabs/SimplicityStudio/v5/developer/sdks/8051/v4.3.1//Device/
+                    -shared/si8051Base;F:/SiliconLabs/SimplicityStudio/v5/developer/sdks/8051/v4.3.1//Device/C8051F380/inc) PRINT(.\src\F380_
+                    -USB0_Bulk.lst) COND PAGEWIDTH(120) PAGELENGTH(65) OBJECT(.\src\F380_USB0_Bulk.OBJ)
+
+line level    source
+
+   1          //-----------------------------------------------------------------------------
+   2          // F380_USB0_Bulk.c
+   3          //-----------------------------------------------------------------------------
+   4          // Copyright 2014 Silicon Laboratories, Inc.
+   5          // http://developer.silabs.com/legal/version/v11/Silicon_Labs_Software_License_Agreement.txt
+   6          //
+   7          // Program Description:
+   8          //
+   9          // Device specific initialization routines.
+  10          //
+  11          //
+  12          // How To Test:    See Readme.txt
+  13          //
+  14          //
+  15          // Target:         C8051F38x
+  16          // Tool chain:     Keil C51 7.50 / Keil EVAL C51
+  17          //                 Silicon Laboratories IDE version 2.6
+  18          // Command Line:   See Readme.txt
+  19          // Project Name:   USB0_Bulk
+  20          //
+  21          // Release 2.0
+  22          //    -Rewrite (CM)
+  23          //    -02 NOV 2012
+  24          //
+  25          // Release 1.1
+  26          //    -All changes by BW
+  27          //    -1 SEP 2010
+  28          //    -Updated USB0_Init() to write 0x89 to CLKREC instead of 0x80
+  29          //
+  30          // Release 1.0
+  31          //    -Initial Revision (PD)
+  32          //    -04 JUN 2008
+  33          //
+  34          
+  35          //-----------------------------------------------------------------------------
+  36          // Header Files
+  37          //-----------------------------------------------------------------------------
+  38          
+  39          #include "c8051f3xx.h"
+  40          #include "F3xx_USB0_Descriptor.h"
+  41          #include "F3xx_USB0_InterruptServiceRoutine.h"
+  42          #include "F3xx_USB0_Register.h"
+  43          #include "F3xx_USB0_Bulk.h"
+  44          
+  45          #include "C8051F380_defs.h"
+  46          #include "SI_C8051F380_Defs.h"
+  47          
+  48          #if TARGET_MCU != MCU_F380
+              #error Invalid TARGET_MCU definition
+              #endif // TARGET_MCU != MCU_F380
+  51          
+C51 COMPILER V9.60.0.0   F380_USB0_BULK                                                    06/12/2024 09:09:33 PAGE 2   
+
+  52          //-----------------------------------------------------------------------------
+  53          // Definitions
+  54          //-----------------------------------------------------------------------------
+  55          
+  56          #define SYSCLK             24000000    // SYSCLK frequency in Hz
+  57          
+  58          // USB clock selections (SFR CLKSEL)
+  59          #define USB_4X_CLOCK       0x00        // Select 4x clock multiplier, for USB
+  60          #define USB_INT_OSC_DIV_2  0x10        // Full Speed
+  61          #define USB_EXT_OSC        0x20
+  62          #define USB_EXT_OSC_DIV_2  0x30
+  63          #define USB_EXT_OSC_DIV_3  0x40
+  64          #define USB_EXT_OSC_DIV_4  0x50
+  65          
+  66          // System clock selections (SFR CLKSEL)
+  67          #define SYS_INT_OSC        0x00        // Select to use internal oscillator
+  68          #define SYS_EXT_OSC        0x01        // Select to use an external oscillator
+  69          #define SYS_4X_DIV_2       0x02
+  70          
+  71          //-----------------------------------------------------------------------------
+  72          // Static Function Prototypes
+  73          //-----------------------------------------------------------------------------
+  74          
+  75          static void Sysclk_Init (void);
+  76          static void Port_Init (void);
+  77          
+  78          //-----------------------------------------------------------------------------
+  79          // Global Variables
+  80          //-----------------------------------------------------------------------------
+  81          
+  82          SI_SBIT(Led1, SFR_P2, 2);         // LED='1' means ON
+  83          SI_SBIT(Led2, SFR_P2, 3);
+  84          
+  85          //-----------------------------------------------------------------------------
+  86          // Global Functions
+  87          //-----------------------------------------------------------------------------
+  88          
+  89          //-----------------------------------------------------------------------------
+  90          // System_Init
+  91          //-----------------------------------------------------------------------------
+  92          // This function is declared in the header file F3xx_HIDtoUART.h and is
+  93          // called in the main(void) function.  It calls initialization routines
+  94          // local to this file.
+  95          //
+  96          //-----------------------------------------------------------------------------
+  97          void System_Init (void)
+  98          {
+  99   1         PCA0MD &= ~0x40;                    // Disable watchdog timer
+ 100   1      
+ 101   1         Sysclk_Init ();                     // Initialize oscillator
+ 102   1         Port_Init ();                       // Initialize crossbar and GPIO
+ 103   1      
+ 104   1         VDM0CN = 0x80;                      // Enable VDD Monitor
+ 105   1         Delay ();                           // Wait for VDD Monitor to stabilize
+ 106   1         RSTSRC = 0x02;                      // Enable VDD Monitor as a reset source
+ 107   1      }
+ 108          
+ 109          //-----------------------------------------------------------------------------
+ 110          // USB0_Init
+ 111          //-----------------------------------------------------------------------------
+ 112          // USB Initialization performs the following:
+ 113          // - Initialize USB0
+ 114          // - Enable USB0 interrupts
+C51 COMPILER V9.60.0.0   F380_USB0_BULK                                                    06/12/2024 09:09:33 PAGE 3   
+
+ 115          // - Enable USB0 transceiver
+ 116          // - Enable USB0 with suspend detection
+ 117          //
+ 118          //-----------------------------------------------------------------------------
+ 119          void USB0_Init (void)
+ 120          {
+ 121   1         POLL_WRITE_BYTE (POWER,  0x08);     // Force Asynchronous USB Reset
+ 122   1         POLL_WRITE_BYTE (IN1IE,  0x03);     // Enable Endpoint 0-1 in interrupts
+ 123   1         POLL_WRITE_BYTE (OUT1IE, 0x02);     // Enable Endpoint 1 out interrupts
+ 124   1         POLL_WRITE_BYTE (CMIE,   0x0F);     // Enable SOF, Reset, Resume, and
+ 125   1                                             // Suspend interrupts
+ 126   1      
+ 127   1         USB0XCN = 0xE0;                     // Enable transceiver; select full speed
+ 128   1         POLL_WRITE_BYTE (CLKREC, 0x89);     // Enable clock recovery, single-step
+ 129   1                                             // mode disabled
+ 130   1      
+ 131   1         EIE1 |= 0x02;                       // Enable USB0 Interrupts
+ 132   1      
+ 133   1                                             // Enable USB0 by clearing the USB
+ 134   1         POLL_WRITE_BYTE (POWER, 0x01);      // Inhibit Bit and enable suspend
+ 135   1                                             // detection
+ 136   1      }
+ 137          
+ 138          //-----------------------------------------------------------------------------
+ 139          // USB0_Suspend
+ 140          //-----------------------------------------------------------------------------
+ 141          // Enter suspend mode after suspend signalling is present on the bus
+ 142          //
+ 143          void USB0_Suspend(void)
+ 144          {
+ 145   1         // Power Down
+ 146   1      
+ 147   1         IE_EA = 0;                    // Disable global interrupts
+ 148   1         XBR1 &= ~0x40;             // Disengage the crossbar
+ 149   1      
+ 150   1         USB0XCN &= ~0x40;          // Suspend USB Transceiver
+ 151   1         CLKSEL = 0x10;             // USB Clock now uses int osc / 2
+ 152   1         CLKMUL = 0x00;             // Disable Clock Multiplier
+ 153   1         REG01CN |= 0x10;           // Place voltage regulator in low power mode
+ 154   1         OSCICN |= 0x20;            // Force internal oscillator suspend
+ 155   1      
+ 156   1         NOP ();
+ 157   1      
+ 158   1         // Power Up
+ 159   1         // Code execution begins here when resume signaling is received.
+ 160   1      
+ 161   1         REG01CN &= ~0x10;          // Place voltage regulator in full power mode
+ 162   1         Sysclk_Init ();
+ 163   1         USB0XCN |= 0x40;           // Enable USB Transceiver
+ 164   1      
+ 165   1         XBR1 |= 0x40;              // Engage the crossbar
+ 166   1         IE_EA = 1;
+ 167   1      }
+ 168          
+ 169          //-----------------------------------------------------------------------------
+ 170          // Delay
+ 171          //-----------------------------------------------------------------------------
+ 172          // Used for a small pause, approximately 80 us in Full Speed,
+ 173          // and 1 ms when clock is configured for Low Speed
+ 174          //
+ 175          //-----------------------------------------------------------------------------
+ 176          void Delay (void)
+ 177          {
+C51 COMPILER V9.60.0.0   F380_USB0_BULK                                                    06/12/2024 09:09:33 PAGE 4   
+
+ 178   1         int16_t x;
+ 179   1      
+ 180   1         for (x = 0; x < 500; x)
+ 181   1         {
+ 182   2            x++;
+ 183   2         }
+ 184   1      }
+ 185          
+ 186          //-----------------------------------------------------------------------------
+ 187          // SetLed
+ 188          //-----------------------------------------------------------------------------
+ 189          //
+ 190          // Return Value : None
+ 191          // Parameters   :
+ 192          //                1) uint8_t led: specified which LED to set (1 or 2)
+ 193          //                2) uint8_t on: 0 means off, 1 means on
+ 194          //
+ 195          // Set the state of the specified LED
+ 196          //
+ 197          //-----------------------------------------------------------------------------
+ 198          void SetLed (uint8_t led, uint8_t on)
+ 199          {
+ 200   1         if (led == 1)
+ 201   1         {
+ 202   2            if (on)
+ 203   2               Led1 = 1;
+ 204   2            else
+ 205   2               Led1 = 0;
+ 206   2         }
+ 207   1         else if (led == 2)
+ 208   1         {
+ 209   2            if (on)
+ 210   2               Led2 = 1;
+ 211   2            else
+ 212   2               Led2 = 0;
+ 213   2         }
+ 214   1      }
+ 215          
+ 216          //-----------------------------------------------------------------------------
+ 217          // Static Global Functions
+ 218          //-----------------------------------------------------------------------------
+ 219          
+ 220          //-----------------------------------------------------------------------------
+ 221          // Sysclk_Init
+ 222          //-----------------------------------------------------------------------------
+ 223          // This function initializes the system clock and the USB clock.
+ 224          // Full-speed System Clock: 24 MHz  USB Clock: 48 MHz
+ 225          //
+ 226          //-----------------------------------------------------------------------------
+ 227          static void Sysclk_Init (void)
+ 228          {
+ 229   1         OSCICN |= 0x03;                     // Configure internal oscillator for
+ 230   1                                             // its maximum frequency and enable
+ 231   1                                             // missing clock detector
+ 232   1      
+ 233   1         CLKMUL  = 0x00;                     // Select internal oscillator as
+ 234   1                                             // input to clock multiplier
+ 235   1      
+ 236   1         CLKMUL |= 0x80;                     // Enable clock multiplier
+ 237   1         Delay();                            // Delay for clock multiplier to begin
+ 238   1         CLKMUL |= 0xC0;                     // Initialize the clock multiplier
+ 239   1         Delay();                            // Delay for clock multiplier to begin
+ 240   1      
+C51 COMPILER V9.60.0.0   F380_USB0_BULK                                                    06/12/2024 09:09:33 PAGE 5   
+
+ 241   1         while(!(CLKMUL & 0x20));            // Wait for multiplier to lock
+ 242   1         CLKSEL  = 0x02;                     // Set sys clock to clkmul / 2
+ 243   1      }
+ 244          
+ 245          //-----------------------------------------------------------------------------
+ 246          // Port_Init
+ 247          //-----------------------------------------------------------------------------
+ 248          //
+ 249          // Return Value : None
+ 250          // Parameters   : None
+ 251          //
+ 252          // This function configures the crossbar and GPIO ports.
+ 253          //
+ 254          // P2.2   digital   push-pull    LED1
+ 255          // P2.3   digital   push-pull    LED2
+ 256          //
+ 257          //-----------------------------------------------------------------------------
+ 258          static void Port_Init (void)
+ 259          {
+ 260   1         P2MDOUT   = 0x0C; // P2.2 - P2.3 is push-pull
+ 261   1         P2SKIP    = 0x0C; // P2.2 - P2.3 skipped
+ 262   1         XBR1      = 0x40; // Enable the crossbar
+ 263   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    212    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

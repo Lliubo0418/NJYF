@@ -1,0 +1,228 @@
+C51 COMPILER V9.60.0.0   F3XX_USB0_DESCRIPTOR                                              06/12/2024 09:09:33 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE F3XX_USB0_DESCRIPTOR
+OBJECT MODULE PLACED IN .\src\F3xx_USB0_Descriptor.OBJ
+COMPILER INVOKED BY: F:\SiliconLabs\SimplicityStudio\v5\developer\toolchains\keil_8051\9.60\BIN\C51.exe C:\Users\52876\S
+                    -implicityStudio\v5_workspace\distance_usb_v1\src\F3xx_USB0_Descriptor.c OMF2 SMALL DEBUG OBJECTEXTEND ROM(LARGE) WARNING
+                    -LEVEL(2) FLOATFUZZY(3) OPTIMIZE(8,SPEED) DEFINE(DEBUG=1) INTVECTOR(0X0000) INTPROMOTE INCDIR(C:\Users\52876\SimplicitySt
+                    -udio\v5_workspace\distance_usb_v1\external_copied_files;F:/SiliconLabs/SimplicityStudio/v5/developer/sdks/8051/v4.3.1//D
+                    -evice/shared/si8051Base;F:/SiliconLabs/SimplicityStudio/v5/developer/sdks/8051/v4.3.1//Device/C8051F380/inc) PRINT(.\src
+                    -\F3xx_USB0_Descriptor.lst) COND PAGEWIDTH(120) PAGELENGTH(65) OBJECT(.\src\F3xx_USB0_Descriptor.OBJ)
+
+line level    source
+
+   1          //-----------------------------------------------------------------------------
+   2          // F3xx_USB0_Descriptor.c
+   3          //-----------------------------------------------------------------------------
+   4          // Copyright 2014 Silicon Laboratories, Inc.
+   5          // http://developer.silabs.com/legal/version/v11/Silicon_Labs_Software_License_Agreement.txt
+   6          //
+   7          // Program Description:
+   8          //
+   9          // Stub file for Firmware Template.
+  10          //
+  11          //
+  12          // How To Test:    See Readme.txt
+  13          //
+  14          //
+  15          // Target:         C8051F320/1,
+  16          //                 C8051F326/7,
+  17          //                 C8051F34x,
+  18          //                 C8051F38x
+  19          //
+  20          // Tool chain:     Keil C51 7.50 / Keil EVAL C51
+  21          //                 Silicon Laboratories IDE version 2.6
+  22          // Command Line:   See Readme.txt
+  23          // Project Name:   USB0_Bulk
+  24          //
+  25          // Release 2.0
+  26          //    -Rewrite (CM)
+  27          //    -02 NOV 2012
+  28          //
+  29          // Release 1.0
+  30          //    -Initial Revision (PD)
+  31          //    -04 JUN 2008
+  32          //
+  33          
+  34          //-----------------------------------------------------------------------------
+  35          // Includes
+  36          //-----------------------------------------------------------------------------
+  37          
+  38          #include "c8051f3xx.h"
+  39          #include "F3xx_USB0_Descriptor.h"
+  40          #include "F3xx_USB0_InterruptServiceRoutine.h"
+  41          
+  42          //-----------------------------------------------------------------------------
+  43          // Global Variables
+  44          //-----------------------------------------------------------------------------
+  45          
+  46          // Note: Multi-byte fields are expressed in little-endian (LSB first)
+  47          
+  48          SI_SEGMENT_VARIABLE(DEVICE_DESC, const Device_Descriptor, SI_SEG_CODE) = 
+  49          {
+  50             18,                  // bLength
+  51             0x01,                // bDescriptorType
+C51 COMPILER V9.60.0.0   F3XX_USB0_DESCRIPTOR                                              06/12/2024 09:09:33 PAGE 2   
+
+  52             LE_ARRAY(0x0110),    // bcdUSB
+  53             0x00,                // bDeviceClass
+  54             0x00,                // bDeviceSubClass
+  55             0x00,                // bDeviceProtocol
+  56             EP0_PACKET_SIZE,     // bMaxPacketSize0
+  57             LE_ARRAY(0x10C4),    // idVendor
+  58             LE_ARRAY(0x8845),    // idProduct
+  59             LE_ARRAY(0x0000),    // bcdDevice
+  60             0x01,                // iManufacturer
+  61             0x02,                // iProduct
+  62             0x00,                // iSerialNumber
+  63             0x01                 // bNumConfigurations
+  64          };
+  65          
+  66          SI_SEGMENT_VARIABLE(CONFIG_DESC, const Configuration_Descriptor, SI_SEG_CODE) =
+  67          {
+  68             0x09,                // bLength
+  69             0x02,                // bDescriptorType
+  70             LE_ARRAY(0x0020),    // wTotalLength
+  71             0x01,                // bNumInterfaces
+  72             0x01,                // bConfigurationValue
+  73             0x00,                // iConfiguration
+  74             0x80,                // bmAttributes (Bus-powered)
+  75             0x14                 // bMaxPower (40mA)
+  76          };
+  77          
+  78          SI_SEGMENT_VARIABLE(INTERFACE_DESC, const Interface_Descriptor, SI_SEG_CODE) =
+  79          {
+  80             0x09,                // bLength
+  81             0x04,                // bDescriptorType
+  82             0x00,                // bInterfaceNumber
+  83             0x00,                // bAlternateSetting
+  84             0x02,                // bNumEndpoints (Excluding EP0)
+  85             0xFF,                // bInterfaceClass (Vendor specific)
+  86             0x00,                // bInterfaceSubClass
+  87             0x00,                // bInterfaceProcotol
+  88             0x00                 // iInterface
+  89          };
+  90          
+  91          SI_SEGMENT_VARIABLE(IN_EP1_DESC, const Endpoint_Descriptor, SI_SEG_CODE) = 
+  92          {
+  93             0x07,                // bLength
+  94             0x05,                // bDescriptorType
+  95             0x81,                // bEndpointAddress (IN EP1)
+  96             0x02,                // bmAttributes (Bulk)
+  97             LE_ARRAY(IN_EP1_PACKET_SIZE), // MaxPacketSize
+  98             1                    // bInterval (Unused)
+  99          };
+ 100          
+ 101          SI_SEGMENT_VARIABLE(OUT_EP1_DESC, const Endpoint_Descriptor, SI_SEG_CODE) = 
+ 102          {
+ 103             0x07,                // bLength
+ 104             0x05,                // bDescriptorType
+ 105             0x01,                // bEndpointAddress (OUT EP1)
+ 106             0x02,                // bmAttributes (Bulk)
+ 107             LE_ARRAY(OUT_EP1_PACKET_SIZE), // MaxPacketSize
+ 108             1                    // bInterval (Unused)
+ 109          };
+ 110          
+ 111          #define STRING0_LEN 4
+ 112          
+ 113          static SI_SEGMENT_VARIABLE(STRING0_DESC[STRING0_LEN], const uint8_t, SI_SEG_CODE) = 
+ 114          {
+C51 COMPILER V9.60.0.0   F3XX_USB0_DESCRIPTOR                                              06/12/2024 09:09:33 PAGE 3   
+
+ 115             STRING0_LEN, 0x03, 0x09, 0x04
+ 116          };
+ 117          
+ 118          // Note: sizeof("") returns an additional +1 for the null-terminator,
+ 119          // which in this case is used in place of the first two bytes
+ 120          // in the string descriptor
+ 121          #define STRING1_LEN sizeof ("Silicon Laboratories Inc.") * 2
+ 122          
+ 123          static SI_SEGMENT_VARIABLE(STRING1_DESC[STRING1_LEN], const uint8_t, SI_SEG_CODE) = 
+ 124          {
+ 125             STRING1_LEN, 0x03,
+ 126             'S', 0,
+ 127             'i', 0,
+ 128             'l', 0,
+ 129             'i', 0,
+ 130             'c', 0,
+ 131             'o', 0,
+ 132             'n', 0,
+ 133             ' ', 0,
+ 134             'L', 0,
+ 135             'a', 0,
+ 136             'b', 0,
+ 137             'o', 0,
+ 138             'r', 0,
+ 139             'a', 0,
+ 140             't', 0,
+ 141             'o', 0,
+ 142             'r', 0,
+ 143             'i', 0,
+ 144             'e', 0,
+ 145             's', 0,
+ 146             ' ', 0,
+ 147             'I', 0,
+ 148             'n', 0,
+ 149             'c', 0,
+ 150             '.', 0
+ 151          };
+ 152          
+ 153          // Note: sizeof("") returns an additional +1 for the null-terminator,
+ 154          // which in this case is used in place of the first two bytes
+ 155          // in the string descriptor
+ 156          #define STRING2_LEN sizeof("C8051F3xx Bulk Example") * 2
+ 157          
+ 158          static SI_SEGMENT_VARIABLE(STRING2_DESC[STRING2_LEN], const uint8_t, SI_SEG_CODE) = 
+ 159          {
+ 160             STRING2_LEN, 0x03,
+ 161             'C', 0,
+ 162             '8', 0,
+ 163             '0', 0,
+ 164             '5', 0,
+ 165             '1', 0,
+ 166             'F', 0,
+ 167             '3', 0,
+ 168             'x', 0,
+ 169             'x', 0,
+ 170             ' ', 0,
+ 171             'B', 0,
+ 172             'u', 0,
+ 173             'l', 0,
+ 174             'k', 0,
+ 175             ' ', 0,
+ 176             'E', 0,
+ 177             'x', 0,
+C51 COMPILER V9.60.0.0   F3XX_USB0_DESCRIPTOR                                              06/12/2024 09:09:33 PAGE 4   
+
+ 178             'a', 0,
+ 179             'm', 0,
+ 180             'p', 0,
+ 181             'l', 0,
+ 182             'e', 0
+ 183          };
+ 184          
+ 185          SI_SEGMENT_VARIABLE_SEGMENT_POINTER(STRING_DESC_TABLE[], uint8_t, const SI_SEG_CODE, const SI_SEG_CODE) = 
+ 186          {
+ 187             STRING0_DESC,
+ 188             STRING1_DESC,
+ 189             STRING2_DESC
+ 190          };
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =    158    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

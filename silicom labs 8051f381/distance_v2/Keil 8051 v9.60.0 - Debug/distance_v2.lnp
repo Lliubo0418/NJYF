@@ -1,0 +1,3 @@
+"./src/SILABS_STARTUP.OBJ",
+"./src/distance_v2_main.OBJ"
+TO "DISTANCE_V2.OMF.CRBUILD" REMOVEUNUSED PRINT(.\distance_v2.m51) PAGEWIDTH (120) PAGELENGTH (65) CLASSES( ECODE(C:0x0 - C:0xfbfe), HCONST(C:0x0 - C:0xfbfe), XDATA(X:0x0 - X:0xfff), HDATA(X:0x0 - X:0xfff))

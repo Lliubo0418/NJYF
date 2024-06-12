@@ -1,0 +1,9 @@
+"./src/F380_USB0_Bulk.OBJ",
+"./src/F3xx_Flash.OBJ",
+"./src/F3xx_USB0_Descriptor.OBJ",
+"./src/F3xx_USB0_InterruptServiceRoutine.OBJ",
+"./src/F3xx_USB0_Standard_Requests.OBJ",
+"./src/F3xx_USB0_Vendor_Requests.OBJ",
+"./src/SILABS_STARTUP.OBJ",
+"./src/distance_v2_main.OBJ"
+TO "DISTANCE_USB_V1.OMF.CRBUILD" REMOVEUNUSED PRINT(.\distance_usb_v1.m51) PAGEWIDTH (120) PAGELENGTH (65) CLASSES( ECODE(C:0x0 - C:0xfbfe), HCONST(C:0x0 - C:0xfbfe), XDATA(X:0x0 - X:0xfff), HDATA(X:0x0 - X:0xfff))

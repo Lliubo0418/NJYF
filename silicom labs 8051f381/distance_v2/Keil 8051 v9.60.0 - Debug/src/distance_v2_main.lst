@@ -1,0 +1,3093 @@
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE DISTANCE_V2_MAIN
+OBJECT MODULE PLACED IN .\src\distance_v2_main.OBJ
+COMPILER INVOKED BY: F:\SiliconLabs\SimplicityStudio\v5\developer\toolchains\keil_8051\9.60\BIN\C51.exe C:\Users\52876\S
+                    -implicityStudio\v5_workspace\distance_v2\src\distance_v2_main.c OMF2 SMALL DEBUG OBJECTEXTEND ROM(LARGE) WARNINGLEVEL(2)
+                    - FLOATFUZZY(3) OPTIMIZE(8,SPEED) DEFINE(DEBUG=1) INTVECTOR(0X0000) INTPROMOTE INCDIR(C:\Users\52876\SimplicityStudio\v5_
+                    -workspace\distance_v2\external_copied_files;F:/SiliconLabs/SimplicityStudio/v5/developer/sdks/8051/v4.3.1//Device/shared
+                    -/si8051Base;F:/SiliconLabs/SimplicityStudio/v5/developer/sdks/8051/v4.3.1//Device/C8051F380/inc) PRINT(.\src\distance_v2
+                    -_main.lst) COND PAGEWIDTH(120) PAGELENGTH(65) OBJECT(.\src\distance_v2_main.OBJ)
+
+line level    source
+
+   1          /********************************************************************************
+   2          * FILE NAME           : LMD(按键式:单点/范围输出RS232 和RS485）.C
+   3          * Copyright           : 2012--2020 Lucheng Sensor Corporation,All Rights Reserved.
+   4          * Module Name         : 激光测距仪
+   5          * CPU                 : C8051F381
+   6          * Create Date         : 2013/09/05
+   7          * Author              : Kerry_Sun
+   8          * Abstract Description:
+   9          *
+  10          
+  11          **------------------------ Revision History ----------------------------------**
+  12          
+  13          * No     Version       Date          Revised By     Item    Description
+  14          * 1       V1.41         2015/03/13   Kerry                   first release
+  15          
+  16          * 更改输出为三端式
+  17          *                       2015/04/13    Kerry                  更改激光机芯初始化 ：去掉PR
+  18          2         V1.42         2015/06/19    Kerry                  更改串口中断为高优先级
+  19          3         V1.351        2015/09/11    Kerry                  去掉DIR0，增加继电器和PNP的输出�
+             -�择：=0 距离报警输出，=1 错误报警输出
+  20          4         V2.0          2015/10/19    kerry                  将RS232和RS485合并在一个程序里面
+  21          5         V2.2          2016/4/21    kerry                  修改RS485通讯多机死机问题
+  22          6.        V3.0          2020.06.16    kerry                  修改先按enter键，再按SET键出现错�
+             -��显示的bug
+  23          7         V3.1          2021/04/09    Mark Dresser          Correct comm lockup bug, rename b -> bx, up->u
+             -px for KEIL toolset
+  24          8         V3.2      2021/06/21    Mark Dresser          Correct distance overflow error above 65 m.
+  25          *********************************************************************************/
+  26          //#include <config_381.h>
+  27          
+  28          #include <math.h>
+  29          #include <stdio.h>
+  30          #include <absacc.h>
+  31          #include "compiler_defs.h"
+  32          #include "C8051F380_defs.h"
+  33          #include "SI_C8051F380_Defs.h"
+  34          
+  35          
+  36          #define  uchar  unsigned char
+  37          #define  uint  unsigned int
+  38          #define  ulint  unsigned long int
+  39          #define lint  long int
+  40          
+  41          #define version_major '3'
+  42          #define version_minor '2'
+  43          
+  44          uchar code par0[38] ={    0x00,0x00,0x02,0x00,0x00, //RB00.200---0,1,2,3,4
+  45                                    0x03,0x00,0x00,0x00,0x00, //RE30.000---5,6,7,8,9,
+  46                          0x01,0x00,0x00,0x00,0x00, //UP10.000----10,11,12,13,14
+  47                                    0x00,0x02,0x00,0x00,0x00, //LO02.000---15,16,17,18,19
+  48                          0x00,           //ADD--20,
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 2   
+
+  49                          0x00,0x00,0x02,0x00,0x00, //AH ---21,22,23,24,25
+  50                          0x01,0x02,0x03, //上电识别代码 26,27,28
+  51                                        0x00,0x02,0x05,0x00,0x00, // AC ---29,30,31,32,33,
+  52                          0x01,                      // OPT---34  1:<AL ;2:AL--AH;3:>AH
+  53                                        0x00,                      //继电器的输出形式，=0： 距离输出�
+             -�=1：出错输出----35
+  54                          0x00,                        //PNP的输出形式，=0： 距离输出；=1：出错输出
+             -------36
+  55                          0x01                          //0=rs232,1 =rs485
+  56                                   };
+  57          uchar idata par_buf[38];//从单片机内部的flash读出数据到XRAM
+  58          
+  59          //flash
+  60          uchar xdata *pwrite;//外部数据缓冲区
+  61          uchar code *pread;
+  62          
+  63          uchar *par;
+  64          
+  65          sbit ALARM  = P2^0;
+  66          sbit m_clk  = P1^0;
+  67          sbit m_load = P1^2;
+  68          sbit m_din  =   P1^1;
+  69          sbit enter    = P1^7;
+  70          sbit shift_right= P1^6;
+  71          sbit upx      = P1^5;
+  72          sbit function = P1^4;
+  73          sbit Power = P1^3;
+  74          sbit OUT0 = P2^6;
+  75          sbit OUT1   =   P2^5;
+  76          //sbit OUT3 = P2^2;
+  77          sbit MODE         = P0^7;
+  78          sbit RXEN        = P0^3;
+  79          sbit DXEN        = P0^6;
+  80          //sbit ON           = P2^4;
+  81          //sbit SLEW         = P0^2;
+  82          
+  83          
+  84          
+  85          ulint data UP;
+  86          ulint data LO;
+  87          ulint data AH;
+  88          
+  89          uchar data CTR;
+  90          ulint data now_val;
+  91          uchar idata a,bx,c,d,e;
+  92          
+  93          
+  94          
+  95          uchar data receive0_temp[10]={' ',' ',' ',' ',' ',' ',' ',' ',' ',' '};
+  96          
+  97          
+  98          uchar idata function_flag;
+  99          
+ 100          uchar idata up_flag;
+ 101          uchar idata shift_right_flag=0;
+ 102          uchar idata enter_flag;
+ 103          bit   idata   find_key;                   //功能按键按下  两下确认
+ 104          
+ 105          
+ 106          //----------------------------UART1-PROFIBUS----------------------------------------
+ 107          uchar data receive1[12]={' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '};
+ 108          uchar data send_buf[13]={' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '};
+ 109          
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 3   
+
+ 110          volatile uchar data tl0timer0=0;//20ms的时间基准
+ 111          bit b_head_sure= 0;
+ 112          bit send_enable=0;
+ 113          //uchar idata rcv1_end_flag = 0;
+ 114          uchar idata rcv_count = 0;
+ 115          bit uart1_receve_end = 0;
+ 116          volatile uchar data txcount0=0;
+ 117          volatile uchar data txptr0=0;//指针指向下一个地址
+ 118          
+ 119          //---------------------------------------------------------------------------
+ 120          
+ 121          void trans0(char *str);
+ 122          
+ 123          void display(void);
+ 124          
+ 125          void display_add(void);
+ 126          void  shift0_5(void);
+ 127          void  shift_add(void);
+ 128          void disp_emissivity_5(void);
+ 129          void disp_emissivity0_5(void);
+ 130          void disp_emissivity_2(void);
+ 131          void disp_emissivity0_2(void);
+ 132          //void display_uart0(void);
+ 133          void rb1(void);
+ 134          void send_rb(void);
+ 135          void send_rb3();
+ 136          void send_rb0();
+ 137          void send_dt(void);
+ 138          void send_dt1(void);
+ 139          //void dt(void);
+ 140          void send_re(void);
+ 141          void re1();
+ 142          void send_re3();
+ 143          void send_re0();
+ 144          
+ 145          void send_ah(void);
+ 146          void ah1(void);
+ 147          
+ 148          void send_dl();
+ 149          void dl1();
+ 150          void pa(void);
+ 151          //void pr(void);
+ 152          void send_dh();
+ 153          void dh1();
+ 154          
+ 155          void send_opt();
+ 156          void opt();
+ 157          void po();
+ 158          void send_po();
+ 159          void rl();
+ 160          void send_rl();
+ 161          void alarm_state(void);
+ 162          void direct_uart1();
+ 163          void direct_uart0(void);
+ 164          void send_ver();
+ 165          //void send_error_code1();
+ 166          //void send_error_code2();
+ 167          //void display_dt();
+ 168          void send_crc_buf(void);
+ 169          
+ 170          
+ 171          //-----------------------------------------------------------------------------
+ 172          // SiLabs_Startup() Routine
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 4   
+
+ 173          // ----------------------------------------------------------------------------
+ 174          // This function is called immediately after reset, before the initialization
+ 175          // code is run in SILABS_STARTUP.A51 (which runs before main() ). This is a
+ 176          // useful place to disable the watchdog timer, which is enable by default
+ 177          // and may trigger before main() in some instances.
+ 178          //-----------------------------------------------------------------------------
+ 179          void SiLabs_Startup (void)
+ 180          {
+ 181   1        PCA0MD &= ~0x40;    //clear WD Timer Enable at beginning of initialization code or it may fire.
+ 182   1      }
+ 183          
+ 184          /////////////////////////////////////
+ 185          //  Generated Initialization File  //
+ 186          
+ 187          void PCA_Init()                             //Programmable Counter Array
+ 188          {
+ 189   1          PCA0MD    &= ~0x40;
+ 190   1          PCA0MD    = 0x00;
+ 191   1          PCA0CPL4  = 0xC2;
+ 192   1          PCA0MD    |= 0x20;
+ 193   1      }
+ 194          
+ 195          void UART0_Init()
+ 196          {
+ 197   1          SCON0     = 0x10;
+ 198   1      
+ 199   1          TCON      = 0x50; //timer1 enable
+ 200   1          TMOD      = 0x21; //8bit counter/timer autoreload
+ 201   1          CKCON     = 0x01; //timer1 clock = sysclock
+ 202   1          TH1       = 0x64; //bandrate 9600bit             //根据定时器1高位
+ 203   1        TL1       = TH1;
+ 204   1        ES0       = 1;
+ 205   1      
+ 206   1        // IP |= 0x10;                         // Make UART high priority
+ 207   1      }
+ 208          
+ 209          void UART1_Init()
+ 210          {
+ 211   1      
+ 212   1         SMOD1 = 0x0C;
+ 213   1      
+ 214   1         SCON1 = 0x10;                       // SCON1: 8-bit variable bit rate
+ 215   1                                             //        level of STOP bit is ignored
+ 216   1                                             //        RX enabled
+ 217   1                                             //        ninth bits are zeros
+ 218   1                                             //       clear RI0 and TI0 bits
+ 219   1      //       SBRLH1    = 0xFF;
+ 220   1      //       SBRLL1    = 0xCC;  // 115200
+ 221   1      
+ 222   1         SBRLH1    = 0xFD;
+ 223   1         SBRLL1    = 0x8F;  // 9600
+ 224   1      
+ 225   1      
+ 226   1          SBCON1 |= 0x43;                     // enable baud rate generator
+ 227   1      
+ 228   1      
+ 229   1        SCON1 |= 0x02;                      // indicate ready for TX
+ 230   1      
+ 231   1         EIE2 |= 0x02;  //enable UART1 interrupt
+ 232   1           EIP2 |= 0x02;   // Make UART high priority
+ 233   1      
+ 234   1      
+ 235   1      }
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 5   
+
+ 236          void timer0_init(void)
+ 237          {
+ 238   1          TCON      = 0x00;
+ 239   1          TMOD      = 0x01;
+ 240   1         CKCON=0x00;        //timer0使用sysclk/12
+ 241   1         ET0=1;         //ET0=1;
+ 242   1         TH0=(65536-20000)/256;//20ms定时   ?
+ 243   1         TL0=(65535-20000)%256;
+ 244   1         TR0=1;
+ 245   1       //  PT0=1;             //为默认优先级
+ 246   1      
+ 247   1      }
+ 248          void Port_IO_Init()
+ 249          {
+ 250   1       // P0.0  -  TX1 (UART1), Push-Pull,  Digital
+ 251   1          // P0.1  -  RX1 (UART1), Open-Drain, Digital
+ 252   1          // P0.2  -  Unassigned,  Open-Drain, Digital
+ 253   1          // P0.3  -  Unassigned,  Open-Drain, Digital
+ 254   1          // P0.4  -  TX0 (UART0), Push-Pull,  Digital
+ 255   1          // P0.5  -  RX0 (UART0), Open-Drain, Digital
+ 256   1          // P0.6  -  Unassigned,  Open-Drain, Digital
+ 257   1          // P0.7  -  Unassigned,  Open-Drain, Digital
+ 258   1      
+ 259   1          // P1.0  -  Unassigned,  Open-Drain, Digital
+ 260   1          // P1.1  -  Unassigned,  Open-Drain, Digital
+ 261   1          // P1.2  -  Unassigned,  Open-Drain, Digital
+ 262   1          // P1.3  -  Unassigned,  Open-Drain, Digital
+ 263   1          // P1.4  -  Unassigned,  Open-Drain, Digital
+ 264   1          // P1.5  -  Unassigned,  Open-Drain, Digital
+ 265   1          // P1.6  -  Unassigned,  Open-Drain, Digital
+ 266   1          // P1.7  -  Unassigned,  Open-Drain, Digital
+ 267   1      
+ 268   1          // P2.0  -  Unassigned,  Open-Drain, Digital
+ 269   1          // P2.1  -  Unassigned,  Open-Drain, Digital
+ 270   1          // P2.2  -  Unassigned,  Open-Drain, Digital
+ 271   1          // P2.3  -  Unassigned,  Open-Drain, Digital
+ 272   1          // P2.4  -  Unassigned,  Open-Drain, Digital
+ 273   1          // P2.5  -  Unassigned,  Open-Drain, Digital
+ 274   1          // P2.6  -  Unassigned,  Open-Drain, Digital
+ 275   1          // P2.7  -  Unassigned,  Open-Drain, Digital
+ 276   1      
+ 277   1          // P3.0  -  Unassigned,  Open-Drain, Digital
+ 278   1      
+ 279   1          P0MDOUT   = 0x11;    //TX0 TX1 push-pull
+ 280   1          XBR0      = 0x01;    //UART0 ENABLE
+ 281   1          XBR1      = 0x40;    //Crossbar Enable
+ 282   1          XBR2      = 0x01;    //UART1 ENABLE
+ 283   1      
+ 284   1      
+ 285   1      }
+ 286          
+ 287          void Oscillator_Init()
+ 288          {
+ 289   1          int i = 0;          //去掉
+ 290   1          OSCICN    = 0xC3;
+ 291   1      }
+ 292          // Initialization function for device,
+ 293          // Call Init_Device() from your main program
+ 294          void Init_Device(void)
+ 295          {
+ 296   1          PCA_Init();              //Programmable Counter Array
+ 297   1          timer0_init();
+ 298   1          UART0_Init();
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 6   
+
+ 299   1        UART1_Init();
+ 300   1          Port_IO_Init();
+ 301   1          Oscillator_Init();
+ 302   1      }
+ 303          
+ 304          void trans0(char *str)
+ 305          {
+ 306   1        uchar *p;
+ 307   1        p = str;
+ 308   1        while(*p!='\0')
+ 309   1        {
+ 310   2          PCA0CPH4 = 0xa0;
+ 311   2          SBUF0 = *p++;
+ 312   2          while(!TI0);
+ 313   2          TI0 = 0;
+ 314   2        }
+ 315   1      }
+ 316          
+ 317          /////////////////////////////////////////////////////
+ 318          /*                      DELAY                      */
+ 319          /////////////////////////////////////////////////////
+ 320          
+ 321          void delay(int  n)
+ 322          {
+ 323   1        int i;
+ 324   1        int j;
+ 325   1      
+ 326   1        for (i=0;i<n;i++)
+ 327   1        {
+ 328   2      
+ 329   2        for(j=0;j<1;j++)
+ 330   2        {PCA0CPH4 = 0xa0;}
+ 331   2        }
+ 332   1      }
+ 333          
+ 334          
+ 335          
+ 336          void delay20ms(void)
+ 337          {
+ 338   1          uchar j;
+ 339   1          for(j=0;j<100;j++)
+ 340   1          {
+ 341   2            PCA0CPH4 = 0xa0;
+ 342   2              delay(40);
+ 343   2      
+ 344   2          }
+ 345   1      }
+ 346          
+ 347          void delay1s(void)
+ 348          {
+ 349   1        uchar l;
+ 350   1        for(l=0;l<10;l++)
+ 351   1        {
+ 352   2          PCA0CPH4 = 0xa0;
+ 353   2          delay20ms();
+ 354   2        }
+ 355   1      }
+ 356          /////////////////////////////////////////////////////
+ 357          /*                    m_display                      */
+ 358          /////////////////////////////////////////////////////
+ 359          static  struct
+ 360          {
+ 361            uchar ascii;
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 7   
+
+ 362            uchar stroke;
+ 363          }code led_stroke[]=
+ 364            {
+ 365              {0,0x7e},{1,0x30},{2,0x6d},{3,0x79},{4,0x33},
+ 366              {5,0x5b},{6,0x5f},{7,0x70},{8,0x7f},{9,0x7b},
+ 367              {'0',0x7e},{'1',0x30},{'2',0x6d},{'3',0x79},{'4',0x33},
+ 368              {'5',0x5b},{'6',0x5f},{'7',0x70},{'8',0x7f},{'9',0x7b},
+ 369              {'A',0x77},{'B',0x1f},{'C',0x4e},{'D',0x3d},{'E',0x4f},
+ 370              {'F',0x47},{'H',0x37},{'I',0X06},{'L',0x0e},{'M',0x15},
+ 371              {'O',0x1d},{'P',0x67},{'R',0x05},{'S',0x5b},{'T',0x46},
+ 372              {'Y',0x3b},{'U',0x3E},{'-',0x01},{' ',0x00},{'\n',0x00},{'\r',0x00}
+ 373            };
+ 374          
+ 375          
+ 376          
+ 377          void  m_send(uchar addr,uchar da)
+ 378          {
+ 379   1        uchar i,byte_out;
+ 380   1        byte_out=addr;
+ 381   1        m_clk=0;
+ 382   1        m_load=0;
+ 383   1        for(i=0;i<8;i++)                              //address
+ 384   1          {
+ 385   2            m_din=byte_out&0x80;
+ 386   2              m_clk = 0;
+ 387   2                PCA0CPH4 = 0xa0;    //160
+ 388   2            m_clk = 1;
+ 389   2            byte_out=byte_out<<1;
+ 390   2          }
+ 391   1        byte_out=da;
+ 392   1        for(i=0;i<8;i++)                             //data
+ 393   1          {
+ 394   2            m_din=byte_out&0x80;
+ 395   2            m_clk=0;
+ 396   2      
+ 397   2              PCA0CPH4 = 0xa0;
+ 398   2            m_clk = 1;
+ 399   2            byte_out=byte_out<<1;
+ 400   2          }
+ 401   1      
+ 402   1        m_load=1;
+ 403   1      
+ 404   1      }
+ 405          
+ 406          void  m_init(void)                      //led显示
+ 407          {
+ 408   1        m_send(0x09,0x00);//no dcode
+ 409   1        m_send(0x0a,0x02);//light
+ 410   1        m_send(0x0b,0x04);//number 5
+ 411   1        m_send(0x0c,0x01);//start
+ 412   1        m_send(0x0f,0x00);
+ 413   1      
+ 414   1      }
+ 415          
+ 416          uchar get_stroke(uchar c)
+ 417          {
+ 418   1        uchar i=0;
+ 419   1        while(led_stroke[i].ascii!=c)
+ 420   1        {
+ 421   2          i++;
+ 422   2            PCA0CPH4 = 0xa0;
+ 423   2          if(i>40)
+ 424   2          {
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 8   
+
+ 425   3            return(' ');
+ 426   3          }
+ 427   2        }
+ 428   1        return(led_stroke[i].stroke);
+ 429   1      }
+ 430          
+ 431          
+ 432          /////////////////////////////////////////////////////
+ 433          /*               C8051F38X flash                   */
+ 434          /////////////////////////////////////////////////////
+ 435          /*
+ 436          PSCTL:
+ 437          位0 PSWE - 置位，允许写FLASH；
+ 438          位1 PSEE - 置位，允许擦除FLASH；
+ 439          位2 SFLE - 置位，允许用户软件访问FLASH的128B的临时存储器扇区
+ 440          其他位置0
+ 441          
+ 442          FLSCL：
+ 443          位0 FLWE - 置位，允许写FLASH；
+ 444          位1-5 保留，0000；
+ 445          位6 FRAE - 置位，闪存总是处于读方式
+ 446          位7 FOSE - 置位，允许闪存单稳态定时器
+ 447          */
+ 448          
+ 449          void erase_par(void)  //首次上电初始化,将外部数据初始化为0xff
+ 450          {
+ 451   1        EA=0;
+ 452   1          FLKEY=0xA5;
+ 453   1        FLKEY=0xF1;
+ 454   1        PSCTL=0x03; //  bit1 PSEE =1 : permit erase; bit0 PSWE = 1 :permit write
+ 455   1        pwrite=0x7E00;
+ 456   1        *pwrite=0x00;
+ 457   1          PSCTL=0x00;   // 复位，用户软件访问FLASH的64KB的程序/数据FLASH扇区，很重要！！�
+             -��
+ 458   1      
+ 459   1      }
+ 460          
+ 461          void read_par(void)
+ 462          {
+ 463   1        uchar data i;
+ 464   1      
+ 465   1        FLSCL=0xcf;       //禁止flash写
+ 466   1        PSCTL=0x00;
+ 467   1        pread=0x7E00;     //初始化code读指针为字符串起始变量
+ 468   1        for(i=0;i<38;i++)
+ 469   1        {
+ 470   2          par_buf[i]=*pread++;    //将FLASH内数据读到XRAM
+ 471   2         PCA0CPH4 = 0xa0;
+ 472   2        }
+ 473   1      
+ 474   1      }
+ 475          void init_par(void)
+ 476          {
+ 477   1      
+ 478   1        uchar data i;
+ 479   1         PFE0CN =0x00;        // select single-byte write mode.
+ 480   1        PSCTL=0x01;           //允许写入flash
+ 481   1        par=&par0[0];
+ 482   1        pwrite=0x7E00;
+ 483   1        for (i=0;i<38;i++)
+ 484   1        {
+ 485   2               FLKEY=0xA5;            //Flash Lock and Key 顺序要对
+ 486   2             FLKEY=0xF1;
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 9   
+
+ 487   2            *pwrite=*par;
+ 488   2            pwrite++;
+ 489   2            par++;
+ 490   2            PCA0CPH4 = 0xa0;              //feed dog
+ 491   2          }
+ 492   1          PSCTL=0x00;      //禁止写入flash
+ 493   1      
+ 494   1          read_par();
+ 495   1      
+ 496   1      }
+ 497          
+ 498          
+ 499          
+ 500          void write_par(void)
+ 501          {
+ 502   1        uchar data i;
+ 503   1         PFE0CN =0x00;
+ 504   1        PSCTL=0x01;
+ 505   1        pwrite=0x7E00;
+ 506   1        for (i=0;i<38;i++)
+ 507   1        {
+ 508   2            FLKEY=0xA5;
+ 509   2             FLKEY=0xF1;
+ 510   2          *pwrite++=par_buf[i];
+ 511   2          PCA0CPH4 = 0xa0;
+ 512   2        }
+ 513   1          PSCTL=0x00;
+ 514   1          read_par();
+ 515   1      
+ 516   1      }
+ 517          
+ 518          void timer0_isr(void) interrupt 1 //using 1
+ 519          
+ 520          {
+ 521   1         uchar data key_value_temp;
+ 522   1      
+ 523   1        if(tl0timer0<5)
+ 524   1        {tl0timer0++;}//与PC通信空闲的时间*/
+ 525   1      
+ 526   1         key_value_temp=(~P1)&0xf0; // 0x00101110  P1^4:SET; P1^5:ADD; P1^6:REDUCE; P1^7:OK     //REDUCE or shif
+             -t？
+ 527   1      
+ 528   1        if (key_value_temp!=0)
+ 529   1         {
+ 530   2             delay(10);
+ 531   2      
+ 532   2          if (key_value_temp!=0)
+ 533   2          {
+ 534   3           delay(10);
+ 535   3      
+ 536   3            switch(key_value_temp)
+ 537   3          {
+ 538   4      //        key_value_temp= (~P1)&0xf0;   // this isn't even executed (but even if it was, it wouldn't retro
+             -actively change the result of switch statement above?
+ 539   4            case 0x10:  function_flag++;
+ 540   4                           find_key=1;
+ 541   4                        if (function_flag==12)
+ 542   4                    {
+ 543   5                      function_flag=1;
+ 544   5                    }
+ 545   4                  do{ PCA0CPH4 = 0xa0;}
+ 546   4                    while (function==0);
+ 547   4                    delay(10);
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 10  
+
+ 548   4      
+ 549   4                  break;
+ 550   4            case 0x40:  shift_right_flag++;
+ 551   4      
+ 552   4                  if (shift_right_flag==6)
+ 553   4                  {
+ 554   5                    shift_right_flag=1;
+ 555   5                        }
+ 556   4                    do{ PCA0CPH4 = 0xa0;}
+ 557   4                  while (shift_right==0);
+ 558   4                  delay(10);;
+ 559   4      
+ 560   4                  break;
+ 561   4            case 0x20:  up_flag++;
+ 562   4      
+ 563   4                  if (up_flag==10)
+ 564   4                  {
+ 565   5                    up_flag=0;
+ 566   5                      }
+ 567   4                    do{PCA0CPH4 = 0xa0; }
+ 568   4                  while (upx==0);
+ 569   4                  delay(10);;
+ 570   4      
+ 571   4                  break;
+ 572   4            case  0x80: if(function_flag!=0)
+ 573   4                         {enter_flag=1;}
+ 574   4                    do{PCA0CPH4 = 0xa0; }
+ 575   4                    while (enter==0);
+ 576   4                    delay(10);;
+ 577   4      
+ 578   4                  break;
+ 579   4            default:  break;
+ 580   4            }
+ 581   3         }
+ 582   2        }
+ 583   1          TH0=(65535-20000)/256;    //20ms定时重载65536-18432
+ 584   1          TL0=(65535-20000)%256;
+ 585   1      
+ 586   1      
+ 587   1      
+ 588   1      }
+ 589          
+ 590          void key_flag_init(void)
+ 591          {
+ 592   1        function_flag=0;
+ 593   1        up_flag=0;
+ 594   1        shift_right_flag=0;
+ 595   1        enter_flag=0;
+ 596   1      }
+ 597          void scan_keyboard(void)
+ 598          {
+ 599   1       // if(function_flag==0) return ;
+ 600   1      
+ 601   1        switch(function_flag)
+ 602   1        {
+ 603   2          case 1:
+ 604   2      
+ 605   2                      m_init();
+ 606   2                m_send(0x01,get_stroke('1'));
+ 607   2                m_send(0x02,get_stroke('-'));
+ 608   2                m_send(0x03,get_stroke('-'));
+ 609   2                m_send(0x04,get_stroke('R'));
+ 610   2                m_send(0x05,get_stroke('B'));
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 11  
+
+ 611   2      
+ 612   2                  find_key=1;
+ 613   2      
+ 614   2                    a=par_buf[0];
+ 615   2                       bx=par_buf[1];
+ 616   2                       c=par_buf[2];
+ 617   2                     d=par_buf[3];
+ 618   2                     e=par_buf[4];
+ 619   2              if  (enter_flag==1)
+ 620   2              {
+ 621   3                shift_right_flag=1;
+ 622   3                        up_flag=0;
+ 623   3                        enter_flag=0;
+ 624   3                display();
+ 625   3                 do
+ 626   3                            {
+ 627   4                          PCA0CPH4 = 0xa0;
+ 628   4                              shift0_5(); //显示5位
+ 629   4      
+ 630   4                           }
+ 631   3                           while  (enter_flag==0);
+ 632   3                          {
+ 633   4      
+ 634   4                            key_flag_init();
+ 635   4      
+ 636   4                         display();
+ 637   4                            par_buf[0]=a;
+ 638   4                            par_buf[1]=bx;
+ 639   4                            par_buf[2]=c;
+ 640   4                          par_buf[3]=d;
+ 641   4                          par_buf[4]=e;
+ 642   4                     EA=0;
+ 643   4                           erase_par();
+ 644   4                         write_par();     //将修改好后的内容写入flash
+ 645   4                          EA=1;
+ 646   4      
+ 647   4                            SBUF0 = 'R';  while(!TI0);TI0 = 0;
+ 648   4                     SBUF0 = 'B';  while(!TI0);TI0 = 0;
+ 649   4                      SBUF0 = par_buf[0]+0x30;while(!TI0);TI0 = 0;
+ 650   4                      SBUF0 = par_buf[1]+0x30;while(!TI0);TI0 = 0;
+ 651   4                      SBUF0 = '.';            while(!TI0);TI0 = 0;
+ 652   4                      SBUF0 = par_buf[2]+0x30;while(!TI0);TI0 = 0;
+ 653   4                      SBUF0 = par_buf[3]+0x30;while(!TI0);TI0 = 0;
+ 654   4                      SBUF0 = par_buf[4]+0x30;while(!TI0);TI0 = 0;
+ 655   4                      SBUF0 = 0x0d;           while(!TI0);TI0 = 0;
+ 656   4                      SBUF0 = 0x0a;           while(!TI0);TI0 = 0;
+ 657   4                      delay1s();
+ 658   4                      delay1s();
+ 659   4      
+ 660   4                      trans0("DT\r\n");
+ 661   4                      delay1s();
+ 662   4                      delay1s();
+ 663   4      
+ 664   4                      find_key = 0;
+ 665   4                      delay1s();
+ 666   4      
+ 667   4      
+ 668   4      
+ 669   4                        }
+ 670   3      
+ 671   3      
+ 672   3              }
+ 673   2              break;
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 12  
+
+ 674   2          case 2:
+ 675   2      
+ 676   2                      m_init();
+ 677   2                m_send(0x01,get_stroke('2'));
+ 678   2                m_send(0x02,get_stroke('-'));
+ 679   2                m_send(0x03,get_stroke('-'));
+ 680   2                m_send(0x04,get_stroke('R'));
+ 681   2                m_send(0x05,get_stroke('E'));
+ 682   2      
+ 683   2                 find_key=1;
+ 684   2                     a=par_buf[5];
+ 685   2                       bx=par_buf[6];
+ 686   2                       c=par_buf[7];
+ 687   2                     d=par_buf[8];
+ 688   2                     e=par_buf[9];
+ 689   2      
+ 690   2              if  (enter_flag==1)
+ 691   2              {
+ 692   3                shift_right_flag=1;
+ 693   3                        up_flag=0;
+ 694   3                        enter_flag=0;
+ 695   3                display();
+ 696   3                 do
+ 697   3                            {
+ 698   4                          PCA0CPH4 = 0xa0;
+ 699   4                              shift0_5(); //显示5位
+ 700   4      
+ 701   4                           }
+ 702   3                           while  (enter_flag==0);
+ 703   3                          {
+ 704   4      
+ 705   4                            key_flag_init();
+ 706   4      
+ 707   4                         display();
+ 708   4                           par_buf[5]=a;
+ 709   4                            par_buf[6]=bx;
+ 710   4                            par_buf[7]=c;
+ 711   4                          par_buf[8]=d;
+ 712   4                          par_buf[9]=e;
+ 713   4      
+ 714   4                             EA=0;
+ 715   4                           erase_par();
+ 716   4                         write_par();     //将修改好后的内容写入flash
+ 717   4                            EA=1;
+ 718   4                  SBUF0 = 'R';           while(!TI0);TI0 = 0;
+ 719   4                      SBUF0 = 'E';             while(!TI0);TI0 = 0;
+ 720   4                      SBUF0 = par_buf[5]+0x30; while(!TI0);TI0 = 0;
+ 721   4                      SBUF0 = par_buf[6]+0x30; while(!TI0);TI0 = 0;
+ 722   4                      SBUF0 = '.';             while(!TI0);TI0 = 0;
+ 723   4                      SBUF0 = par_buf[7]+0x30; while(!TI0);TI0 = 0;
+ 724   4                      SBUF0 = par_buf[8]+0x30; while(!TI0);TI0 = 0;
+ 725   4                      SBUF0 = par_buf[9]+0x30; while(!TI0);TI0 = 0;
+ 726   4                      SBUF0 = 0x0d;            while(!TI0);TI0 = 0;
+ 727   4                      SBUF0 = 0x0a;            while(!TI0);TI0 = 0;
+ 728   4                      delay1s();
+ 729   4                      delay1s();
+ 730   4                      trans0("DT\r\n");
+ 731   4                        delay1s();
+ 732   4                      delay1s();
+ 733   4      
+ 734   4                        find_key = 0;
+ 735   4                        delay1s();
+ 736   4      
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 13  
+
+ 737   4      
+ 738   4                        }
+ 739   3      
+ 740   3              }
+ 741   2              break;
+ 742   2                 case 3:     //输出控制方式（单点或范围）
+ 743   2      
+ 744   2                m_init();
+ 745   2                m_send(0x01,get_stroke('3'));
+ 746   2                m_send(0x02,get_stroke('-'));
+ 747   2                m_send(0x03,get_stroke('O'));
+ 748   2                m_send(0x04,get_stroke('P'));
+ 749   2                m_send(0x05,get_stroke('T'));
+ 750   2                  find_key=1;
+ 751   2      
+ 752   2              if  (enter_flag==1)
+ 753   2              {
+ 754   3                 a=par_buf[34];
+ 755   3                       up_flag = a;
+ 756   3                        enter_flag=0;
+ 757   3      
+ 758   3                       do
+ 759   3                 {
+ 760   4                   PCA0CPH4 = 0xa0;
+ 761   4                        if (up_flag==1)
+ 762   4                            {
+ 763   5                              a=1;
+ 764   5                            }
+ 765   4                       else if (up_flag==2)
+ 766   4                        {
+ 767   5                          a=2;
+ 768   5                          }
+ 769   4                  else if (up_flag==3)
+ 770   4                        {
+ 771   5                          a=3;
+ 772   5                          }
+ 773   4                            else if (up_flag==4)
+ 774   4                        {
+ 775   5                          a=1;up_flag=1;
+ 776   5                          }
+ 777   4      
+ 778   4      
+ 779   4                           m_init();
+ 780   4                           m_send(0x01,get_stroke(a));
+ 781   4                           m_send(0x02,get_stroke(' '));
+ 782   4                           m_send(0x03,get_stroke(' '));
+ 783   4                           m_send(0x04,get_stroke(' '));
+ 784   4                           m_send(0x05,get_stroke(' '));
+ 785   4                           }
+ 786   3                while(enter_flag==0);
+ 787   3                {
+ 788   4      
+ 789   4      
+ 790   4                           key_flag_init();
+ 791   4      
+ 792   4                   par_buf[34]=a;
+ 793   4      
+ 794   4                    EA=0;
+ 795   4                   erase_par();
+ 796   4                         write_par();     //将修改好后的内容写入flash
+ 797   4      
+ 798   4                  EA=1;
+ 799   4                        find_key = 0;
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 14  
+
+ 800   4                              delay1s();//等待UART0接收数据，否则会显示乱码
+ 801   4      
+ 802   4                        }
+ 803   3      
+ 804   3              }
+ 805   2              break;
+ 806   2      
+ 807   2              case 4:
+ 808   2      
+ 809   2      
+ 810   2                    m_init();
+ 811   2                m_send(0x01,get_stroke('4'));
+ 812   2                m_send(0x02,get_stroke('-'));
+ 813   2                m_send(0x03,get_stroke('-'));
+ 814   2                m_send(0x04,get_stroke('D'));
+ 815   2                m_send(0x05,get_stroke('L'));
+ 816   2               find_key=1;
+ 817   2                     a=par_buf[15];
+ 818   2                       bx=par_buf[16];
+ 819   2                       c=par_buf[17];
+ 820   2                     d=par_buf[18];
+ 821   2                     e=par_buf[19];
+ 822   2              if  (enter_flag==1)
+ 823   2              {
+ 824   3                shift_right_flag=1;
+ 825   3                        up_flag=0;
+ 826   3                        enter_flag=0;
+ 827   3                display();
+ 828   3                 do
+ 829   3                            {
+ 830   4                         PCA0CPH4 = 0xa0;
+ 831   4                              shift0_5(); //显示5位
+ 832   4      
+ 833   4                           }
+ 834   3                           while  (enter_flag==0);
+ 835   3                          {
+ 836   4      
+ 837   4                           key_flag_init();
+ 838   4      
+ 839   4                         display();
+ 840   4                            par_buf[15]=a;
+ 841   4                            par_buf[16]=bx;
+ 842   4                            par_buf[17]=c;
+ 843   4                          par_buf[18]=d;
+ 844   4                          par_buf[19]=e;
+ 845   4      
+ 846   4                     EA=0;
+ 847   4                           erase_par();
+ 848   4                         write_par();     //将修改好后的内容写入flash
+ 849   4                  EA=1;
+ 850   4                        find_key = 0;
+ 851   4                            delay1s();
+ 852   4                        }
+ 853   3      
+ 854   3              }
+ 855   2              break;
+ 856   2      
+ 857   2          case 5:
+ 858   2      
+ 859   2                m_init();
+ 860   2                m_send(0x01,get_stroke('5'));
+ 861   2                m_send(0x02,get_stroke('-'));
+ 862   2                m_send(0x03,get_stroke('-'));
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 15  
+
+ 863   2                m_send(0x04,get_stroke('D'));
+ 864   2                m_send(0x05,get_stroke('H'));
+ 865   2                find_key=1;
+ 866   2                     a=par_buf[10];
+ 867   2                       bx=par_buf[11];
+ 868   2                       c=par_buf[12];
+ 869   2                     d=par_buf[13];
+ 870   2                     e=par_buf[14];
+ 871   2              if  (enter_flag==1)
+ 872   2              {
+ 873   3                shift_right_flag=1;
+ 874   3                        up_flag=0;
+ 875   3                        enter_flag=0;
+ 876   3                display();
+ 877   3                 do
+ 878   3                            {
+ 879   4                         PCA0CPH4 = 0xa0;
+ 880   4                              shift0_5(); //显示5位
+ 881   4      
+ 882   4                           }
+ 883   3                           while  (enter_flag==0);
+ 884   3                          {
+ 885   4      
+ 886   4                            key_flag_init();
+ 887   4      
+ 888   4                         display();
+ 889   4                            par_buf[10]=a;
+ 890   4                            par_buf[11]=bx;
+ 891   4                            par_buf[12]=c;
+ 892   4                          par_buf[13]=d;
+ 893   4                          par_buf[14]=e;
+ 894   4      
+ 895   4                     EA=0;
+ 896   4                           erase_par();
+ 897   4                         write_par();     //将修改好后的内容写入flash
+ 898   4      
+ 899   4      
+ 900   4                    EA=1;
+ 901   4                             find_key = 0;
+ 902   4                         delay1s();
+ 903   4                        }
+ 904   3      
+ 905   3              }
+ 906   2              break;
+ 907   2      
+ 908   2      
+ 909   2                 case 6:
+ 910   2      
+ 911   2                m_init();
+ 912   2                m_send(0x01,get_stroke('6'));
+ 913   2                m_send(0x02,get_stroke('-'));
+ 914   2                m_send(0x03,get_stroke('-'));
+ 915   2                m_send(0x04,get_stroke('A'));
+ 916   2                m_send(0x05,get_stroke('H'));
+ 917   2                    find_key = 1;
+ 918   2      
+ 919   2                     a=par_buf[21];
+ 920   2                       bx=par_buf[22];
+ 921   2                       c=par_buf[23];
+ 922   2                     d=par_buf[24];
+ 923   2                     e=par_buf[25];
+ 924   2      
+ 925   2              if  (enter_flag==1)
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 16  
+
+ 926   2              {
+ 927   3                shift_right_flag=1;
+ 928   3                        up_flag=0;
+ 929   3                        enter_flag=0;
+ 930   3                display();
+ 931   3                 do
+ 932   3                            {
+ 933   4                          PCA0CPH4 = 0xa0;
+ 934   4                              shift0_5(); //显示5位
+ 935   4      
+ 936   4                           }
+ 937   3                           while  (enter_flag==0);
+ 938   3                          {
+ 939   4      
+ 940   4                            key_flag_init();
+ 941   4      
+ 942   4                         display();
+ 943   4                            par_buf[21]=a;
+ 944   4                            par_buf[22]=bx;
+ 945   4                            par_buf[23]=c;
+ 946   4                          par_buf[24]=d;
+ 947   4                          par_buf[25]=e;
+ 948   4      
+ 949   4                    EA=0;
+ 950   4                           erase_par();
+ 951   4                         write_par();     //将修改好后的内容写入flash
+ 952   4                    EA=1;
+ 953   4                               find_key = 0;
+ 954   4                                 delay1s();
+ 955   4      
+ 956   4      
+ 957   4                        }
+ 958   3      
+ 959   3              }
+ 960   2              break;
+ 961   2             case 7:    //继电器输出选择
+ 962   2      
+ 963   2                m_init();
+ 964   2                m_send(0x01,get_stroke('7'));
+ 965   2                m_send(0x02,get_stroke('-'));
+ 966   2                m_send(0x03,get_stroke('R'));
+ 967   2                m_send(0x04,get_stroke('L'));
+ 968   2                m_send(0x05,get_stroke('Y'));
+ 969   2      
+ 970   2                     find_key=1;
+ 971   2              if  (enter_flag==1)
+ 972   2              {
+ 973   3                 a=par_buf[35];
+ 974   3                       up_flag = a;
+ 975   3                        enter_flag=0;
+ 976   3      
+ 977   3                       do
+ 978   3                 {
+ 979   4                   PCA0CPH4 = 0xa0;
+ 980   4                        if (up_flag==0)
+ 981   4                            {
+ 982   5                              a=0;
+ 983   5                            }
+ 984   4                       else if (up_flag==1)
+ 985   4                        {
+ 986   5                          a=1;
+ 987   5                          }
+ 988   4      
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 17  
+
+ 989   4                            else if (up_flag==2)
+ 990   4                        {
+ 991   5                          a=0;up_flag=0;
+ 992   5                          }
+ 993   4      
+ 994   4      
+ 995   4                            m_init();
+ 996   4                m_send(0x01,get_stroke(a));
+ 997   4                m_send(0x02,get_stroke(' '));
+ 998   4                m_send(0x03,get_stroke(' '));
+ 999   4                m_send(0x04,get_stroke(' '));
+1000   4                m_send(0x05,get_stroke(' '));
+1001   4                           }
+1002   3                while(enter_flag==0);
+1003   3                {
+1004   4                   par_buf[35]=a;
+1005   4      
+1006   4                           key_flag_init();
+1007   4      
+1008   4                   EA=0;
+1009   4                   erase_par();
+1010   4                         write_par();     //将修改好后的内容写入flash
+1011   4                            EA=1;
+1012   4                    find_key = 0;
+1013   4                              delay1s();
+1014   4      
+1015   4      
+1016   4      
+1017   4                        }
+1018   3      
+1019   3              }
+1020   2              break;
+1021   2              case 8:    //PNP输出选择
+1022   2      
+1023   2                m_init();
+1024   2                m_send(0x01,get_stroke('8'));
+1025   2                m_send(0x02,get_stroke('-'));
+1026   2                m_send(0x03,get_stroke('-'));
+1027   2                m_send(0x04,get_stroke('P'));
+1028   2                m_send(0x05,get_stroke('0'));
+1029   2                find_key=1;
+1030   2      
+1031   2      
+1032   2              if  (enter_flag==1)
+1033   2              {
+1034   3                 a=par_buf[36];
+1035   3                       up_flag = a;
+1036   3                        enter_flag=0;
+1037   3      
+1038   3                       do
+1039   3                 {
+1040   4                   PCA0CPH4 = 0xa0;
+1041   4                        if (up_flag==0)
+1042   4                            {
+1043   5                              a=0;
+1044   5                            }
+1045   4                       else if (up_flag==1)
+1046   4                        {
+1047   5                          a=1;
+1048   5                          }
+1049   4      
+1050   4                            else if (up_flag==2)
+1051   4                        {
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 18  
+
+1052   5                          a=0;up_flag=0;
+1053   5                          }
+1054   4      
+1055   4      
+1056   4                            m_init();
+1057   4                m_send(0x01,get_stroke(a));
+1058   4                m_send(0x02,get_stroke(' '));
+1059   4                m_send(0x03,get_stroke(' '));
+1060   4                m_send(0x04,get_stroke(' '));
+1061   4                m_send(0x05,get_stroke(' '));
+1062   4                           }
+1063   3                while(enter_flag==0);
+1064   3                {
+1065   4                   par_buf[36]=a;
+1066   4      
+1067   4                           key_flag_init();
+1068   4      
+1069   4                   EA=0;
+1070   4                   erase_par();
+1071   4                         write_par();     //将修改好后的内容写入flash
+1072   4                    EA=1;
+1073   4                  find_key = 0;
+1074   4                              delay1s();
+1075   4      
+1076   4      
+1077   4                        }
+1078   3      
+1079   3              }
+1080   2              break;
+1081   2              case 9:    //RS232/RS485选择
+1082   2      
+1083   2                m_init();
+1084   2                m_send(0x01,get_stroke('9'));
+1085   2                m_send(0x02,get_stroke('-'));
+1086   2                m_send(0x03,get_stroke('-'));
+1087   2                m_send(0x04,get_stroke('C'));
+1088   2                m_send(0x05,get_stroke('P'));
+1089   2                  find_key=1;
+1090   2      
+1091   2              if  (enter_flag==1)
+1092   2              {
+1093   3                 a=par_buf[37];
+1094   3                       up_flag = a;
+1095   3                        enter_flag=0;
+1096   3      
+1097   3                       do
+1098   3                 {
+1099   4                   PCA0CPH4 = 0xa0;
+1100   4                        if (up_flag==0)
+1101   4                            {
+1102   5                              a=0;
+1103   5                            }
+1104   4                       else if (up_flag==1)
+1105   4                        {
+1106   5                          a=1;
+1107   5                          }
+1108   4      
+1109   4                            else if (up_flag==2)
+1110   4                        {
+1111   5                          a=0;up_flag=0;
+1112   5                          }
+1113   4      
+1114   4      
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 19  
+
+1115   4                            m_init();
+1116   4                m_send(0x01,get_stroke(a));
+1117   4                m_send(0x02,get_stroke(' '));
+1118   4                m_send(0x03,get_stroke(' '));
+1119   4                m_send(0x04,get_stroke(' '));
+1120   4                m_send(0x05,get_stroke(' '));
+1121   4                           }
+1122   3                while(enter_flag==0);
+1123   3                {
+1124   4                   par_buf[37]=a;
+1125   4      
+1126   4                           key_flag_init();
+1127   4      
+1128   4                    EA=0;
+1129   4                   erase_par();
+1130   4                         write_par();     //将修改好后的内容写入flash
+1131   4                  EA=1;
+1132   4                      find_key = 0;
+1133   4                              delay1s();
+1134   4      
+1135   4                        }
+1136   3      
+1137   3              }
+1138   2              break;
+1139   2              case 10:    //ADD
+1140   2      
+1141   2                m_init();
+1142   2                m_send(0x01,get_stroke('1'));
+1143   2                m_send(0x02,get_stroke('0'));
+1144   2                m_send(0x03,get_stroke('-'));
+1145   2                m_send(0x04,get_stroke('-'));
+1146   2                m_send(0x05,get_stroke('A'));
+1147   2      
+1148   2                find_key=1;
+1149   2      
+1150   2              if  (enter_flag==1)
+1151   2              {
+1152   3                 a=par_buf[20];
+1153   3                 bx=par_buf[20]/10;
+1154   3                 c=par_buf[20]%10;
+1155   3                        shift_right_flag=1;
+1156   3                        up_flag=0;
+1157   3                        enter_flag=0;
+1158   3                display_add();
+1159   3                 do
+1160   3                            {
+1161   4                          PCA0CPH4 = 0xa0;
+1162   4                              shift_add();  //显示2位
+1163   4      
+1164   4                           }
+1165   3                           while  (enter_flag==0);
+1166   3                          {
+1167   4      
+1168   4                            key_flag_init();
+1169   4      
+1170   4                         display_add();
+1171   4                           a=bx*10+c;
+1172   4      
+1173   4                           if (a<=25)//A-Z(65-90)
+1174   4                         {
+1175   5                        par_buf[20]=a;
+1176   5                   EA=0;
+1177   5                           erase_par();
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 20  
+
+1178   5                         write_par();     //将修改好后的内容写入flash
+1179   5                            EA=1;
+1180   5                           }
+1181   4      
+1182   4                              find_key = 0;
+1183   4                    delay1s();
+1184   4      
+1185   4      
+1186   4      
+1187   4                        }
+1188   3      
+1189   3              }
+1190   2              break;
+1191   2               case 11:
+1192   2      
+1193   2                m_init();
+1194   2                m_send(0x01,get_stroke('1'));
+1195   2                m_send(0x02,get_stroke('1'));
+1196   2                m_send(0x03,get_stroke('-'));
+1197   2                m_send(0x04,get_stroke('U'));
+1198   2                m_send(0x05,get_stroke('R'));
+1199   2      
+1200   2               find_key=1;
+1201   2      
+1202   2              if  (enter_flag==1)
+1203   2              {
+1204   3      
+1205   3                       enter_flag=0;
+1206   3      
+1207   3                       do
+1208   3                 {
+1209   4                            m_init();
+1210   4                m_send(0x01,get_stroke(' '));
+1211   4                m_send(0x02,(get_stroke(version_major-0x30)|0x80));  //Display Version Number
+1212   4                m_send(0x03,get_stroke(version_minor-0x30));
+1213   4                m_send(0x04,get_stroke(' '));
+1214   4                m_send(0x05,get_stroke(' '));
+1215   4                           }
+1216   3                while(enter_flag==0);
+1217   3                {
+1218   4                           key_flag_init();
+1219   4      
+1220   4                  find_key = 0;
+1221   4                   delay1s();
+1222   4      
+1223   4      
+1224   4      
+1225   4      
+1226   4                        }
+1227   3      
+1228   3              }
+1229   2              break;
+1230   2      
+1231   2      
+1232   2          default: break;
+1233   2        }
+1234   1      }
+1235          
+1236          void display(void)
+1237          {
+1238   1       m_init();
+1239   1      m_send(0x01,get_stroke(a));
+1240   1      m_send(0x02,(get_stroke(bx)|0x80));
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 21  
+
+1241   1      m_send(0x03,get_stroke(c));
+1242   1      m_send(0x04,get_stroke(d));
+1243   1      m_send(0x05,get_stroke(e));
+1244   1      }
+1245          
+1246          void display_add(void)
+1247          {
+1248   1       m_init();
+1249   1      m_send(0x01,get_stroke(bx));
+1250   1      m_send(0x02,get_stroke(c));
+1251   1      m_send(0x03,get_stroke(' '));
+1252   1      m_send(0x04,get_stroke(' '));
+1253   1      m_send(0x05,get_stroke(' '));
+1254   1      }
+1255          void  shift_add(void)
+1256          {
+1257   1          if (shift_right_flag==1)      //第一位闪烁
+1258   1          {
+1259   2      
+1260   2            up_flag=bx;
+1261   2          do
+1262   2          { PCA0CPH4 = 0xa0;
+1263   3            switch(up_flag)
+1264   3            {
+1265   4                case 0: bx=0; break;
+1266   4              case 1: bx=1; break;
+1267   4              case 2: bx=2; break;
+1268   4              case 3: bx=3; break;
+1269   4              case 4: bx=4; break;
+1270   4              case 5: bx=5; break;
+1271   4              case 6: bx=6; break;
+1272   4              case 7: bx=7; break;
+1273   4              case 8: bx=8; break;
+1274   4              case 9: bx=9; break;
+1275   4              case 10: bx=0; break;
+1276   4                  }
+1277   3            disp_emissivity_2();
+1278   3               }
+1279   2            while ( (shift_right_flag==1)&&(enter_flag==0) );
+1280   2          }
+1281   1          else if (shift_right_flag==2)
+1282   1          {
+1283   2             up_flag=c;
+1284   2             do
+1285   2           {
+1286   3            PCA0CPH4 = 0xa0;
+1287   3            switch(up_flag)
+1288   3            {
+1289   4                case 0: c=0; break;
+1290   4              case 1: c=1; break;
+1291   4              case 2: c=2; break;
+1292   4              case 3: c=3; break;
+1293   4              case 4: c=4; break;
+1294   4              case 5: c=5; break;
+1295   4              case 6: c=6; break;
+1296   4              case 7: c=7; break;
+1297   4              case 8: c=8; break;
+1298   4              case 9: c=9; break;
+1299   4              case 10: c=0; break;
+1300   4                  }
+1301   3            disp_emissivity_2();
+1302   3               }
+1303   2            while ( (shift_right_flag==2)&&(enter_flag==0) );
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 22  
+
+1304   2         }
+1305   1      
+1306   1         else if (shift_right_flag==3)
+1307   1         {
+1308   2          shift_right_flag=1;
+1309   2         }
+1310   1      }
+1311          void disp_emissivity_2(void)
+1312          {
+1313   1         if (shift_right_flag==1)     //第一位闪烁显示
+1314   1         {
+1315   2             disp_emissivity0_2();
+1316   2            // delay(100);
+1317   2           delay1s();
+1318   2      
+1319   2          m_init();
+1320   2          m_send(0x01,get_stroke(' '));
+1321   2          m_send(0x02,get_stroke(c));
+1322   2          m_send(0x03,get_stroke(' '));
+1323   2          m_send(0x04,get_stroke(' '));
+1324   2          m_send(0x05,get_stroke(' '));
+1325   2          // delay(100);
+1326   2           delay1s();
+1327   2      
+1328   2            }
+1329   1        else if (shift_right_flag==2)       //第二位闪烁显示
+1330   1        {
+1331   2             disp_emissivity0_2();
+1332   2          // delay(100);
+1333   2           delay1s();
+1334   2      
+1335   2          m_init();
+1336   2          m_send(0x01,get_stroke(bx));
+1337   2          m_send(0x02,get_stroke(' '));
+1338   2          m_send(0x03,get_stroke(' '));
+1339   2          m_send(0x04,get_stroke(' '));
+1340   2          m_send(0x05,get_stroke(' '));
+1341   2        //   delay(100);
+1342   2          delay1s();
+1343   2      
+1344   2            }
+1345   1      
+1346   1          else if (shift_right_flag==3)
+1347   1          {
+1348   2                   shift_right_flag=1;
+1349   2             }
+1350   1      }
+1351          
+1352          
+1353          void disp_emissivity0_2(void)     //正常显示，不闪
+1354          {
+1355   1          m_init();
+1356   1        m_send(0x01,get_stroke(bx));
+1357   1        m_send(0x02,get_stroke(c));
+1358   1        m_send(0x03,get_stroke(' '));
+1359   1        m_send(0x04,get_stroke(' '));
+1360   1        m_send(0x05,get_stroke(' '));
+1361   1      }
+1362          void  shift0_5(void)
+1363          {
+1364   1          if (shift_right_flag==1)      //第一位闪烁
+1365   1          {
+1366   2             up_flag=a;
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 23  
+
+1367   2             do
+1368   2           {
+1369   3              PCA0CPH4 = 0xa0;
+1370   3            switch(up_flag)
+1371   3            {
+1372   4                case 0: a=0; break;
+1373   4              case 1: a=1; break;
+1374   4              case 2: a=2; break;
+1375   4              case 3: a=3; break;
+1376   4              case 4: a=4; break;
+1377   4              case 5: a=5; break;
+1378   4              case 6: a=6; break;
+1379   4              case 7: a=7; break;
+1380   4              case 8: a=8; break;
+1381   4              case 9: a=9; break;
+1382   4              case 10: a=0; break;
+1383   4                  }
+1384   3            disp_emissivity_5();
+1385   3            }
+1386   2                while ( (shift_right_flag==1)&&(enter_flag==0) );
+1387   2          }
+1388   1          else if (shift_right_flag==2)     //第二位闪烁
+1389   1          {
+1390   2            up_flag=bx;
+1391   2          do
+1392   2          { PCA0CPH4 = 0xa0;
+1393   3            switch(up_flag)
+1394   3            {
+1395   4                case 0: bx=0; break;
+1396   4              case 1: bx=1; break;
+1397   4              case 2: bx=2; break;
+1398   4              case 3: bx=3; break;
+1399   4              case 4: bx=4; break;
+1400   4              case 5: bx=5; break;
+1401   4              case 6: bx=6; break;
+1402   4              case 7: bx=7; break;
+1403   4              case 8: bx=8; break;
+1404   4              case 9: bx=9; break;
+1405   4              case 10: bx=0; break;
+1406   4                  }
+1407   3            disp_emissivity_5();
+1408   3               }
+1409   2            while ( (shift_right_flag==2)&&(enter_flag==0) );
+1410   2          }
+1411   1          else if (shift_right_flag==3)
+1412   1          {
+1413   2             up_flag=c;
+1414   2             do
+1415   2           {
+1416   3            PCA0CPH4 = 0xa0;
+1417   3            switch(up_flag)
+1418   3            {
+1419   4                case 0: c=0; break;
+1420   4              case 1: c=1; break;
+1421   4              case 2: c=2; break;
+1422   4              case 3: c=3; break;
+1423   4              case 4: c=4; break;
+1424   4              case 5: c=5; break;
+1425   4              case 6: c=6; break;
+1426   4              case 7: c=7; break;
+1427   4              case 8: c=8; break;
+1428   4              case 9: c=9; break;
+1429   4              case 10: c=0; break;
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 24  
+
+1430   4                  }
+1431   3            disp_emissivity_5();
+1432   3               }
+1433   2            while ( (shift_right_flag==3)&&(enter_flag==0) );
+1434   2         }
+1435   1        else if (shift_right_flag==4)
+1436   1        {
+1437   2             up_flag=d;
+1438   2             do
+1439   2           {
+1440   3            PCA0CPH4 = 0xa0;
+1441   3            switch(up_flag)
+1442   3            {
+1443   4                case 0: d=0; break;
+1444   4              case 1: d=1; break;
+1445   4              case 2: d=2; break;
+1446   4              case 3: d=3; break;
+1447   4              case 4: d=4; break;
+1448   4              case 5: d=5; break;
+1449   4              case 6: d=6; break;
+1450   4              case 7: d=7; break;
+1451   4              case 8: d=8; break;
+1452   4              case 9: d=9; break;
+1453   4              case 10: d=0; break;
+1454   4                  }
+1455   3            disp_emissivity_5();
+1456   3               }
+1457   2            while ( (shift_right_flag==4)&&(enter_flag==0) );
+1458   2         }
+1459   1          else if (shift_right_flag==5)
+1460   1        {
+1461   2             up_flag=e;
+1462   2             do
+1463   2           {
+1464   3              PCA0CPH4 = 0xa0;
+1465   3            switch(up_flag)
+1466   3            {
+1467   4                case 0: e=0; break;
+1468   4              case 1: e=1; break;
+1469   4              case 2: e=2; break;
+1470   4              case 3: e=3; break;
+1471   4              case 4: e=4; break;
+1472   4              case 5: e=5; break;
+1473   4              case 6: e=6; break;
+1474   4              case 7: e=7; break;
+1475   4              case 8: e=8; break;
+1476   4              case 9: e=9; break;
+1477   4              case 10: e=0; break;
+1478   4                  }
+1479   3            disp_emissivity_5();
+1480   3               }
+1481   2            while ( (shift_right_flag==5)&&(enter_flag==0) );
+1482   2         }
+1483   1         else if (shift_right_flag==6)
+1484   1         {
+1485   2          shift_right_flag=1;
+1486   2         }
+1487   1      }
+1488          
+1489          
+1490          void disp_emissivity_5(void)
+1491          {
+1492   1         if (shift_right_flag==1)     //第一位闪烁显示
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 25  
+
+1493   1         {
+1494   2             disp_emissivity0_5();
+1495   2            // delay(100);
+1496   2           delay1s();
+1497   2      
+1498   2          m_init();
+1499   2          m_send(0x01,get_stroke(' '));
+1500   2          m_send(0x02,(get_stroke(bx)|0x80));
+1501   2          m_send(0x03,get_stroke(c));
+1502   2          m_send(0x04,get_stroke(d));
+1503   2          m_send(0x05,get_stroke(e));
+1504   2          // delay(100);
+1505   2           delay1s();
+1506   2      
+1507   2            }
+1508   1        else if (shift_right_flag==2)       //第二位闪烁显示
+1509   1        {
+1510   2             disp_emissivity0_5();
+1511   2          // delay(100);
+1512   2           delay1s();
+1513   2      
+1514   2          m_init();
+1515   2          m_send(0x01,get_stroke(a));
+1516   2          m_send(0x02,(get_stroke(' ')|0x80));
+1517   2          m_send(0x03,get_stroke(c));
+1518   2          m_send(0x04,get_stroke(d));
+1519   2          m_send(0x05,get_stroke(e));
+1520   2        //   delay(100);
+1521   2          delay1s();
+1522   2      
+1523   2            }
+1524   1          else if (shift_right_flag==3)     //第三位闪烁显示
+1525   1          {
+1526   2               disp_emissivity0_5();
+1527   2           //  delay(100);
+1528   2             delay1s();
+1529   2             m_init();
+1530   2      
+1531   2          m_send(0x01,get_stroke(a));
+1532   2          m_send(0x02,(get_stroke(bx)|0x80));
+1533   2          m_send(0x03,get_stroke(' '));
+1534   2          m_send(0x04,get_stroke(d));
+1535   2          m_send(0x05,get_stroke(e));
+1536   2           //  delay(100);
+1537   2             delay1s();
+1538   2      
+1539   2        }
+1540   1        else if (shift_right_flag==4)     //第4位闪烁显示
+1541   1         {
+1542   2               disp_emissivity0_5();
+1543   2            // delay(100);
+1544   2            delay1s();
+1545   2      
+1546   2             m_init();
+1547   2          m_send(0x01,get_stroke(a));
+1548   2          m_send(0x02,(get_stroke(bx)|0x80));
+1549   2          m_send(0x03,get_stroke(c));
+1550   2          m_send(0x04,get_stroke(' '));
+1551   2          m_send(0x05,get_stroke(e));
+1552   2           //  delay(100);
+1553   2             delay1s();
+1554   2      
+1555   2        }
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 26  
+
+1556   1        else if (shift_right_flag==5)
+1557   1        {
+1558   2              disp_emissivity0_5();
+1559   2          //   delay(100);
+1560   2            delay1s();
+1561   2      
+1562   2             m_init();
+1563   2          m_send(0x01,get_stroke(a));
+1564   2          m_send(0x02,(get_stroke(bx)|0x80));
+1565   2          m_send(0x03,get_stroke(c));
+1566   2          m_send(0x04,get_stroke(d));
+1567   2          m_send(0x05,get_stroke(' '));
+1568   2           //  delay(100);
+1569   2            delay1s();
+1570   2      
+1571   2        }
+1572   1          else if (shift_right_flag==6)
+1573   1          {
+1574   2                   shift_right_flag=1;
+1575   2             }
+1576   1      }
+1577          
+1578          
+1579          void disp_emissivity0_5(void)     //正常显示，不闪
+1580          {
+1581   1          m_init();
+1582   1        m_send(0x01,get_stroke(a));
+1583   1        m_send(0x02,(get_stroke(bx)|0x80));
+1584   1        m_send(0x03,get_stroke(c));
+1585   1        m_send(0x04,get_stroke(d));
+1586   1        m_send(0x05,get_stroke(e));
+1587   1      }
+1588          
+1589          char data receive0[10]={' ',' ',' ',' ',' ',' ',' ',' ',' ',' '};
+1590          
+1591          bit nors=0;
+1592          bit err_flag=0;
+1593          bit uart0_rcv_ok= 0;
+1594          void uart0(void) interrupt 4
+1595          {
+1596   1        uchar  i;
+1597   1      
+1598   1      
+1599   1        if(RI0==1)
+1600   1          {
+1601   2          for(i=0;i<10;i++)
+1602   2          {
+1603   3            while(!RI0)
+1604   3            { PCA0CPH4 = 0xa0; }
+1605   3      
+1606   3            receive0[i] = SBUF0;
+1607   3            RI0 = 0;
+1608   3      
+1609   3            if(receive0[i]==0x0a)
+1610   3            {
+1611   4               uart0_rcv_ok =1;
+1612   4            //  ES0 = 0;
+1613   4              break;
+1614   4            }
+1615   3              }
+1616   2       }
+1617   1      }
+1618          
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 27  
+
+1619          void direct_uart0(void)
+1620          {
+1621   1          uchar  i, rd1,rd2,rd3,rd4,rd5;
+1622   1         if(find_key!=0)return;
+1623   1         if(uart0_rcv_ok==0)return;
+1624   1          uart0_rcv_ok=0;
+1625   1      
+1626   1      
+1627   1      
+1628   1          if((receive0[3]=='.')&&(receive0[0]>=0x30)&&(receive0[0]<=0x39)&&(receive0[1]>=0x30)&&(receive0[1]<=0x
+             -39)&&(receive0[2]>=0x30)&&(receive0[2]<=0x39)&&(receive0[4]>=0x30)&&(receive0[4]<=0x39)&&(receive0[5]>=0x30)&&(receive0[
+             -5]<=0x39)&&(receive0[6]>=0x30)&&(receive0[6]<=0x39) )
+1629   1          {
+1630   2            err_flag=0;
+1631   2      
+1632   2      
+1633   2            receive0[0]=receive0[0]-0x30;
+1634   2            receive0[1]=receive0[1]-0x30;
+1635   2            receive0[2]=receive0[2]-0x30;
+1636   2            receive0[4]=receive0[4]-0x30;
+1637   2            receive0[5]=receive0[5]-0x30;
+1638   2            receive0[6]=receive0[6]-0x30;
+1639   2      
+1640   2      
+1641   2                  rd1 = receive0[1];
+1642   2                  rd2 = receive0[2];
+1643   2                  rd3 = receive0[4];
+1644   2                  rd4 = receive0[5];
+1645   2                  rd5 = receive0[6];
+1646   2      
+1647   2      //            now_val = rd1*10000+rd2*1000+rd3*100+rd4*10+rd5;  // original code-- intermediate values are
+             - not unsigned long int!
+1648   2                  now_val = rd1;
+1649   2                  now_val = now_val*10 + rd2;
+1650   2                  now_val = now_val*10 + rd3;
+1651   2                  now_val = now_val*10 + rd4;
+1652   2                  now_val = now_val*10 + rd5;
+1653   2      
+1654   2                  rd1 = rd1+0x30;
+1655   2                  rd2 = rd2+0x30;
+1656   2                  rd3 = rd3+0x30;
+1657   2                  rd4 = rd4+0x30;
+1658   2                  rd5 = rd5+0x30;
+1659   2      
+1660   2                   m_init();
+1661   2                       m_send(0x01,get_stroke(rd1));
+1662   2                       m_send(0x02,(get_stroke(rd2))|0x80);
+1663   2                       m_send(0x03,get_stroke(rd3));
+1664   2                       m_send(0x04,get_stroke(rd4));
+1665   2                       m_send(0x05,get_stroke(rd5));
+1666   2      
+1667   2          }
+1668   1      
+1669   1               else
+1670   1            {
+1671   2      
+1672   2                for(i=0;i<10;i++)
+1673   2                {
+1674   3                 receive0_temp[i]=receive0[i];
+1675   3               }
+1676   2               if(receive0_temp[0]=='+')
+1677   2              {
+1678   3      
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 28  
+
+1679   3              m_init();
+1680   3              m_send(0x01,get_stroke(receive0_temp[1]));
+1681   3              m_send(0x02,get_stroke(receive0_temp[2]));
+1682   3              m_send(0x03,0x63);
+1683   3              m_send(0x04,0x00);
+1684   3              m_send(0x05,0x00);
+1685   3      
+1686   3      
+1687   3              }
+1688   2            else if(receive0_temp[0]=='E')
+1689   2            {
+1690   3               err_flag=1;
+1691   3              m_init();
+1692   3              m_send(0x01,get_stroke(receive0_temp[0]));
+1693   3              m_send(0x02,get_stroke(receive0_temp[1]));
+1694   3              m_send(0x03,get_stroke(receive0_temp[2]));
+1695   3              m_send(0x04,get_stroke(receive0_temp[3]));
+1696   3              m_send(0x05,get_stroke(receive0_temp[4]));
+1697   3               }
+1698   2               }
+1699   1      
+1700   1      
+1701   1      
+1702   1          alarm_state();
+1703   1      
+1704   1      
+1705   1      }
+1706          
+1707          
+1708          
+1709          
+1710          void alarm_state(void)
+1711          
+1712          {
+1713   1      
+1714   1        ulint idata alarm_over_vhh,alarm_over_vll;
+1715   1        ulint idata alarm_low_vhh,alarm_low_vll;
+1716   1        ulint idata upper_val,lower_val;
+1717   1      
+1718   1        UP=(par_buf[10]*1000+par_buf[11]*100+par_buf[12]*10+par_buf[13])*10+par_buf[14];
+1719   1        LO=(par_buf[15]*1000+par_buf[16]*100+par_buf[17]*10+par_buf[18])*10+par_buf[19];
+1720   1        AH = (par_buf[21]*1000+par_buf[22]*100+par_buf[23]*10+par_buf[24])*10+par_buf[25];
+1721   1      
+1722   1        CTR = par_buf[34];
+1723   1      
+1724   1      
+1725   1      
+1726   1      //继电器作为出错时报警
+1727   1         if(par_buf[35]==1)
+1728   1            {
+1729   2            if(err_flag==1)
+1730   2              {
+1731   3      
+1732   3             ALARM  = 0;
+1733   3             delay1s();
+1734   3             ALARM  = 1;
+1735   3               delay1s();
+1736   3               OUT0=1;
+1737   3             }
+1738   2           else
+1739   2           {
+1740   3             OUT0=0;
+1741   3               }
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 29  
+
+1742   2          }
+1743   1      
+1744   1      
+1745   1      //继电器作为距离报警
+1746   1       else if(par_buf[35]==0)
+1747   1        {
+1748   2        if(err_flag==1)
+1749   2              {
+1750   3      
+1751   3             ALARM  = 0;
+1752   3             delay1s();
+1753   3             ALARM  = 1;
+1754   3               delay1s();
+1755   3              OUT0 =1;
+1756   3             }
+1757   2         else if (err_flag==0)
+1758   2         {
+1759   3          if(CTR ==1)
+1760   3         {
+1761   4           upper_val = LO+(AH/2);
+1762   4           lower_val = LO-(AH/2);
+1763   4      
+1764   4         if(now_val>=upper_val)
+1765   4         {
+1766   5          OUT0 = 1;
+1767   5         // OUT1 = 1;
+1768   5         ALARM  = 1;
+1769   5         }
+1770   4      
+1771   4         else if(now_val<=lower_val)
+1772   4          {
+1773   5            OUT0 = 0;
+1774   5          //  OUT1 = 0;
+1775   5            ALARM = 0;
+1776   5        //   OUT3=!OUT3;
+1777   5          }
+1778   4      
+1779   4        }
+1780   3      
+1781   3      
+1782   3        else if(CTR ==2)
+1783   3        {
+1784   4        alarm_over_vhh = UP+AH/2;
+1785   4        alarm_over_vll = UP-AH/2;
+1786   4        alarm_low_vhh  = LO+AH/2;
+1787   4        alarm_low_vll  = LO-AH/2;
+1788   4      
+1789   4           if((now_val>=alarm_low_vhh)&&(now_val<=alarm_over_vll))
+1790   4           {
+1791   5            ALARM = 0;
+1792   5          OUT0 = 0;
+1793   5         // OUT1 = 0;
+1794   5          }
+1795   4           else if((now_val<alarm_low_vll)||(now_val>alarm_over_vhh))
+1796   4           {
+1797   5            ALARM = 1;
+1798   5          OUT0 = 1;
+1799   5        //  OUT1 = 1;
+1800   5          }
+1801   4      
+1802   4        }
+1803   3      else if (CTR ==3)
+1804   3      {
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 30  
+
+1805   4         upper_val = UP+(AH/2);
+1806   4         lower_val = UP-(AH/2);
+1807   4      
+1808   4      
+1809   4         if(now_val>=upper_val)
+1810   4         {
+1811   5          OUT0 = 0;
+1812   5         // OUT1 = 0;
+1813   5         ALARM  = 0;
+1814   5         }
+1815   4      
+1816   4         else if(now_val<=lower_val)
+1817   4          {
+1818   5            OUT0 = 1;
+1819   5          //  OUT1 = 1;
+1820   5            ALARM = 1;
+1821   5      
+1822   5          }
+1823   4        }
+1824   3        }
+1825   2      }
+1826   1      
+1827   1       //PNP作为出错时报警
+1828   1       if(par_buf[36]==1)
+1829   1        {
+1830   2      
+1831   2         if(err_flag==1)
+1832   2              {
+1833   3      
+1834   3             ALARM  = 0;
+1835   3             delay1s();
+1836   3             ALARM  = 1;
+1837   3               delay1s();
+1838   3               OUT1=0;
+1839   3             }
+1840   2           else
+1841   2           {
+1842   3             OUT1=1;
+1843   3               }
+1844   2          }
+1845   1      
+1846   1      
+1847   1      
+1848   1      //PNP作为距离报警
+1849   1      else if(par_buf[36]==0)
+1850   1      {
+1851   2       if(err_flag==1)
+1852   2              {
+1853   3      
+1854   3             ALARM  = 0;
+1855   3             delay1s();
+1856   3             ALARM  = 1;
+1857   3               delay1s();
+1858   3                OUT1 =0;
+1859   3             }
+1860   2      
+1861   2       else if (err_flag==0)
+1862   2       {
+1863   3        if(CTR ==1)
+1864   3       {
+1865   4         upper_val = LO+(AH/2);
+1866   4         lower_val = LO-(AH/2);
+1867   4      
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 31  
+
+1868   4         if(now_val>=upper_val)
+1869   4         {
+1870   5          //OUT0 = 1;
+1871   5          OUT1 = 0;
+1872   5         ALARM  = 1;
+1873   5         }
+1874   4      
+1875   4         else if(now_val<=lower_val)
+1876   4          {
+1877   5          //  OUT0 = 0;
+1878   5            OUT1 = 1;
+1879   5            ALARM = 0;
+1880   5      
+1881   5          }
+1882   4      
+1883   4        }
+1884   3      
+1885   3      
+1886   3      else if(CTR ==2)
+1887   3      {
+1888   4        alarm_over_vhh = UP+AH/2;
+1889   4        alarm_over_vll = UP-AH/2;
+1890   4        alarm_low_vhh  = LO+AH/2;
+1891   4        alarm_low_vll  = LO-AH/2;
+1892   4      
+1893   4           if((now_val>=alarm_low_vhh)&&(now_val<=alarm_over_vll))
+1894   4           {
+1895   5            ALARM = 0;
+1896   5         // OUT0 = 0;
+1897   5          OUT1 = 1;
+1898   5          }
+1899   4           else if((now_val<alarm_low_vll)||(now_val>alarm_over_vhh))
+1900   4           {
+1901   5            ALARM = 1;
+1902   5         // OUT0 = 1;
+1903   5          OUT1 = 0;
+1904   5          }
+1905   4      
+1906   4        }
+1907   3      else if (CTR ==3)
+1908   3      {
+1909   4         upper_val = UP+(AH/2);
+1910   4         lower_val = UP-(AH/2);
+1911   4      
+1912   4      
+1913   4         if(now_val>=upper_val)
+1914   4         {
+1915   5          //OUT0 = 0;
+1916   5          OUT1 = 1;
+1917   5         ALARM  = 0;
+1918   5         }
+1919   4      
+1920   4         else if(now_val<=lower_val)
+1921   4          {
+1922   5          //  OUT0 = 1;
+1923   5            OUT1 = 0;
+1924   5            ALARM = 1;
+1925   5      
+1926   5          }
+1927   4        }
+1928   3        }
+1929   2       }
+1930   1      }
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 32  
+
+1931          
+1932          
+1933          
+1934          void uart1(void) interrupt 16                          //中断函数 中断向量号
+1935          {
+1936   1        uchar data i;
+1937   1        uint8_t j=0;
+1938   1      
+1939   1        if((SCON1 & 0x01)==1)
+1940   1        {
+1941   2            tl0timer0=0;//定时器0累加清0
+1942   2            SCON1 &= ~0x10;//REN1=0;RI1=0;关接收
+1943   2      
+1944   2          i=SBUF1;//读数据
+1945   2      
+1946   2      
+1947   2          if(uart1_receve_end==0)//上次的数据还没有处理，不再接收
+1948   2          {
+1949   3            if(i==0x23)
+1950   3            {
+1951   4      
+1952   4              b_head_sure=1;//数据帧正确
+1953   4              rcv_count=1;//重新计数
+1954   4              receive1[0]=i;//保存数据
+1955   4            }
+1956   3            else if(b_head_sure==1)
+1957   3            {
+1958   4              if(rcv_count<12)//只接收12个字节
+1959   4              {
+1960   5      
+1961   5                receive1[rcv_count]=i;//保存数据
+1962   5      
+1963   5                rcv_count++;
+1964   5                if(rcv_count==12)
+1965   5                {uart1_receve_end=1;
+1966   6                b_head_sure=0;}//接收完成
+1967   5              }
+1968   4            }
+1969   3          }
+1970   2         SCON1 |= 0x10;//开启接收REN1=1
+1971   2         SCON1 &= ~0x01;//清零RI1
+1972   2      
+1973   2        }
+1974   1      
+1975   1          if((SCON1&0x02)==0x02)//发送数据
+1976   1        {
+1977   2      
+1978   2          if(txcount0!=0)//还有数据需要发送
+1979   2          {
+1980   3      //      SBUF1=send_buf[txptr0];//装数据
+1981   3            SBUF1=send_buf[txptr0];
+1982   3            txptr0++;//指针指向下一个地址
+1983   3            txcount0--;//已发送数据数量+1
+1984   3          }
+1985   2            else//已经发送完的处理
+1986   2          {
+1987   3            if(par_buf[37]==1)
+1988   3             {
+1989   4            RXEN=1;//开启485接收
+1990   4                  DXEN=0;//
+1991   4            }
+1992   3          tl0timer0=0;//定时器0累加清0
+1993   3          }
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 33  
+
+1994   2          SCON1 &= ~0x02;//清零TI1;
+1995   2        }
+1996   1      }
+1997          void direct_uart1()
+1998          {
+1999   1        uchar i;
+2000   1        uchar data ADD;
+2001   1        // uchar check_sum = 0;
+2002   1         bit  check_ok  = 0;
+2003   1         uchar order_val1 = 0;
+2004   1         uchar order_val2 = 0;
+2005   1      
+2006   1          if(tl0timer0<5)return;
+2007   1        if(find_key!=0)return;
+2008   1        if(uart1_receve_end==0)return;
+2009   1           uart1_receve_end = 0;
+2010   1      //check_sum=receive1[1]^receive1[2]^receive1[3]^receive1[4]^receive1[5]^receive1[6]^receive1[7]^receive1[8
+             -]^receive1[9];
+2011   1          ADD = par_buf[20]+0x41;
+2012   1         if((receive1[11]==0x0a)&&(receive1[1]==ADD))
+2013   1         {
+2014   2           check_ok=1;
+2015   2      
+2016   2         }
+2017   1         else
+2018   1         {
+2019   2            check_ok=0;
+2020   2        }
+2021   1      
+2022   1      
+2023   1       if(check_ok==1)
+2024   1         {
+2025   2            order_val1=receive1[2];
+2026   2            order_val2=receive1[3];
+2027   2      
+2028   2            if (( order_val1=='D')&&(order_val2=='T'))
+2029   2          {
+2030   3      
+2031   3             send_enable = 1;
+2032   3                 if(par_buf[37]==1)
+2033   3             {
+2034   4            send_dt();
+2035   4               }
+2036   3      
+2037   3          }
+2038   2          else if ((order_val1=='R')&&(order_val2=='B'))
+2039   2          {
+2040   3      
+2041   3                send_enable = 0;
+2042   3            rb1();
+2043   3            send_rb();
+2044   3      //          send_crc_buf1();
+2045   3      
+2046   3          }
+2047   2          else if ((order_val1=='R')&&(order_val2=='E'))
+2048   2          {
+2049   3      
+2050   3              send_enable = 0;
+2051   3            re1();
+2052   3              send_re();
+2053   3      
+2054   3          }
+2055   2          else if ((order_val1=='O')&&(order_val2=='P'))
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 34  
+
+2056   2          {
+2057   3      
+2058   3            send_enable = 0;
+2059   3            opt();
+2060   3            send_opt();
+2061   3      
+2062   3      
+2063   3      
+2064   3          }
+2065   2          else if ((order_val1=='D')&&(order_val2=='L'))
+2066   2          {
+2067   3      
+2068   3            send_enable = 0;
+2069   3            dl1();
+2070   3            send_dl();
+2071   3      
+2072   3      
+2073   3      
+2074   3          }
+2075   2          else if ((order_val1=='D')&&(order_val2=='H'))
+2076   2          {
+2077   3      
+2078   3            send_enable = 0;
+2079   3            dh1();
+2080   3            send_dh();
+2081   3          }
+2082   2      
+2083   2          else if ((order_val1=='A')&&(order_val2=='H'))
+2084   2          {
+2085   3      
+2086   3            send_enable = 0;
+2087   3            ah1();
+2088   3            send_ah();
+2089   3      
+2090   3          }
+2091   2             else if ((order_val1=='R')&&(order_val2=='L'))
+2092   2          {
+2093   3      
+2094   3            send_enable = 0;
+2095   3            rl();
+2096   3            send_rl();
+2097   3      
+2098   3          }
+2099   2          else if ((order_val1=='P')&&(order_val2=='O'))
+2100   2          {
+2101   3      
+2102   3            send_enable = 0;
+2103   3            po();
+2104   3            send_po();
+2105   3      
+2106   3          }
+2107   2          else if ((order_val1=='P')&&(order_val2=='A'))  //显示参数
+2108   2          {
+2109   3      
+2110   3            send_enable = 0;
+2111   3      
+2112   3            pa();
+2113   3      
+2114   3      
+2115   3          }
+2116   2            else if ((order_val1=='P')&&(order_val2=='R'))  //复位参数
+2117   2          {
+2118   3      
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 35  
+
+2119   3                send_enable = 0;
+2120   3      
+2121   3                  EA=0;
+2122   3                erase_par();
+2123   3                 init_par();
+2124   3             EA =1;
+2125   3      
+2126   3          }
+2127   2               for(i=0;i<10;i++)
+2128   2         {
+2129   3           receive1[i]=' ';
+2130   3      
+2131   3            }
+2132   2      
+2133   2        }
+2134   1      }
+2135          void pa(void)                                  //显示参数
+2136          {
+2137   1      
+2138   1            send_rb();
+2139   1                delay1s();
+2140   1            send_re();
+2141   1                delay1s();
+2142   1            send_opt();
+2143   1                delay1s();
+2144   1            send_dl();
+2145   1                delay1s();
+2146   1            send_dh();
+2147   1                delay1s();
+2148   1            send_ah();
+2149   1                delay1s();
+2150   1            send_rl();
+2151   1                delay1s();
+2152   1            send_po();
+2153   1                delay1s();
+2154   1            send_ver();
+2155   1      
+2156   1      }
+2157          
+2158          void send_crc_buf(void)//发固定的12字节的数据
+2159          {
+2160   1      
+2161   1        send_buf[0]=0x05;                     //本机地址    //modified
+2162   1        send_buf[1]='#';                      // 在send_buf数组的第一个位置放入字符 '#'   //modifie
+             -d
+2163   1          send_buf[2]=par_buf[20]+0x41;       // 根据par_buf数组中的某个元素，计算出要发送的�
+             -�二个字节  //modified
+2164   1        send_buf[11]=0x0d;                    // 设置数据包的倒数第二个字节为 0x0d（回车符）/
+             -/modified
+2165   1          //send_buf[10]=send_buf[1]^send_buf[2]^send_buf[3]^send_buf[4]^send_buf[5]^send_buf[6]^send_buf[7]^sen
+             -d_buf[8]^send_buf[9];
+2166   1        send_buf[12]=0x0a;                    // 设置数据包的最后一个字节为 0x0a（换行符）  //
+             -modified
+2167   1      //   if(par_buf[37]==0x01)                // 如果par_buf数组中的第37个元素等于 0x01
+2168   1      //  {
+2169   1      //    DXEN = 1;                           // 将 DXEN 置 1，发送使能标志位
+2170   1      //    RXEN = 0;                           // 将 RXEN 置 0，接收使能标志位
+2171   1      //   }
+2172   1      
+2173   1        txcount0=12;                              //modified
+2174   1        txptr0=1;//从第1个字节开始发送
+2175   1        SBUF1=send_buf[0];//发数据
+2176   1      }
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 36  
+
+2177          
+2178          
+2179          
+2180           void send_dt(void)
+2181          {
+2182   1        uchar idata  rd1,rd2,rd3,rd4,rd5;
+2183   1      
+2184   1        ulint data now_val_temp;
+2185   1      
+2186   1        if(find_key!=0) return;
+2187   1      
+2188   1          now_val_temp = now_val;
+2189   1      
+2190   1        rd1 = now_val_temp/10000;
+2191   1        rd2 = (now_val_temp%10000)/1000;
+2192   1        rd3 = (now_val_temp%1000)/100;
+2193   1        rd4 = (now_val_temp%100)/10;
+2194   1        rd5 = now_val_temp%10;
+2195   1      
+2196   1          rd1 = rd1+0x30;
+2197   1          rd2 = rd2+0x30;
+2198   1          rd3 = rd3+0x30;
+2199   1          rd4 = rd4+0x30;
+2200   1          rd5 = rd5+0x30;
+2201   1      
+2202   1      
+2203   1      if(send_enable==1)
+2204   1      {
+2205   2      
+2206   2            send_buf[3]= 'D';            //modified
+2207   2            send_buf[4]= 'T';            //modified
+2208   2         if(err_flag==0)
+2209   2         {
+2210   3      
+2211   3            send_buf[5]=rd1;             //modified
+2212   3            send_buf[6]=rd2;
+2213   3            send_buf[7]='.';
+2214   3            send_buf[8]= rd3;
+2215   3            send_buf[9]=rd4;
+2216   3            send_buf[10]=rd5;
+2217   3        }
+2218   2        else if(err_flag==1)
+2219   2          {
+2220   3            send_buf[5]=receive0_temp[0];
+2221   3            send_buf[6]= receive0_temp[1];
+2222   3            send_buf[7]=receive0_temp[2];
+2223   3            send_buf[8]=' ';
+2224   3            send_buf[9]=' ';
+2225   3            send_buf[10]=' ';
+2226   3      
+2227   3      
+2228   3          }
+2229   2        send_crc_buf();
+2230   2      
+2231   2      
+2232   2      
+2233   2      
+2234   2        }
+2235   1      
+2236   1      
+2237   1      
+2238   1      }
+2239          
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 37  
+
+2240           void send_dt1(void)
+2241          {
+2242   1        uchar idata  rd1,rd2,rd3,rd4,rd5;
+2243   1      
+2244   1        ulint data now_val_temp;
+2245   1          if(tl0timer0<5)return;//此值为5比较好，太小了，发送值太快，会影响UART0的接收。
+2246   1        if(find_key!=0) return;
+2247   1      
+2248   1          now_val_temp = now_val;
+2249   1      
+2250   1        rd1 = now_val_temp/10000;
+2251   1        rd2 = (now_val_temp%10000)/1000;
+2252   1        rd3 = (now_val_temp%1000)/100;
+2253   1        rd4 = (now_val_temp%100)/10;
+2254   1        rd5 = now_val_temp%10;
+2255   1      
+2256   1          rd1 = rd1+0x30;
+2257   1          rd2 = rd2+0x30;
+2258   1          rd3 = rd3+0x30;
+2259   1          rd4 = rd4+0x30;
+2260   1          rd5 = rd5+0x30;
+2261   1      
+2262   1      
+2263   1      if(send_enable==1)
+2264   1      {
+2265   2      
+2266   2      
+2267   2         if(err_flag==0)
+2268   2         {
+2269   3      
+2270   3            send_buf[1]=rd1;
+2271   3            send_buf[2]=rd2;
+2272   3            send_buf[3]='.';
+2273   3            send_buf[4]= rd3;
+2274   3            send_buf[5]=rd4;
+2275   3            send_buf[6]=rd5;
+2276   3        }
+2277   2        else if(err_flag==1)
+2278   2          {
+2279   3            send_buf[1]=receive0_temp[0];
+2280   3            send_buf[2]= receive0_temp[1];
+2281   3            send_buf[3]=receive0_temp[2];
+2282   3            send_buf[4]=' ';
+2283   3            send_buf[5]=' ';
+2284   3            send_buf[6]=' ';
+2285   3      
+2286   3      
+2287   3          }
+2288   2          send_buf[7]=0x0d;
+2289   2          send_buf[8]=0x0a;
+2290   2        txcount0=7;
+2291   2        txptr0=1;//从第1个字节开始发送
+2292   2        SBUF1=send_buf[0];//发数据
+2293   2        delay1s();
+2294   2      
+2295   2      
+2296   2      
+2297   2        }
+2298   1      
+2299   1      
+2300   1      
+2301   1      }
+2302          void rb1(void)
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 38  
+
+2303          {
+2304   1      
+2305   1      
+2306   1            if((receive1[6]=='.')&&(receive1[4]>=0x30)&&(receive1[4]<=0x39)&&(receive1[5]>=0x30)&&(receive1[5]<=
+             -0x39)&&(receive1[7]>=0x30)&&(receive1[7]<=0x39)&&(receive1[8]>=0x30)&&(receive1[8]<=0x39)&&(receive1[9]>=0x30)&&(receive
+             -1[9]<=0x39))
+2307   1              {
+2308   2                receive1[4]=receive1[4]-0x30;
+2309   2                receive1[5]=receive1[5]-0x30;
+2310   2                receive1[7]=receive1[7]-0x30;
+2311   2                receive1[8]=receive1[8]-0x30;
+2312   2                receive1[9]=receive1[9]-0x30;
+2313   2      
+2314   2                par_buf[0]=receive1[4];
+2315   2                par_buf[1]=receive1[5];
+2316   2                par_buf[2]=receive1[7];
+2317   2                par_buf[3]=receive1[8];
+2318   2                par_buf[4]=receive1[9];
+2319   2      
+2320   2      
+2321   2      
+2322   2              EA=0;
+2323   2      
+2324   2              erase_par();
+2325   2              write_par();  //将修改好后的内容写入flash
+2326   2               EA =1;
+2327   2      
+2328   2                send_rb0();
+2329   2              }
+2330   1      
+2331   1      
+2332   1      }
+2333          
+2334          void send_rb(void)
+2335          {
+2336   1            send_buf[3]= 'R';                      //modified
+2337   1            send_buf[4]= 'B';
+2338   1            send_buf[5]=par_buf[0]+0x30;
+2339   1            send_buf[6]=par_buf[1]+0x30;
+2340   1            send_buf[7]='.';
+2341   1            send_buf[8]=par_buf[2]+0x30;
+2342   1            send_buf[9]=par_buf[3]+0x30;
+2343   1            send_buf[10]=par_buf[4]+0x30;
+2344   1      
+2345   1      
+2346   1            send_crc_buf();
+2347   1      }
+2348          void send_rb0()
+2349          {
+2350   1        // SCON0 = 0x00;
+2351   1        ES0=0;
+2352   1         PCA0CPH4 = 0xa0;
+2353   1        SBUF0 = 'R';  while(!TI0);TI0 = 0;
+2354   1      SBUF0 = 'B';  while(!TI0);TI0 = 0;
+2355   1      SBUF0 = par_buf[0]+0x30;while(!TI0);TI0 = 0;
+2356   1      SBUF0 = par_buf[1]+0x30;while(!TI0);TI0 = 0;
+2357   1      SBUF0 = '.';            while(!TI0);TI0 = 0;
+2358   1      SBUF0 = par_buf[2]+0x30;while(!TI0);TI0 = 0;
+2359   1      SBUF0 = par_buf[3]+0x30;while(!TI0);TI0 = 0;
+2360   1      SBUF0 = par_buf[4]+0x30;while(!TI0);TI0 = 0;
+2361   1      SBUF0 = 0x0d;           while(!TI0);TI0 = 0;
+2362   1      SBUF0 = 0x0a;           while(!TI0);TI0 = 0;
+2363   1      delay1s();
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 39  
+
+2364   1      delay1s();
+2365   1      SBUF0 = 'D';while(!TI0);TI0 = 0;
+2366   1      SBUF0 = 'T';while(!TI0);TI0 = 0;
+2367   1      SBUF0 = 0x0d;           while(!TI0);TI0 = 0;
+2368   1      SBUF0 = 0x0a;           while(!TI0);TI0 = 0;
+2369   1      
+2370   1      delay1s();
+2371   1      delay1s();
+2372   1      
+2373   1        // SCON0 = 0x10;
+2374   1         ES0=1;
+2375   1      }
+2376          void send_rb3()                         //模拟量3起始值
+2377          {
+2378   1        // SCON0 = 0x00;
+2379   1        ES0=0;
+2380   1         PCA0CPH4 = 0xa0;
+2381   1        SBUF0 = 'R';  while(!TI0);TI0 = 0;
+2382   1      SBUF0 = 'B';  while(!TI0);TI0 = 0;
+2383   1      SBUF0 = par_buf[0]+0x30;while(!TI0);TI0 = 0;
+2384   1      SBUF0 = par_buf[1]+0x30;while(!TI0);TI0 = 0;
+2385   1      SBUF0 = '.';            while(!TI0);TI0 = 0;
+2386   1      SBUF0 = par_buf[2]+0x30;while(!TI0);TI0 = 0;
+2387   1      SBUF0 = par_buf[3]+0x30;while(!TI0);TI0 = 0;
+2388   1      SBUF0 = par_buf[4]+0x30;while(!TI0);TI0 = 0;
+2389   1      SBUF0 = 0x0d;           while(!TI0);TI0 = 0;
+2390   1      SBUF0 = 0x0a;           while(!TI0);TI0 = 0;
+2391   1      delay1s();
+2392   1      delay1s();
+2393   1      
+2394   1         ES0=1;
+2395   1      }
+2396          void re1(void)                           //模拟量1的终点值
+2397          {
+2398   1      
+2399   1      
+2400   1      
+2401   1          if((receive1[6]=='.')&&(receive1[4]>=0x30)&&(receive1[4]<=0x39)&&(receive1[5]>=0x30)&&(receive1[5]<=0x
+             -39)&&(receive1[7]>=0x30)&&(receive1[7]<=0x39)&&(receive1[8]>=0x30)&&(receive1[8]<=0x39)&&(receive1[9]>=0x30)&&(receive1[
+             -9]<=0x39))
+2402   1            {
+2403   2              receive1[4]=receive1[4]-0x30;
+2404   2              receive1[5]=receive1[5]-0x30;
+2405   2              receive1[7]=receive1[7]-0x30;
+2406   2              receive1[8]=receive1[8]-0x30;
+2407   2              receive1[9]=receive1[9]-0x30;
+2408   2      
+2409   2              par_buf[5]=receive1[4];
+2410   2              par_buf[6]=receive1[5];
+2411   2              par_buf[7]=receive1[7];
+2412   2              par_buf[8]=receive1[8];
+2413   2              par_buf[9]=receive1[9];
+2414   2      
+2415   2      
+2416   2      
+2417   2      
+2418   2      
+2419   2      
+2420   2              EA=0;
+2421   2      
+2422   2              erase_par();
+2423   2              write_par();  //将修改好后的内容写入flash
+2424   2                EA =1;
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 40  
+
+2425   2                send_re0();
+2426   2            }
+2427   1      
+2428   1      
+2429   1      }
+2430          void send_re(void)
+2431          {
+2432   1      
+2433   1      
+2434   1            send_buf[3]= 'R';
+2435   1            send_buf[4]= 'E';
+2436   1            send_buf[5]=par_buf[5]+0x30;
+2437   1            send_buf[6]=par_buf[6]+0x30;
+2438   1            send_buf[7]='.';
+2439   1            send_buf[8]=par_buf[7]+0x30;
+2440   1            send_buf[9]=par_buf[8]+0x30;
+2441   1            send_buf[10]=par_buf[9]+0x30;
+2442   1      
+2443   1            send_crc_buf();
+2444   1      
+2445   1      }
+2446          void send_re0()
+2447          {
+2448   1        // SCON0 = 0x00;
+2449   1         ES0=0;
+2450   1         PCA0CPH4 = 0xa0;
+2451   1      SBUF0 = 'R';           while(!TI0);TI0 = 0;
+2452   1      SBUF0 = 'E';             while(!TI0);TI0 = 0;
+2453   1      SBUF0 = par_buf[5]+0x30; while(!TI0);TI0 = 0;
+2454   1      SBUF0 = par_buf[6]+0x30; while(!TI0);TI0 = 0;
+2455   1      SBUF0 = '.';             while(!TI0);TI0 = 0;
+2456   1      SBUF0 = par_buf[7]+0x30; while(!TI0);TI0 = 0;
+2457   1      SBUF0 = par_buf[8]+0x30; while(!TI0);TI0 = 0;
+2458   1      SBUF0 = par_buf[9]+0x30; while(!TI0);TI0 = 0;
+2459   1      SBUF0 = 0x0d;            while(!TI0);TI0 = 0;
+2460   1      SBUF0 = 0x0a;            while(!TI0);TI0 = 0;
+2461   1      delay1s();
+2462   1      delay1s();
+2463   1      SBUF0 = 'D';while(!TI0);TI0 = 0;
+2464   1      SBUF0 = 'T';while(!TI0);TI0 = 0;
+2465   1      SBUF0 = 0x0d;           while(!TI0);TI0 = 0;
+2466   1      SBUF0 = 0x0a;           while(!TI0);TI0 = 0;
+2467   1      delay1s();
+2468   1      delay1s();
+2469   1      // SCON0 = 0x10;
+2470   1       ES0=1;
+2471   1      }
+2472          void send_re3()
+2473          {
+2474   1        // SCON0 = 0x00;
+2475   1         ES0=0;
+2476   1         PCA0CPH4 = 0xa0;
+2477   1      SBUF0 = 'R';           while(!TI0);TI0 = 0;
+2478   1      SBUF0 = 'E';             while(!TI0);TI0 = 0;
+2479   1      SBUF0 = par_buf[5]+0x30; while(!TI0);TI0 = 0;
+2480   1      SBUF0 = par_buf[6]+0x30; while(!TI0);TI0 = 0;
+2481   1      SBUF0 = '.';             while(!TI0);TI0 = 0;
+2482   1      SBUF0 = par_buf[7]+0x30; while(!TI0);TI0 = 0;
+2483   1      SBUF0 = par_buf[8]+0x30; while(!TI0);TI0 = 0;
+2484   1      SBUF0 = par_buf[9]+0x30; while(!TI0);TI0 = 0;
+2485   1      SBUF0 = 0x0d;            while(!TI0);TI0 = 0;
+2486   1      SBUF0 = 0x0a;            while(!TI0);TI0 = 0;
+2487   1      delay1s();
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 41  
+
+2488   1      delay1s();
+2489   1      
+2490   1       ES0=1;
+2491   1      }
+2492          
+2493          void dl1(void)
+2494          {
+2495   1      
+2496   1      
+2497   1      
+2498   1          if((receive1[6]=='.')&&(receive1[4]>=0x30)&&(receive1[4]<=0x39)&&(receive1[5]>=0x30)&&(receive1[5]<=0x
+             -39)&&(receive1[7]>=0x30)&&(receive1[7]<=0x39)&&(receive1[8]>=0x30)&&(receive1[8]<=0x39)&&(receive1[9]>=0x30)&&(receive1[
+             -9]<=0x39))
+2499   1            {
+2500   2              receive1[4]=receive1[4]-0x30;
+2501   2              receive1[5]=receive1[5]-0x30;
+2502   2              receive1[7]=receive1[7]-0x30;
+2503   2              receive1[8]=receive1[8]-0x30;
+2504   2              receive1[9]=receive1[9]-0x30;
+2505   2      
+2506   2              par_buf[15]=receive1[4];
+2507   2              par_buf[16]=receive1[5];
+2508   2              par_buf[17]=receive1[7];
+2509   2              par_buf[18]=receive1[8];
+2510   2              par_buf[19]=receive1[9];
+2511   2      
+2512   2      
+2513   2      
+2514   2      
+2515   2              EA=0;
+2516   2      
+2517   2              erase_par();
+2518   2              write_par();  //将修改好后的内容写入flash
+2519   2                EA=1;
+2520   2      
+2521   2        }
+2522   1      
+2523   1      }
+2524          
+2525          void send_dl(void)                                    //报警点1值
+2526          {
+2527   1      
+2528   1            send_buf[3]= 'D';
+2529   1            send_buf[4]= 'L';
+2530   1            send_buf[5]=par_buf[15]+0x30;
+2531   1            send_buf[6]=par_buf[16]+0x30;
+2532   1            send_buf[7]='.';
+2533   1            send_buf[8]=par_buf[17]+0x30;
+2534   1            send_buf[9]=par_buf[18]+0x30;                   //modified
+2535   1            send_buf[10]=par_buf[19]+0x30;
+2536   1      
+2537   1              send_crc_buf();
+2538   1      
+2539   1      }
+2540          void dh1(void)
+2541          {
+2542   1      
+2543   1      
+2544   1          if((receive1[6]=='.')&&(receive1[4]>=0x30)&&(receive1[4]<=0x39)&&(receive1[5]>=0x30)&&(receive1[5]<=0x
+             -39)&&(receive1[7]>=0x30)&&(receive1[7]<=0x39)&&(receive1[8]>=0x30)&&(receive1[8]<=0x39)&&(receive1[9]>=0x30)&&(receive1[
+             -9]<=0x39))
+2545   1            {
+2546   2              receive1[4]=receive1[4]-0x30;
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 42  
+
+2547   2              receive1[5]=receive1[5]-0x30;
+2548   2              receive1[7]=receive1[7]-0x30;
+2549   2              receive1[8]=receive1[8]-0x30;
+2550   2              receive1[9]=receive1[9]-0x30;
+2551   2      
+2552   2              par_buf[10]=receive1[4];
+2553   2              par_buf[11]=receive1[5];
+2554   2              par_buf[12]=receive1[7];
+2555   2              par_buf[13]=receive1[8];
+2556   2              par_buf[14]=receive1[9];
+2557   2              EA=0;
+2558   2      
+2559   2              erase_par();
+2560   2              write_par();  //将修改好后的内容写入flash
+2561   2                EA=1;
+2562   2            }
+2563   1      
+2564   1      
+2565   1      
+2566   1      
+2567   1      }
+2568          void send_dh(void)                                   //报警点2值
+2569          {
+2570   1      
+2571   1            send_buf[3]= 'D';
+2572   1            send_buf[4]= 'H';
+2573   1            send_buf[5]=par_buf[10]+0x30;
+2574   1            send_buf[6]=par_buf[11]+0x30;                            //modified
+2575   1            send_buf[7]='.';
+2576   1            send_buf[8]=par_buf[12]+0x30;
+2577   1            send_buf[9]=par_buf[13]+0x30;
+2578   1            send_buf[10]=par_buf[14]+0x30;
+2579   1              send_crc_buf();
+2580   1      
+2581   1      }
+2582          
+2583          void ah1(void)
+2584          {
+2585   1      
+2586   1      
+2587   1      
+2588   1          if((receive1[6]=='.')&&(receive1[4]>=0x30)&&(receive1[4]<=0x39)&&(receive1[5]>=0x30)&&(receive1[5]<=0x
+             -39)&&(receive1[7]>=0x30)&&(receive1[7]<=0x39)&&(receive1[8]>=0x30)&&(receive1[8]<=0x39)&&(receive1[9]>=0x30)&&(receive1[
+             -9]<=0x39))
+2589   1            {
+2590   2              receive1[4]=receive1[4]-0x30;
+2591   2              receive1[5]=receive1[5]-0x30;
+2592   2              receive1[7]=receive1[7]-0x30;
+2593   2              receive1[8]=receive1[8]-0x30;
+2594   2              receive1[9]=receive1[9]-0x30;
+2595   2      
+2596   2              par_buf[21]=receive1[4];
+2597   2              par_buf[22]=receive1[5];
+2598   2              par_buf[23]=receive1[7];
+2599   2              par_buf[24]=receive1[8];
+2600   2              par_buf[25]=receive1[9];
+2601   2      
+2602   2      
+2603   2      
+2604   2      
+2605   2      
+2606   2              EA=0;
+2607   2      
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 43  
+
+2608   2              erase_par();
+2609   2              write_par();  //将修改好后的内容写入flash
+2610   2               EA=1;
+2611   2        }
+2612   1      
+2613   1      
+2614   1      
+2615   1      
+2616   1      }
+2617          void send_ah(void)                                //读报警迟滞值
+2618          {
+2619   1      
+2620   1            send_buf[3]= 'A';
+2621   1            send_buf[4]= 'H';
+2622   1            send_buf[5]=par_buf[21]+0x30;
+2623   1            send_buf[6]=par_buf[22]+0x30;
+2624   1            send_buf[7]='.';
+2625   1            send_buf[8]=par_buf[23]+0x30;
+2626   1            send_buf[9]=par_buf[24]+0x30;                        //modified
+2627   1            send_buf[10]=par_buf[25]+0x30;
+2628   1              send_crc_buf();
+2629   1      }
+2630          
+2631          
+2632          void opt(void)
+2633          {
+2634   1      
+2635   1          if((receive1[4]>=0x31)&&(receive1[4]<=0x33)&&(receive1[5]==0x30)&&(receive1[6]==0x30)&&(receive1[7]==0
+             -x30)&&(receive1[8]==0x30)&&(receive1[9]==0x30))
+2636   1            {
+2637   2              receive1[4]=receive1[4]-0x30;
+2638   2      
+2639   2              par_buf[34]=receive1[4];
+2640   2      
+2641   2      
+2642   2      
+2643   2               EA=0;
+2644   2      
+2645   2              erase_par();
+2646   2              write_par();  //将修改好后的内容写入flash
+2647   2              EA=1;
+2648   2      
+2649   2              }
+2650   1      }
+2651          
+2652          
+2653          void send_opt(void)                      //报警点选择
+2654          {
+2655   1            send_buf[3]= 'O';
+2656   1            send_buf[4]= 'P';
+2657   1            send_buf[5]=par_buf[34]+0x30;                 //modified
+2658   1            send_buf[6]=' ';
+2659   1            send_buf[7]=' ';
+2660   1            send_buf[8]=' ';
+2661   1            send_buf[9]=' ';
+2662   1            send_buf[10]=' ';
+2663   1              send_crc_buf();
+2664   1      }
+2665           void rl(void)                    //RELAY
+2666          {
+2667   1      
+2668   1         if((receive1[4]>=0x30)&&(receive1[4]<=0x31)&&(receive1[5]==0x30)&&(receive1[6]==0x30)&&(receive1[7]==0x
+             -30)&&(receive1[8]==0x30)&&(receive1[9]==0x30))
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 44  
+
+2669   1           {
+2670   2           receive1[4]=receive1[4]-0x30;
+2671   2      
+2672   2           par_buf[35]=receive1[4];
+2673   2      
+2674   2      
+2675   2      
+2676   2               EA=0;
+2677   2      
+2678   2              erase_par();
+2679   2              write_par();  //将修改好后的内容写入flash
+2680   2              EA=1;
+2681   2      
+2682   2              }
+2683   1      }
+2684          
+2685          
+2686          void send_rl(void)                    //继电器
+2687          {
+2688   1            send_buf[3]= 'R';
+2689   1            send_buf[4]= 'L';
+2690   1            send_buf[5]=par_buf[35]+0x30;                    //modified
+2691   1            send_buf[6]=' ';
+2692   1            send_buf[7]=' ';
+2693   1            send_buf[8]=' ';
+2694   1            send_buf[9]=' ';
+2695   1            send_buf[10]=' ';
+2696   1              send_crc_buf();
+2697   1      }
+2698          void po(void)                       //PNP
+2699          {
+2700   1      
+2701   1        if((receive1[4]>=0x30)&&(receive1[4]<=0x31)&&(receive1[5]==0x30)&&(receive1[6]==0x30)&&(receive1[7]==0x3
+             -0)&&(receive1[8]==0x30)&&(receive1[9]==0x30))
+2702   1          {
+2703   2          receive1[4]=receive1[4]-0x30;
+2704   2      
+2705   2          par_buf[36]=receive1[4];
+2706   2      
+2707   2      
+2708   2      
+2709   2               EA=0;
+2710   2      
+2711   2              erase_par();
+2712   2              write_par();  //将修改好后的内容写入flash
+2713   2      
+2714   2                 EA=1;
+2715   2              }
+2716   1      }
+2717          
+2718          
+2719          void send_po(void)                   //PNP
+2720          {
+2721   1            send_buf[3]= 'P';
+2722   1            send_buf[4]= 'O';
+2723   1            send_buf[5]=par_buf[36]+0x30;               //modified
+2724   1            send_buf[6]=' ';
+2725   1            send_buf[7]=' ';
+2726   1            send_buf[8]=' ';
+2727   1            send_buf[9]=' ';
+2728   1            send_buf[10]=' ';
+2729   1              send_crc_buf();
+2730   1      }
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 45  
+
+2731          void send_ver()                    //version
+2732          {
+2733   1            send_buf[3]= 'V';
+2734   1            send_buf[4]= 'e';
+2735   1            send_buf[5]='r';
+2736   1            send_buf[6]=version_major;                    //modified
+2737   1            send_buf[7]='.';
+2738   1            send_buf[8]=version_minor;
+2739   1            send_buf[9]='0';
+2740   1            send_buf[10]='0';
+2741   1            send_crc_buf();
+2742   1      
+2743   1      }
+2744          
+2745          
+2746          /////////////////////////////////////////////////////
+2747          /*                     主程序                      */
+2748          /////////////////////////////////////////////////////
+2749          void main(void)
+2750          {
+2751   1          uchar i;
+2752   1      
+2753   1          Init_Device();
+2754   1      
+2755   1        delay1s();
+2756   1        delay1s();
+2757   1        delay1s();
+2758   1      
+2759   1        m_init();
+2760   1        m_send(0x01,0xff);                  //8.8.8 8 8
+2761   1        m_send(0x02,0xff);
+2762   1        m_send(0x03,0x7f);
+2763   1        m_send(0x04,0x7f);
+2764   1        m_send(0x05,0x7f);
+2765   1      
+2766   1      
+2767   1          Power = 0;
+2768   1          EA = 0;              //禁用所有中断源
+2769   1         read_par();
+2770   1      
+2771   1        if (( (par_buf[26]==0x01)&&(par_buf[27]==0x02)&&(par_buf[28]==0x03))==0)
+2772   1        {
+2773   2          erase_par();
+2774   2          init_par();
+2775   2      
+2776   2        }
+2777   1      
+2778   1        for (i=0;i<38;i++)                     //验证
+2779   1        {
+2780   2          if ( par_buf[i]>9)
+2781   2          {
+2782   3              PCA0CPH4 = 0xa0;
+2783   3              erase_par();
+2784   3              init_par();
+2785   3      
+2786   3          }
+2787   2        }
+2788   1      
+2789   1      
+2790   1      
+2791   1        //STC1387init
+2792   1      //    SLEW = 1;
+2793   1      //  if(par_buf[37]==0x00)
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 46  
+
+2794   1      //  {
+2795   1      //  MODE = 0;//RS232 mode
+2796   1      //  }
+2797   1      //  else if(par_buf[37]==0x01)
+2798   1      //  {MODE = 1;}//RS485 mode
+2799   1      
+2800   1      
+2801   1        RXEN = 1;
+2802   1        DXEN = 0;
+2803   1      
+2804   1      
+2805   1        UP = par_buf[10]*10000+par_buf[11]*1000+par_buf[12]*100+par_buf[13]*10+par_buf[14];
+2806   1        LO = par_buf[15]*10000+par_buf[16]*1000+par_buf[17]*100+par_buf[18]*10+par_buf[19];
+2807   1        AH = par_buf[21]*10000+par_buf[22]*1000+par_buf[23]*100+par_buf[24]*10+par_buf[25];
+2808   1      
+2809   1      
+2810   1        CTR = par_buf[34];
+2811   1      
+2812   1      
+2813   1      
+2814   1          read_par();
+2815   1      
+2816   1      
+2817   1        // 激光测距仪初始化时间
+2818   1      
+2819   1        delay1s();
+2820   1        delay1s();
+2821   1          delay1s();
+2822   1        delay1s();
+2823   1        delay1s();
+2824   1        delay1s();
+2825   1      
+2826   1      
+2827   1        trans0("ASdt\r\n");
+2828   1        delay1s();
+2829   1        delay1s();
+2830   1        trans0("ASdt\r\n");
+2831   1        delay1s();
+2832   1        delay1s();
+2833   1      
+2834   1        trans0("SE2\r\n");
+2835   1        delay1s();
+2836   1        delay1s();
+2837   1      
+2838   1        send_rb3();
+2839   1        send_re3();
+2840   1      
+2841   1        trans0("DT\r\n");
+2842   1      
+2843   1        delay1s();
+2844   1        delay1s();
+2845   1          trans0("DT\r\n");
+2846   1        delay1s();
+2847   1      
+2848   1          function_flag = 0;
+2849   1        find_key = 0;
+2850   1      
+2851   1        //Added to fix Comm lockup problem MD 20210409
+2852   1        i=SBUF1;        // flush UART1 input buffer
+2853   1        i=SBUF1;        // flush UART1 input buffer
+2854   1        rcv_count = 0;      // state: waiting for '#'
+2855   1        uart1_receve_end = 0; // state: no complete message received
+2856   1        b_head_sure=0;      // state: no '#' found
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 47  
+
+2857   1        UART1_Init();     // reinitialize UART1
+2858   1        RXEN = 1;       // RS-485 driver receive enable
+2859   1        DXEN = 0;       // RS-485 driver transmit disable
+2860   1      
+2861   1        EA = 1;                 //all interrupt enable
+2862   1        RI0 = 0;                //receive flag
+2863   1        ES0 = 1;        //Enable UART0 Interrupt
+2864   1        SCON1 |= 0x01;//开启一次中断，解决UART1优先级高导致UART0不工作的情况（UART1中断�
+             -��次后UART0才能进入中断）
+2865   1        i=SBUF1;        // flush UART1 input buffer
+2866   1        i=SBUF1;        // flush UART1 input buffer
+2867   1        // delay1s();
+2868   1      
+2869   1          delay20ms();
+2870   1        while(1)
+2871   1        {
+2872   2             PCA0CPH4 = 0xa0;
+2873   2      
+2874   2           scan_keyboard();
+2875   2      
+2876   2            direct_uart0();
+2877   2      
+2878   2           direct_uart1();
+2879   2           if(par_buf[37]==1)
+2880   2           {send_dt1();  }
+2881   2      
+2882   2      //       OUT0=1;
+2883   2      //       OUT1=1;
+2884   2      //       delay1s();
+2885   2      //       delay1s();
+2886   2      //       delay1s();
+2887   2      //       delay1s();
+2888   2      //       delay1s();
+2889   2      //       delay1s();
+2890   2      //       delay1s();
+2891   2      //       delay1s();
+2892   2      //       delay1s();
+2893   2      //
+2894   2      //       OUT0=0;
+2895   2      //       OUT1=0;
+2896   2      //       delay1s();
+2897   2      //       delay1s();
+2898   2      //       delay1s();
+2899   2      //       delay1s();
+2900   2      //       delay1s();
+2901   2      //       delay1s();
+2902   2      //       delay1s();
+2903   2      //       delay1s();
+2904   2      //       delay1s();
+2905   2      
+2906   2      //      send_crc_buf1();
+2907   2      
+2908   2      //      delay1s();
+2909   2      //      delay1s();
+2910   2      //      delay1s();
+2911   2      //      delay1s();
+2912   2      //      delay1s();
+2913   2      //      delay1s();
+2914   2      //      delay1s();
+2915   2      //      delay1s();
+2916   2      //      delay1s();
+2917   2      //      delay1s();
+2918   2      //      delay1s();
+C51 COMPILER V9.60.0.0   DISTANCE_V2_MAIN                                                  06/12/2024 09:20:48 PAGE 48  
+
+2919   2      //      delay1s();
+2920   2      //      delay1s();
+2921   2      //      delay1s();
+2922   2      //      delay1s();
+2923   2      //      delay1s();
+2924   2      //      delay1s();
+2925   2      //      delay1s();
+2926   2      //      delay1s();
+2927   2      //      delay1s();
+2928   2      //      delay1s();
+2929   2      //      delay1s();
+2930   2      //      delay1s();
+2931   2      //      delay1s();
+2932   2      //      delay1s();
+2933   2      //      delay1s();
+2934   2      //      delay1s();
+2935   2        }
+2936   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   9929    ----
+   CONSTANT SIZE    =    138    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     72      23
+   IDATA SIZE       =     48      34
+   BIT SIZE         =      7       1
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

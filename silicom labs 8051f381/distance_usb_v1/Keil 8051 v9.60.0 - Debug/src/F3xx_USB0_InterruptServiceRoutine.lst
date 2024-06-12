@@ -1,0 +1,715 @@
+C51 COMPILER V9.60.0.0   F3XX_USB0_INTERRUPTSERVICEROUTINE                                 06/12/2024 09:09:33 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE F3XX_USB0_INTERRUPTSERVICEROUTINE
+OBJECT MODULE PLACED IN .\src\F3xx_USB0_InterruptServiceRoutine.OBJ
+COMPILER INVOKED BY: F:\SiliconLabs\SimplicityStudio\v5\developer\toolchains\keil_8051\9.60\BIN\C51.exe C:\Users\52876\S
+                    -implicityStudio\v5_workspace\distance_usb_v1\src\F3xx_USB0_InterruptServiceRoutine.c OMF2 SMALL DEBUG OBJECTEXTEND ROM(L
+                    -ARGE) WARNINGLEVEL(2) FLOATFUZZY(3) OPTIMIZE(8,SPEED) DEFINE(DEBUG=1) INTVECTOR(0X0000) INTPROMOTE INCDIR(C:\Users\52876
+                    -\SimplicityStudio\v5_workspace\distance_usb_v1\external_copied_files;F:/SiliconLabs/SimplicityStudio/v5/developer/sdks/8
+                    -051/v4.3.1//Device/shared/si8051Base;F:/SiliconLabs/SimplicityStudio/v5/developer/sdks/8051/v4.3.1//Device/C8051F380/inc
+                    -) PRINT(.\src\F3xx_USB0_InterruptServiceRoutine.lst) COND PAGEWIDTH(120) PAGELENGTH(65) OBJECT(.\src\F3xx_USB0_Interrupt
+                    -ServiceRoutine.OBJ)
+
+line level    source
+
+   1          //-----------------------------------------------------------------------------
+   2          // F3xx_USB0_InterruptServiceRoutine.c
+   3          //-----------------------------------------------------------------------------
+   4          // Copyright 2014 Silicon Laboratories, Inc.
+   5          // http://developer.silabs.com/legal/version/v11/Silicon_Labs_Software_License_Agreement.txt
+   6          //
+   7          // Program Description:
+   8          //
+   9          // Stub file for Firmware Template.
+  10          //
+  11          //
+  12          // How To Test:    See Readme.txt
+  13          //
+  14          //
+  15          // Target:         C8051F320/1,
+  16          //                 C8051F326/7,
+  17          //                 C8051F34x,
+  18          //                 C8051F38x
+  19          //
+  20          // Tool chain:     Keil C51 7.50 / Keil EVAL C51
+  21          //                 Silicon Laboratories IDE version 2.6
+  22          // Command Line:   See Readme.txt
+  23          // Project Name:   USB0_Bulk
+  24          //
+  25          // Release 2.0
+  26          //    -Rewrite (CM)
+  27          //    -02 NOV 2012
+  28          //
+  29          // Release 1.0
+  30          //    -Initial Revision (PD)
+  31          //    -04 JUN 2008
+  32          //
+  33          
+  34          //-----------------------------------------------------------------------------
+  35          // Includes
+  36          //-----------------------------------------------------------------------------
+  37          
+  38          #include "c8051f3xx.h"
+  39          #include "F3xx_USB0_Register.h"
+  40          #include "F3xx_USB0_Descriptor.h"
+  41          #include "F3xx_USB0_InterruptServiceRoutine.h"
+  42          #include "F3xx_USB0_Main.h"
+  43          #include "F3xx_USB0_Bulk.h"
+  44          #include "F3xx_USB0_Standard_Requests.h"
+  45          #include "F3xx_USB0_Vendor_Requests.h"
+  46          
+  47          
+  48          #include "C8051F380_defs.h"
+  49          #include "SI_C8051F380_Defs.h"
+  50          //-----------------------------------------------------------------------------
+C51 COMPILER V9.60.0.0   F3XX_USB0_INTERRUPTSERVICEROUTINE                                 06/12/2024 09:09:33 PAGE 2   
+
+  51          // Global Variables
+  52          //-----------------------------------------------------------------------------
+  53          
+  54          uint8_t USB0_State;              // Holds the current USB State
+  55          
+  56          Setup_Buffer Setup;         // Buffer for current device
+  57                                      // request information
+  58          
+  59          uint16_t DataSize;               // Size of data to return
+  60          uint16_t DataSent;               // Amount of data sent so far
+  61          uint8_t const * DataPtr;         // Pointer to data to return
+  62          
+  63          // Holds the status for each endpoint:
+  64          // EP0, IN_EP1, OUT_EP1
+  65          uint8_t EP_Status[3] = {EP_IDLE, EP_HALT, EP_HALT};
+  66          
+  67          //-----------------------------------------------------------------------------
+  68          // Static Function Prototypes
+  69          //-----------------------------------------------------------------------------
+  70          
+  71          static void Usb_Resume (void);
+  72          static void Usb_Reset (void);
+  73          static void Handle_Control (void);
+  74          static void Send_Packet_ISR (void);
+  75          static void Handle_Out1 (void);
+  76          static void Receive_Packet (void);
+  77          static void Fifo_Read (uint8_t, uint8_t*, uint16_t);
+  78          static void Fifo_Write_ISR (uint8_t, uint8_t const *, uint16_t);
+  79          static void Fifo_Write_Foreground (uint8_t addr, uint8_t const * buffer,
+  80                                             uint16_t size);
+  81          
+  82          //-----------------------------------------------------------------------------
+  83          // Interrupt Service Routines
+  84          //-----------------------------------------------------------------------------
+  85          
+  86          //-----------------------------------------------------------------------------
+  87          // Usb_ISR
+  88          //-----------------------------------------------------------------------------
+  89          //
+  90          // Called after any USB type interrupt, this handler determines which type
+  91          // of interrupt occurred, and calls the specific routine to handle it.
+  92          //
+  93          // Top-level USB ISR
+  94          //
+  95          //-----------------------------------------------------------------------------
+  96          SI_INTERRUPT(Usb_ISR, USB0_IRQn)
+  97          {
+  98   1         uint8_t bCommon, bIn, bOut;
+  99   1      
+ 100   1         POLL_READ_BYTE (CMINT, bCommon); // Read all interrupt registers
+ 101   1         POLL_READ_BYTE (IN1INT, bIn);    // this read also clears the register
+ 102   1         POLL_READ_BYTE (OUT1INT, bOut);
+ 103   1      
+ 104   1         if (bCommon & rbRSUINT)          // Handle Resume interrupt
+ 105   1         {
+ 106   2            Usb_Resume ();
+ 107   2         }
+ 108   1         if (bCommon & rbRSTINT)          // Handle Reset interrupt
+ 109   1         {
+ 110   2            Usb_Reset ();
+ 111   2         }
+ 112   1         if (bIn & rbEP0)                 // Handle Setup packet received
+ 113   1         {                                // or packet transmitted if Endpoint 0
+C51 COMPILER V9.60.0.0   F3XX_USB0_INTERRUPTSERVICEROUTINE                                 06/12/2024 09:09:33 PAGE 3   
+
+ 114   2            Handle_Control();             // is in transmit mode
+ 115   2         }
+ 116   1         if (bIn & rbIN1)                 // Handle In Packet sent, put new data
+ 117   1         {                                // on endpoint 1 fifo
+ 118   2            Handle_In1 ();
+ 119   2         }
+ 120   1         if (bOut & rbOUT1)               // Handle Out packet received, take
+ 121   1         {                                // data off endpoint 1 fifo
+ 122   2            Handle_Out1 ();
+ 123   2         }
+ 124   1         if (bCommon & rbSUSINT)          // Handle Suspend interrupt
+ 125   1         {
+ 126   2            USB0_Suspend ();
+ 127   2         }
+ 128   1         if (bCommon & rbSOF)             // Preload the IN/OUT FIFOs after a SOF
+ 129   1         {
+ 130   2            Send_Packet_ISR ();
+ 131   2            Receive_Packet ();
+ 132   2         }
+ 133   1      }
+ 134          
+ 135          //-----------------------------------------------------------------------------
+ 136          // Static Global Functions
+ 137          //-----------------------------------------------------------------------------
+ 138          
+ 139          //-----------------------------------------------------------------------------
+ 140          // Usb_Reset
+ 141          //-----------------------------------------------------------------------------
+ 142          //
+ 143          // Return Value : None
+ 144          // Parameters   : None
+ 145          //
+ 146          // - Set state to default
+ 147          // - Clear Usb Inhibit bit
+ 148          //
+ 149          //-----------------------------------------------------------------------------
+ 150          static void Usb_Reset (void)
+ 151          {
+ 152   1         USB0_State = DEV_DEFAULT;           // Set device state to default
+ 153   1      
+ 154   1         POLL_WRITE_BYTE (POWER, 0x01);      // Clear usb inhibit bit to enable USB
+ 155   1                                             // suspend detection
+ 156   1      
+ 157   1         EP_Status[0] = EP_IDLE;             // Set default Endpoint Status
+ 158   1         EP_Status[1] = EP_HALT;
+ 159   1         EP_Status[2] = EP_HALT;
+ 160   1      }
+ 161          
+ 162          //-----------------------------------------------------------------------------
+ 163          // Usb_Resume
+ 164          //-----------------------------------------------------------------------------
+ 165          //
+ 166          // Return Value : None
+ 167          // Parameters   : None
+ 168          //
+ 169          // Resume normal USB operation
+ 170          //
+ 171          //-----------------------------------------------------------------------------
+ 172          static void Usb_Resume (void)
+ 173          {
+ 174   1         volatile int k = 0;
+ 175   1         k++;
+ 176   1      }
+C51 COMPILER V9.60.0.0   F3XX_USB0_INTERRUPTSERVICEROUTINE                                 06/12/2024 09:09:33 PAGE 4   
+
+ 177          
+ 178          //-----------------------------------------------------------------------------
+ 179          // Handle_Control
+ 180          //-----------------------------------------------------------------------------
+ 181          //
+ 182          // Return Value : None
+ 183          // Parameters   : None
+ 184          //
+ 185          // - Decode Incoming Setup requests
+ 186          // - Load data packets on fifo while in transmit mode
+ 187          //
+ 188          //-----------------------------------------------------------------------------
+ 189          static void Handle_Control (void)
+ 190          {
+ 191   1         uint8_t controlReg;                      // Temporary storage for EP control
+ 192   1                                             // register
+ 193   1      
+ 194   1         POLL_WRITE_BYTE (INDEX, 0);         // Set Index to Endpoint Zero
+ 195   1         POLL_READ_BYTE (E0CSR, controlReg); // Read control register
+ 196   1      
+ 197   1         if (EP_Status[0] == EP_ADDRESS)     // Handle Status Phase of Set Address
+ 198   1                                             // command
+ 199   1         {
+ 200   2            POLL_WRITE_BYTE (FADDR, Setup.wValue.u8[LSB]);
+ 201   2            EP_Status[0] = EP_IDLE;
+ 202   2         }
+ 203   1      
+ 204   1         if (controlReg & rbSTSTL)           // If last packet was a sent stall,
+ 205   1         {                                   // reset STSTL bit and return EP0
+ 206   2                                             // to idle state
+ 207   2            POLL_WRITE_BYTE (E0CSR, 0);
+ 208   2            EP_Status[0] = EP_IDLE;
+ 209   2            return;
+ 210   2         }
+ 211   1      
+ 212   1         if (controlReg & rbSUEND)           // If last Setup transaction was
+ 213   1         {                                   // ended prematurely then set
+ 214   2            POLL_WRITE_BYTE (E0CSR, rbDATAEND);
+ 215   2            // Serviced Setup End bit and return EP0
+ 216   2            POLL_WRITE_BYTE (E0CSR, rbSSUEND);
+ 217   2            EP_Status[0] = EP_IDLE;          // To idle state
+ 218   2         }
+ 219   1      
+ 220   1         // If Endpoint 0 is in idle mode
+ 221   1         if (EP_Status[0] == EP_IDLE)
+ 222   1         {
+ 223   2            // Make sure that EP 0 has an Out Packet
+ 224   2            // ready from host although if EP0
+ 225   2            // is idle, this should always be the
+ 226   2            // case
+ 227   2            if (controlReg & rbOPRDY)
+ 228   2            {
+ 229   3               // Get Setup Packet off of Fifo,
+ 230   3               // it is currently Big-Endian
+ 231   3               Fifo_Read (FIFO_EP0, (uint8_t*) &Setup, 8);
+ 232   3      
+ 233   3      // If using a big-endian compiler
+ 234   3      #if (MSB == 0)
+ 235   3               // Compiler Specific - these next three
+ 236   3               // statements swap the bytes of the
+ 237   3               // Setup packet words to Big Endian so
+ 238   3               // they can be compared to other 16-bit
+ 239   3               // values elsewhere properly
+C51 COMPILER V9.60.0.0   F3XX_USB0_INTERRUPTSERVICEROUTINE                                 06/12/2024 09:09:33 PAGE 5   
+
+ 240   3               Setup.wValue.u16 = Setup.wValue.u8[MSB] + (Setup.wValue.u8[LSB] << 8);
+ 241   3               Setup.wIndex.u16 = Setup.wIndex.u8[MSB] + (Setup.wIndex.u8[LSB] << 8);
+ 242   3               Setup.wLength.u16 = Setup.wLength.u8[MSB] + (Setup.wLength.u8[LSB] << 8);
+ 243   3      #endif // (MSB == 0)
+ 244   3      
+ 245   3               // Handle standard requests
+ 246   3               if ((Setup.bmRequestType & REQ_TYPE_BITMASK) == REQ_TYPE_STD_REQ)
+ 247   3               {
+ 248   4                  switch (Setup.bRequest)    // Call correct subroutine to handle
+ 249   4                  {                          // each kind of standard request
+ 250   5                     case GET_STATUS:
+ 251   5                        Get_Status ();
+ 252   5                        break;
+ 253   5                     case CLEAR_FEATURE:
+ 254   5                        Clear_Feature ();
+ 255   5                        break;
+ 256   5                     case SET_FEATURE:
+ 257   5                        Set_Feature ();
+ 258   5                        break;
+ 259   5                     case SET_ADDRESS:
+ 260   5                        Set_Address ();
+ 261   5                        break;
+ 262   5                     case GET_DESCRIPTOR:
+ 263   5                        Get_Descriptor ();
+ 264   5                        break;
+ 265   5                     case GET_CONFIGURATION:
+ 266   5                        Get_Configuration ();
+ 267   5                        break;
+ 268   5                     case SET_CONFIGURATION:
+ 269   5                        Set_Configuration ();
+ 270   5                        break;
+ 271   5                     case GET_INTERFACE:
+ 272   5                        Get_Interface ();
+ 273   5                        break;
+ 274   5                     case SET_INTERFACE:
+ 275   5                        Set_Interface ();
+ 276   5                        break;
+ 277   5                     default:
+ 278   5                        Force_Stall ();      // Send stall to host if invalid request
+ 279   5                        break;
+ 280   5                  }
+ 281   4               }
+ 282   3               // Handle vendor-specific requests
+ 283   3               else if ((Setup.bmRequestType & REQ_TYPE_BITMASK) == REQ_TYPE_VENDOR)
+ 284   3               {
+ 285   4                  Handle_Vendor ();
+ 286   4               }
+ 287   3               // Unsupported request type
+ 288   3               else
+ 289   3               {
+ 290   4                  Force_Stall ();            // Send stall to host if invalid request
+ 291   4               }
+ 292   3            }
+ 293   2         }
+ 294   1      
+ 295   1         if (EP_Status[0] == EP_TX)          // See if endpoint should transmit
+ 296   1         {
+ 297   2            if (!(controlReg & rbINPRDY) )   // Don't overwrite last packet
+ 298   2            {
+ 299   3               // Read control register
+ 300   3               POLL_READ_BYTE (E0CSR, controlReg);
+ 301   3      
+ 302   3               // Check to see if Setup End or Out Packet received, if so do not put
+C51 COMPILER V9.60.0.0   F3XX_USB0_INTERRUPTSERVICEROUTINE                                 06/12/2024 09:09:33 PAGE 6   
+
+ 303   3               // any new data on FIFO
+ 304   3               if ((!(controlReg & rbSUEND)) || (!(controlReg & rbOPRDY)))
+ 305   3               {
+ 306   4                  // Add In Packet ready flag to E0CSR bitmask
+ 307   4                  controlReg = rbINPRDY;
+ 308   4      
+ 309   4                  if (DataSize >= EP0_PACKET_SIZE)
+ 310   4                  {
+ 311   5                     // Break Data into multiple packets if larger than Max Packet
+ 312   5                     Fifo_Write_ISR (FIFO_EP0, (uint8_t*)DataPtr, EP0_PACKET_SIZE);
+ 313   5                     // Advance data pointer
+ 314   5                     DataPtr  += EP0_PACKET_SIZE;
+ 315   5                     // Decrement data size
+ 316   5                     DataSize -= EP0_PACKET_SIZE;
+ 317   5                     // Increment data sent counter
+ 318   5                     DataSent += EP0_PACKET_SIZE;
+ 319   5                  }
+ 320   4                  else
+ 321   4                  {
+ 322   5                     // If data is less than Max Packet size or zero
+ 323   5                     Fifo_Write_ISR (FIFO_EP0, (uint8_t*)DataPtr, DataSize);
+ 324   5                     controlReg |= rbDATAEND;// Add Data End bit to bitmask
+ 325   5                     EP_Status[0] = EP_IDLE; // Return EP 0 to idle state
+ 326   5                  }
+ 327   4                  if (DataSent == Setup.wLength.u16)
+ 328   4                  {
+ 329   5                     // This case exists when the host requests an even multiple of
+ 330   5                     // your endpoint zero max packet size, and you need to exit
+ 331   5                     // transmit mode without sending a zero length packet
+ 332   5                     controlReg |= rbDATAEND;// Add Data End bit to mask
+ 333   5                     EP_Status[0] = EP_IDLE; // Return EP 0 to idle state
+ 334   5                  }
+ 335   4                  // Write mask to E0CSR
+ 336   4                  POLL_WRITE_BYTE(E0CSR, controlReg);
+ 337   4               }
+ 338   3            }
+ 339   2         }
+ 340   1      }
+ 341          
+ 342          //-----------------------------------------------------------------------------
+ 343          // Send_Packet
+ 344          //-----------------------------------------------------------------------------
+ 345          //
+ 346          // Return Value : None
+ 347          // Parameters   : None
+ 348          //
+ 349          // Send the packet in In_Packet using the USB IN FIFO if available.
+ 350          //
+ 351          // - Copy a packet from In_Packet to IN FIFO if available and not halted
+ 352          //   and set IN packet ready to eventually transmit the packet to the host
+ 353          //
+ 354          //-----------------------------------------------------------------------------
+ 355          
+ 356          // Called from ISR
+ 357          static void Send_Packet_ISR ()
+ 358          {
+ 359   1         uint8_t controlReg;
+ 360   1      
+ 361   1         POLL_WRITE_BYTE(INDEX, 1);           // Set index to endpoint 1 registers
+ 362   1         POLL_READ_BYTE(EINCSR1, controlReg); // Read contol register for IN_EP1
+ 363   1      
+ 364   1         if (EP_Status[1] != EP_HALT)
+ 365   1         {
+C51 COMPILER V9.60.0.0   F3XX_USB0_INTERRUPTSERVICEROUTINE                                 06/12/2024 09:09:33 PAGE 7   
+
+ 366   2            // If the IN FIFO has room for a packet
+ 367   2            if (!(controlReg & rbInINPRDY))
+ 368   2            {
+ 369   3               // If In_Packet has data, then write to the IN FIFO
+ 370   3               if (In_Packet_Ready)
+ 371   3               {
+ 372   4                  // Write new data to IN FIFO
+ 373   4                  Fifo_Write_ISR (FIFO_EP1, In_Packet, IN_EP1_PACKET_SIZE);
+ 374   4      
+ 375   4                  // Clear in packet ready
+ 376   4                  In_Packet_Ready = 0;
+ 377   4            
+ 378   4                  // Set In Packet ready bit, indicating a packet is ready
+ 379   4                  // to send to the host
+ 380   4                  POLL_WRITE_BYTE (EINCSR1, rbInINPRDY);
+ 381   4               }
+ 382   3            }
+ 383   2         }
+ 384   1      }
+ 385          
+ 386          // Called from foreground
+ 387          void Send_Packet_Foreground ()
+ 388          {
+ 389   1         uint8_t controlReg;
+ 390   1      
+ 391   1         POLL_WRITE_BYTE(INDEX, 1);           // Set index to endpoint 1 registers
+ 392   1         POLL_READ_BYTE(EINCSR1, controlReg); // Read contol register for IN_EP1
+ 393   1      
+ 394   1         if (EP_Status[1] != EP_HALT)
+ 395   1         {
+ 396   2            // If the IN FIFO has room for a packet
+ 397   2            if (!(controlReg & rbInINPRDY))
+ 398   2            {
+ 399   3               // If In_Packet has data, then write to the IN FIFO
+ 400   3               if (In_Packet_Ready)
+ 401   3               {
+ 402   4                  // Write new data to IN FIFO
+ 403   4                  Fifo_Write_Foreground (FIFO_EP1, In_Packet, IN_EP1_PACKET_SIZE);
+ 404   4      
+ 405   4                  // Clear in packet ready
+ 406   4                  In_Packet_Ready = 0;
+ 407   4            
+ 408   4                  // Set In Packet ready bit, indicating a packet is ready
+ 409   4                  // to send to the host
+ 410   4                  POLL_WRITE_BYTE (EINCSR1, rbInINPRDY);
+ 411   4               }
+ 412   3            }
+ 413   2         }
+ 414   1      }
+ 415          
+ 416          //-----------------------------------------------------------------------------
+ 417          // Handle_Out1
+ 418          //-----------------------------------------------------------------------------
+ 419          //
+ 420          // Return Value : None
+ 421          // Parameters   : None
+ 422          //
+ 423          // Receive the packet from the USB OUT FIFO and copy to Out_Packet if
+ 424          // available.
+ 425          //
+ 426          // - Send a STALL if the endpoint is halted
+ 427          // - Clear a sent STALL when the endpoint is unhalted
+ 428          // - Copy a packet from In_Packet to IN FIFO if available and not halted
+C51 COMPILER V9.60.0.0   F3XX_USB0_INTERRUPTSERVICEROUTINE                                 06/12/2024 09:09:33 PAGE 8   
+
+ 429          //   and set IN packet ready to eventually transmit the packet to the host
+ 430          //
+ 431          //-----------------------------------------------------------------------------
+ 432          static void Handle_Out1 ()
+ 433          {
+ 434   1         uint8_t controlReg;
+ 435   1      
+ 436   1         POLL_WRITE_BYTE (INDEX, 1);             // Set index to endpoint 1 registers
+ 437   1         POLL_READ_BYTE (EOUTCSR1, controlReg);  // Read contol register for OUT_EP1
+ 438   1      
+ 439   1         // If endpoint is halted, send a stall
+ 440   1         if (EP_Status[2] == EP_HALT)
+ 441   1         {
+ 442   2            POLL_WRITE_BYTE (EOUTCSR1, rbOutSDSTL);
+ 443   2         }
+ 444   1         // Otherwise read packet from host
+ 445   1         else
+ 446   1         {
+ 447   2            // Clear sent stall bit if last packet was a stall
+ 448   2            if (controlReg & rbOutSTSTL)
+ 449   2            {
+ 450   3               POLL_WRITE_BYTE (EOUTCSR1, rbOutCLRDT);
+ 451   3            }
+ 452   2         }
+ 453   1      
+ 454   1         Receive_Packet ();
+ 455   1      }
+ 456          
+ 457          //-----------------------------------------------------------------------------
+ 458          // Receive_Packet
+ 459          //-----------------------------------------------------------------------------
+ 460          //
+ 461          // Return Value : None
+ 462          // Parameters   : None
+ 463          //
+ 464          // Receive the packet from the USB OUT FIFO and copy to Out_Packet if
+ 465          // available.
+ 466          //
+ 467          // - Copy a packet from In_Packet to IN FIFO if available and not halted
+ 468          //   and set IN packet ready to eventually transmit the packet to the host
+ 469          //
+ 470          //-----------------------------------------------------------------------------
+ 471          static void Receive_Packet ()
+ 472          {
+ 473   1         uint8_t count = 0;
+ 474   1         uint8_t controlReg;
+ 475   1      
+ 476   1         POLL_WRITE_BYTE (INDEX, 1);             // Set index to endpoint 1 registers
+ 477   1         POLL_READ_BYTE (EOUTCSR1, controlReg);  // Read contol register for OUT_EP1
+ 478   1      
+ 479   1         if (EP_Status[2] != EP_HALT)
+ 480   1         {
+ 481   2            // If the OUT FIFO has data
+ 482   2            if (controlReg & rbOutOPRDY)
+ 483   2            {
+ 484   3               // If Out_Packet has room for a packet
+ 485   3               if (!Out_Packet_Ready)
+ 486   3               {
+ 487   4                  POLL_READ_BYTE (EOUTCNTL, count);
+ 488   4      
+ 489   4                  // If host did not send correct packet size, flush buffer
+ 490   4                  if (count != OUT_EP1_PACKET_SIZE)
+ 491   4                  {
+C51 COMPILER V9.60.0.0   F3XX_USB0_INTERRUPTSERVICEROUTINE                                 06/12/2024 09:09:33 PAGE 9   
+
+ 492   5                     POLL_WRITE_BYTE (EOUTCSR1, rbOutFLUSH);
+ 493   5                  }
+ 494   4                  // Otherwise get the data packet
+ 495   4                  else
+ 496   4                  {
+ 497   5                     Fifo_Read (FIFO_EP1, (uint8_t*)Out_Packet, OUT_EP1_PACKET_SIZE);
+ 498   5      
+ 499   5                     Out_Packet_Ready = 1;
+ 500   5                  }
+ 501   4      
+ 502   4                  // Clear Out Packet ready bit
+ 503   4                  POLL_WRITE_BYTE (EOUTCSR1, 0);
+ 504   4               }
+ 505   3            }
+ 506   2         }
+ 507   1      }
+ 508          
+ 509          //-----------------------------------------------------------------------------
+ 510          // Fifo_Read
+ 511          //-----------------------------------------------------------------------------
+ 512          //
+ 513          // Return Value : None
+ 514          // Parameters   :
+ 515          //                1) uint8_t addr : target address
+ 516          //                2) uint8_t* buffer : read data destination
+ 517          //                3) uint16_t size : number of bytes to unload
+ 518          //
+ 519          // Read from the selected endpoint FIFO
+ 520          //
+ 521          //-----------------------------------------------------------------------------
+ 522          static void Fifo_Read (uint8_t addr, uint8_t * buffer, uint16_t size)
+ 523          {
+ 524   1         uint16_t i;
+ 525   1      
+ 526   1         // Check if >0 bytes requested,
+ 527   1         if (size)
+ 528   1         {
+ 529   2            USB0ADR = addr;                  // Set address
+ 530   2            USB0ADR |= 0xC0;                 // Set auto-read and initiate
+ 531   2                                             // first read
+ 532   2      
+ 533   2            // Unload <size> from the selected FIFO
+ 534   2            for(i = 0; i < size; i++)
+ 535   2            {
+ 536   3               while (USB0ADR & 0x80);       // Wait for BUSY->'0' (data ready)
+ 537   3               buffer[i] = USB0DAT;          // Copy data byte
+ 538   3            }
+ 539   2      
+ 540   2            //while(USB0ADR & 0x80);         // Wait for BUSY->'0' (data ready)
+ 541   2            USB0ADR = 0;                     // Clear auto-read
+ 542   2         }
+ 543   1      }
+ 544          
+ 545          //-----------------------------------------------------------------------------
+ 546          // Fifo_Write
+ 547          //-----------------------------------------------------------------------------
+ 548          //
+ 549          // Return Value : None
+ 550          // Parameters   :
+ 551          //                1) uint8_t addr : target address
+ 552          //                2) uint8_t* buffer : location of source data
+ 553          //                3) uint16_t size : number of bytes to unload
+ 554          //
+C51 COMPILER V9.60.0.0   F3XX_USB0_INTERRUPTSERVICEROUTINE                                 06/12/2024 09:09:33 PAGE 10  
+
+ 555          // Write to the selected endpoint FIFO
+ 556          //
+ 557          //-----------------------------------------------------------------------------
+ 558          
+ 559          // Called from ISR
+ 560          static void Fifo_Write_ISR (uint8_t addr, uint8_t const * buffer,
+ 561                                      uint16_t size)
+ 562          {
+ 563   1         uint16_t i;
+ 564   1      
+ 565   1         // If >0 bytes requested,
+ 566   1         if (size)
+ 567   1         {
+ 568   2            while (USB0ADR & 0x80);          // Wait for BUSY->'0'
+ 569   2                                             // (register available)
+ 570   2            USB0ADR = addr;                  // Set address (mask out bits7-6)
+ 571   2      
+ 572   2            // Write <size> to the selected FIFO
+ 573   2            for (i = 0; i < size; i++)
+ 574   2            {
+ 575   3               USB0DAT = buffer[i];
+ 576   3               while (USB0ADR & 0x80);       // Wait for BUSY->'0' (data ready)
+ 577   3            }
+ 578   2         }
+ 579   1      }
+ 580          
+ 581          // Called from foreground
+ 582          static void Fifo_Write_Foreground (uint8_t addr, uint8_t const * buffer,
+ 583                                             uint16_t size)
+ 584          {
+ 585   1         uint16_t i;
+ 586   1      
+ 587   1         // If >0 bytes requested,
+ 588   1         if (size)
+ 589   1         {
+ 590   2            while (USB0ADR & 0x80);          // Wait for BUSY->'0'
+ 591   2                                             // (register available)
+ 592   2            USB0ADR = addr;                  // Set address (mask out bits7-6)
+ 593   2      
+ 594   2            // Write <size> to the selected FIFO
+ 595   2            for (i = 0; i < size; i++)
+ 596   2            {
+ 597   3               USB0DAT = buffer[i];
+ 598   3               while (USB0ADR & 0x80);       // Wait for BUSY->'0' (data ready)
+ 599   3            }
+ 600   2         }
+ 601   1      }
+ 602          
+ 603          //-----------------------------------------------------------------------------
+ 604          // Global Functions
+ 605          //-----------------------------------------------------------------------------
+ 606          
+ 607          //-----------------------------------------------------------------------------
+ 608          // Force_Stall
+ 609          //-----------------------------------------------------------------------------
+ 610          //
+ 611          // Return Value : None
+ 612          // Parameters   : None
+ 613          //
+ 614          // Force a procedural stall to be sent to the host
+ 615          //
+ 616          //-----------------------------------------------------------------------------
+ 617          void Force_Stall (void)
+C51 COMPILER V9.60.0.0   F3XX_USB0_INTERRUPTSERVICEROUTINE                                 06/12/2024 09:09:33 PAGE 11  
+
+ 618          {
+ 619   1         POLL_WRITE_BYTE (INDEX, 0);
+ 620   1         POLL_WRITE_BYTE (E0CSR, rbSDSTL);   // Set the send stall bit
+ 621   1         EP_Status[0] = EP_STALL;            // Put the endpoint in stall status
+ 622   1      }
+ 623          
+ 624          //-----------------------------------------------------------------------------
+ 625          // Handle_In1
+ 626          //-----------------------------------------------------------------------------
+ 627          //
+ 628          // Return Value : None
+ 629          // Parameters   : None
+ 630          //
+ 631          // Send the packet in In_Packet using the USB IN FIFO if available.
+ 632          //
+ 633          // - Send a STALL if the endpoint is halted
+ 634          // - Clear a sent STALL when the endpoint is unhalted
+ 635          // - Copy a packet from In_Packet to IN FIFO if available and not halted
+ 636          //   and set IN packet ready to eventually transmit the packet to the host
+ 637          //
+ 638          //-----------------------------------------------------------------------------
+ 639          void Handle_In1 (void)
+ 640          {
+ 641   1         uint8_t controlReg;
+ 642   1      
+ 643   1         POLL_WRITE_BYTE (INDEX, 1);           // Set index to endpoint 1 registers
+ 644   1         POLL_READ_BYTE (EINCSR1, controlReg); // Read contol register for IN_EP1
+ 645   1      
+ 646   1         // If endpoint is currently halted, send a stall
+ 647   1         if (EP_Status[1] == EP_HALT)
+ 648   1         {
+ 649   2            POLL_WRITE_BYTE (EINCSR1, rbInSDSTL);
+ 650   2         }
+ 651   1         // Otherwise send last updated
+ 652   1         else
+ 653   1         {
+ 654   2            // Clear sent stall if last packet returned a stall
+ 655   2            if (controlReg & rbInSTSTL)
+ 656   2            {
+ 657   3               POLL_WRITE_BYTE (EINCSR1, rbInCLRDT);
+ 658   3            }
+ 659   2         }
+ 660   1      
+ 661   1         Send_Packet_ISR ();
+ 662   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1222    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     19      24
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
