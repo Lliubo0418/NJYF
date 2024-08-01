@@ -1,0 +1,28 @@
+--cpu Cortex-M4.fp --branchpatch=sdcomp-29491-629360
+"l432kb\startup_stm32l432xx.o"
+"l432kb\main.o"
+"l432kb\gpio.o"
+"l432kb\stm32l4xx_it.o"
+"l432kb\stm32l4xx_hal_msp.o"
+"l432kb\stm32l4xx_hal_tim.o"
+"l432kb\stm32l4xx_hal_tim_ex.o"
+"l432kb\stm32l4xx_hal.o"
+"l432kb\stm32l4xx_hal_rcc.o"
+"l432kb\stm32l4xx_hal_rcc_ex.o"
+"l432kb\stm32l4xx_hal_flash.o"
+"l432kb\stm32l4xx_hal_flash_ex.o"
+"l432kb\stm32l4xx_hal_flash_ramfunc.o"
+"l432kb\stm32l4xx_hal_gpio.o"
+"l432kb\stm32l4xx_hal_i2c.o"
+"l432kb\stm32l4xx_hal_i2c_ex.o"
+"l432kb\stm32l4xx_hal_dma.o"
+"l432kb\stm32l4xx_hal_dma_ex.o"
+"l432kb\stm32l4xx_hal_pwr.o"
+"l432kb\stm32l4xx_hal_pwr_ex.o"
+"l432kb\stm32l4xx_hal_cortex.o"
+"l432kb\stm32l4xx_hal_exti.o"
+"l432kb\system_stm32l4xx.o"
+--strict --scatter "L432kb\L432kb.sct"
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "L432kb.map" -o L432kb\L432kb.axf

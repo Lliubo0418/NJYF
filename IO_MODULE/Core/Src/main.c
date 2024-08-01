@@ -142,41 +142,41 @@ int main(void)
 		HAL_GPIO_TogglePin(GPIOB,LED1_Pin);                    
 		HAL_Delay(500);
 		
-//	TxData[0] = 0x11;    //CAN收发正常
-//	TxData[1] = 0xAD;
-//	TxData[2] = 0x33;
-//	TxData[3] = 0x55;
-//	TxData[4] = 0x77;
-//	TxData[5] = 0x44;
-//	TxData[6] = 0x88;
-//	TxData[7] = 0x99;
-//	
-//	TxHeader.StdId = 0x321;
-//  TxHeader.ExtId = 0x00;
-//  TxHeader.RTR = CAN_RTR_DATA;
-//  TxHeader.IDE = CAN_ID_STD;
-//  TxHeader.DLC = 8;
-//        
-//        /* Start the Transmission process */
-//			if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
-//        {
-//          /* Transmission request Error */
-//          Error_Handler();
-//        }
-//        HAL_Delay(10);
+	TxData[0] = 0x11;    //CAN收发正常
+	TxData[1] = 0xAD;
+	TxData[2] = 0x33;
+	TxData[3] = 0x55;
+	TxData[4] = 0x77;
+	TxData[5] = 0x44;
+	TxData[6] = 0x88;
+	TxData[7] = 0x99;
+	
+	TxHeader.StdId = 0x321;
+  TxHeader.ExtId = 0x00;
+  TxHeader.RTR = CAN_RTR_DATA;
+  TxHeader.IDE = CAN_ID_STD;
+  TxHeader.DLC = 8;
+        
+        /* Start the Transmission process */
+			if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
+        {
+          /* Transmission request Error */
+         // Error_Handler();
+        }
+        HAL_Delay(10);
 				 /* Get an CAN frame from the Rx FIFO zone into the message RAM.*/
-//			if(HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0,&RxHeader, RxData)!=HAL_OK){
-//					Error_Handler();														 
-//				}
+			if(HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0,&RxHeader, RxData)!=HAL_OK){
+					//Error_Handler();														 
+				}
 //				
 
-		TERM_CXIN_IC();            //终端查询信号捕获
-		CPU_CXIN_IC();							//主板查询信号捕获
-		Get_CPU_BS0IN_status();       //获取BS状态并控制输出状态
-		MCU_F1_freq_get();						//F1频率捕获
-		MCU_F2_freq_get();						//F2频率捕获
-		MCU_F3_freq_get();						//F3频率捕获
-		MCU_F4_freq_get();						//F4频率捕获
+//		TERM_CXIN_IC();            //终端查询信号捕获
+//		CPU_CXIN_IC();							//主板查询信号捕获
+//		Get_CPU_BS0IN_status();       //获取BS状态并控制输出状态
+//		MCU_F1_freq_get();						//F1频率捕获
+//		MCU_F2_freq_get();						//F2频率捕获
+//		MCU_F3_freq_get();						//F3频率捕获
+//		MCU_F4_freq_get();						//F4频率捕获
 	
 
 

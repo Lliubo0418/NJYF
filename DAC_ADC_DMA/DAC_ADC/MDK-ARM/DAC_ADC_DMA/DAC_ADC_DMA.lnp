@@ -26,7 +26,7 @@
 "dac_adc_dma\stm32f1xx_hal_tim_ex.o"
 "dac_adc_dma\stm32f1xx_hal_uart.o"
 "dac_adc_dma\system_stm32f1xx.o"
---library_type=microlib --strict --scatter "DAC_ADC_DMA\DAC_ADC_DMA.sct"
+--strict --scatter "DAC_ADC_DMA\DAC_ADC_DMA.sct"
 --summary_stderr --info summarysizes --map --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
 --list "DAC_ADC_DMA.map" -o DAC_ADC_DMA\DAC_ADC_DMA.axf

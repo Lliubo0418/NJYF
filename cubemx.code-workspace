@@ -1,0 +1,31 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../朴凡主控器/朴凡主控器各模块底层驱动/IO_ MOUDLE"
+		},
+		{
+			"path": "F:/LB/vscode"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"includes.h": "c",
+			"array": "c",
+			"string": "c",
+			"string_view": "c",
+			"sstream": "c",
+			"si_c8051f380_register_enums.h": "c",
+			"si_c8051f380_defs.h": "c",
+			"f380_flashprimitives.h": "c",
+			"stdio.h": "c",
+			"math.h": "c",
+			"c8051f380_defs.h": "c",
+			"compiler_defs.h": "c",
+			"stdlib.h": "c",
+			"usbh_hid.h": "c"
+		}
+	}
+}
