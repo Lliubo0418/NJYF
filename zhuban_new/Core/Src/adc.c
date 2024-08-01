@@ -21,10 +21,18 @@
 #include "adc.h"
 
 /* USER CODE BEGIN 0 */
+
+
 //前四路为温度采集，后四路为电流采集
-static uint16_t adc1_value[8]={0};
+static uint32_t adc1_value[ADC1_BUFFER_SIZE]={0};
 //电流采集
-static uint16_t adc3_value[4]={0};
+static uint32_t adc3_value[ADC3_BUFFER_SIZE]={0};
+
+
+
+
+
+
 /* USER CODE END 0 */
 
 ADC_HandleTypeDef hadc1;
@@ -410,7 +418,23 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 
 /* USER CODE BEGIN 1 */
 void Adc_conv_start(void){
-    HAL_ADC_Start_DMA(&hadc1,(uint32_t*)&adc1_value,8);
-		HAL_ADC_Start_DMA(&hadc3,(uint32_t*)&adc3_value,4);
+    HAL_ADC_Start_DMA(&hadc1,(uint32_t*)&adc1_value,ADC1_BUFFER_SIZE);
+		HAL_ADC_Start_DMA(&hadc3,(uint32_t*)&adc3_value,ADC3_BUFFER_SIZE);
 }
+
+/* 计算平均值函数 */
+void CalculateAverage(uint32_t *buffer, uint32_t *average, uint32_t channelCount, uint32_t sampleCount)
+{
+    for (uint32_t ch = 0; ch < channelCount; ch++)
+    {
+        uint32_t sum = 0;
+        for (uint32_t sample = 0; sample < sampleCount; sample++)
+        {
+            sum += buffer[ch + sample * channelCount];
+        }
+        average[ch] = sum / sampleCount;
+    }
+}
+
+
 /* USER CODE END 1 */

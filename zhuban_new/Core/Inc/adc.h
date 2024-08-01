@@ -37,14 +37,27 @@ extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc3;
 
 /* USER CODE BEGIN Private defines */
+#define ADC1_CHANNEL_COUNT 8
+#define ADC3_CHANNEL_COUNT 4
+#define SAMPLES_PER_CHANNEL 5
 
+#define ADC1_BUFFER_SIZE  (ADC1_CHANNEL_COUNT * SAMPLES_PER_CHANNEL)
+#define ADC3_BUFFER_SIZE  (ADC3_CHANNEL_COUNT * SAMPLES_PER_CHANNEL)
 /* USER CODE END Private defines */
 
 void MX_ADC1_Init(void);
 void MX_ADC3_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+typedef struct {
+    uint32_t *buffer;
+    uint32_t channelCount;
+} ADCMessage;
+
+void CalculateAverage(uint32_t *buffer, uint32_t *average, uint32_t channelCount, uint32_t sampleCount);
+
 void Adc_conv_start(void);
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

@@ -25,7 +25,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "tim.h"
+#include "queue.h"
+#include "adc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,7 +47,10 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-
+//前四路为温度采集，后四路为电流采集
+extern  uint32_t adc1_value[ADC1_BUFFER_SIZE];
+//电流采集
+extern  uint32_t adc3_value[ADC3_BUFFER_SIZE];
 /* USER CODE END Variables */
 /* Definitions for FINTask */
 osThreadId_t FINTaskHandle;
@@ -54,17 +59,10 @@ const osThreadAttr_t FINTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
-/* Definitions for PT100_ADCTask */
-osThreadId_t PT100_ADCTaskHandle;
-const osThreadAttr_t PT100_ADCTask_attributes = {
-  .name = "PT100_ADCTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
-};
-/* Definitions for CI_ADCTask */
-osThreadId_t CI_ADCTaskHandle;
-const osThreadAttr_t CI_ADCTask_attributes = {
-  .name = "CI_ADCTask",
+/* Definitions for ADCTask */
+osThreadId_t ADCTaskHandle;
+const osThreadAttr_t ADCTask_attributes = {
+  .name = "ADCTask",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
@@ -75,6 +73,16 @@ const osThreadAttr_t AudioTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Definitions for FINQueue */
+osMessageQueueId_t FINQueueHandle;
+const osMessageQueueAttr_t FINQueue_attributes = {
+  .name = "FINQueue"
+};
+/* Definitions for ADCQueue */
+osMessageQueueId_t ADCQueueHandle;
+const osMessageQueueAttr_t ADCQueue_attributes = {
+  .name = "ADCQueue"
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -82,8 +90,7 @@ const osThreadAttr_t AudioTask_attributes = {
 /* USER CODE END FunctionPrototypes */
 
 void StartFINTask(void *argument);
-void StartPT100_ADCTask(void *argument);
-void StartCI_ADCTask(void *argument);
+void StartADCTask(void *argument);
 void StartAudioTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -110,6 +117,13 @@ void MX_FREERTOS_Init(void) {
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
+  /* Create the queue(s) */
+  /* creation of FINQueue */
+  FINQueueHandle = osMessageQueueNew (2, sizeof(uint16_t), &FINQueue_attributes);
+
+  /* creation of ADCQueue */
+  ADCQueueHandle = osMessageQueueNew (8, sizeof(uint32_t), &ADCQueue_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
@@ -118,11 +132,8 @@ void MX_FREERTOS_Init(void) {
   /* creation of FINTask */
   FINTaskHandle = osThreadNew(StartFINTask, NULL, &FINTask_attributes);
 
-  /* creation of PT100_ADCTask */
-  PT100_ADCTaskHandle = osThreadNew(StartPT100_ADCTask, NULL, &PT100_ADCTask_attributes);
-
-  /* creation of CI_ADCTask */
-  CI_ADCTaskHandle = osThreadNew(StartCI_ADCTask, NULL, &CI_ADCTask_attributes);
+  /* creation of ADCTask */
+  ADCTaskHandle = osThreadNew(StartADCTask, NULL, &ADCTask_attributes);
 
   /* creation of AudioTask */
   AudioTaskHandle = osThreadNew(StartAudioTask, NULL, &AudioTask_attributes);
@@ -147,48 +158,98 @@ void MX_FREERTOS_Init(void) {
 void StartFINTask(void *argument)
 {
   /* USER CODE BEGIN StartFINTask */
+  uint16_t GPIO_Pin;
+  uint32_t start_time_freq1 = 0, start_time_freq2 = 0;
+  int state_freq1 = 0, state_freq2 = 0;
+  static uint32_t Freq1 = 0, Freq2 = 0;
   /* Infinite loop */
   for(;;)
   {
+    if(xQueueReceive(FINQueueHandle,&GPIO_Pin, portMAX_DELAY)==pdPASS){
+      if (GPIO_Pin == GPIO_PIN_6)
+      {
+        if (state_freq1 == 0)
+        {
+          start_time_freq1 = __HAL_TIM_GET_COUNTER(&htim2); // 获取起始时间
+          state_freq1 = 1;
+        }
+        else
+        {
+          uint32_t end_time_freq1 = __HAL_TIM_GET_COUNTER(&htim2); // 获取结束时间
+          uint32_t duration;
+          if (end_time_freq1 > start_time_freq1)
+          {
+            duration = end_time_freq1 - start_time_freq1; // 计算周期
+          }
+          else
+          {
+            duration = 99999 - start_time_freq1 + end_time_freq1; // 计算周期
+          }
+          Freq1 = 1000000 / duration; // 计算频率
+          state_freq1 = 0;
+        }
+      }
+      else if (GPIO_Pin == GPIO_PIN_7)
+      {
+        if (state_freq2 == 0)
+        {
+          start_time_freq2 = __HAL_TIM_GET_COUNTER(&htim2); // 获取起始时间
+          state_freq2 = 1;
+        }
+        else
+        {
+          uint32_t end_time_freq2 = __HAL_TIM_GET_COUNTER(&htim2); // 获取结束时间
+          uint32_t duration;
+          if (end_time_freq2 > start_time_freq2)
+          {
+            duration = end_time_freq2 - start_time_freq2; // 计算周期
+          }
+          else
+          {
+            duration = 99999 - start_time_freq2 + end_time_freq2; // 计算周期
+          }
+          Freq2 = 1000000 / duration; // 计算频率
+          state_freq2 = 0;
+        }
+      }
+    }
     osDelay(1);
   }
   /* USER CODE END StartFINTask */
 }
 
-/* USER CODE BEGIN Header_StartPT100_ADCTask */
+/* USER CODE BEGIN Header_StartADCTask */
 /**
-* @brief Function implementing the PT100_ADCTask thread.
+* @brief Function implementing the ADCTask thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartPT100_ADCTask */
-void StartPT100_ADCTask(void *argument)
+/* USER CODE END Header_StartADCTask */
+void StartADCTask(void *argument)
 {
-  /* USER CODE BEGIN StartPT100_ADCTask */
+  /* USER CODE BEGIN StartADCTask */
+  ADCMessage adcMessage;
+  uint32_t adc1Average[ADC1_CHANNEL_COUNT];
+  uint32_t adc3Average[ADC3_CHANNEL_COUNT];
   /* Infinite loop */
   for(;;)
   {
+    if (xQueueReceive(ADCQueueHandle, &adcMessage, portMAX_DELAY) == pdPASS)
+    {
+      if (adcMessage.channelCount == ADC1_CHANNEL_COUNT)
+      {
+        CalculateAverage(adcMessage.buffer, adc1Average, ADC1_CHANNEL_COUNT, SAMPLES_PER_CHANNEL);
+        // 处理adc1Average数据
+      }
+      else if (adcMessage.channelCount == ADC3_CHANNEL_COUNT)
+      {
+        CalculateAverage(adcMessage.buffer, adc3Average, ADC3_CHANNEL_COUNT, SAMPLES_PER_CHANNEL);
+        // 处理adc3Average数据
+      }
+    }
     osDelay(1);
   }
-  /* USER CODE END StartPT100_ADCTask */
-}
-
-/* USER CODE BEGIN Header_StartCI_ADCTask */
-/**
-* @brief Function implementing the CI_ADCTask thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_StartCI_ADCTask */
-void StartCI_ADCTask(void *argument)
-{
-  /* USER CODE BEGIN StartCI_ADCTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartCI_ADCTask */
+  /* USER CODE END StartADCTask */
 }
 
 /* USER CODE BEGIN Header_StartAudioTask */
@@ -211,6 +272,31 @@ void StartAudioTask(void *argument)
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
+    /* 将中断信号发送到队列 */
+    xQueueSendFromISR(FINQueueHandle, &GPIO_Pin, &xHigherPriorityTaskWoken);
+
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
+/* ADC转换完成回调函数 */
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+    ADCMessage adcMessage;
+    if (hadc->Instance == ADC1)
+    {
+        adcMessage.buffer = adc1_value;
+        adcMessage.channelCount = ADC1_CHANNEL_COUNT;
+        xQueueSendFromISR(ADCQueueHandle, &adcMessage, NULL);
+    }
+    else if (hadc->Instance == ADC3)
+    {
+        adcMessage.buffer = adc1_value;
+        adcMessage.channelCount = ADC3_CHANNEL_COUNT;
+        xQueueSendFromISR(ADCQueueHandle, &adcMessage, NULL);
+    }
+}
 /* USER CODE END Application */
 

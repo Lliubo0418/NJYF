@@ -45,3 +45,6 @@ zhuban_new\freertos.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.
 zhuban_new\freertos.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 zhuban_new\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h
 zhuban_new\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h
+zhuban_new\freertos.o: ../Core/Inc/tim.h
+zhuban_new\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h
+zhuban_new\freertos.o: ../Core/Inc/adc.h

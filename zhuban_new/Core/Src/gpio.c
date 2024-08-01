@@ -66,55 +66,56 @@ void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 2 */
 
-//功能已实现，待调优
+//功能已实现，待调�??
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+//void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 
-		if(GPIO_Pin==GPIO_PIN_6){
-    static uint32_t start_time_freq1=0;
-    static int state_freq1=0;
-		static uint32_t Freq1=0;
-      if(state_freq1==0){
-        start_time_freq1=__HAL_TIM_GET_COUNTER(&htim2);                //get start time
-        state_freq1=1;                                                 
-      }
-      else{
-        uint32_t end_time_freq1=__HAL_TIM_GET_COUNTER(&htim2);          //get end time
-        if(end_time_freq1>start_time_freq1){
-          uint32_t duration=end_time_freq1-start_time_freq1;                    //周期
-        }
-        else{
-          uint32_t duration=99999-start_time_freq1+end_time_freq1;          //周期
-					Freq1=1000000/duration;
-        }
+	// 	if(GPIO_Pin==GPIO_PIN_6){
+  //   static uint32_t start_time_freq1=0;
+  //   static int state_freq1=0;
+	// 	static uint32_t Freq1=0;
+  //     if(state_freq1==0){
+  //       start_time_freq1=__HAL_TIM_GET_COUNTER(&htim2);                //get start time
+  //       state_freq1=1;                                                 
+  //     }
+  //     else{
+  //       uint32_t end_time_freq1=__HAL_TIM_GET_COUNTER(&htim2);          //get end time
+  //       if(end_time_freq1>start_time_freq1){
+  //         uint32_t duration=end_time_freq1-start_time_freq1;                    //周期
+  //       }
+  //       else{
+  //         uint32_t duration=99999-start_time_freq1+end_time_freq1;          //周期
+	// 				Freq1=1000000/duration;
+  //       }
         
         
 
-        state_freq1=0;
-      }  
-		}
+  //       state_freq1=0;
+  //     }  
+	// 	}
     
-  if(GPIO_Pin==GPIO_PIN_7){
-    static uint32_t start_time_freq2=0;
-    static int state_freq2=0;
-		static uint32_t Freq2=0;
-      if(state_freq2==0){
-        start_time_freq2=__HAL_TIM_GET_COUNTER(&htim2);                //get start time
-        state_freq2=1;                                                 
-      }
-      else{
-        uint32_t end_time_freq2=__HAL_TIM_GET_COUNTER(&htim2);          //get end time
-        if(end_time_freq2>start_time_freq2){
-          uint32_t duration=end_time_freq2-start_time_freq2;                    //周期
-        }
-        else{
-          uint32_t duration=99999-start_time_freq2+end_time_freq2;          //周期
-					Freq2=1000000/duration;
-        }
+  // if(GPIO_Pin==GPIO_PIN_7){
+  //   static uint32_t start_time_freq2=0;
+  //   static int state_freq2=0;
+	// 	static uint32_t Freq2=0;
+  //     if(state_freq2==0){
+  //       start_time_freq2=__HAL_TIM_GET_COUNTER(&htim2);                //get start time
+  //       state_freq2=1;                                                 
+  //     }
+  //     else{
+  //       uint32_t end_time_freq2=__HAL_TIM_GET_COUNTER(&htim2);          //get end time
+  //       if(end_time_freq2>start_time_freq2){
+  //         uint32_t duration=end_time_freq2-start_time_freq2;                    //周期
+  //       }
+  //       else{
+  //         uint32_t duration=99999-start_time_freq2+end_time_freq2;          //周期
+	// 				Freq2=1000000/duration;
+  //       }
         
-        state_freq2=0;
-      }     
+  //       state_freq2=0;
+  //     }     
 
-  }
-}
+  // }
+
+//}
 /* USER CODE END 2 */
