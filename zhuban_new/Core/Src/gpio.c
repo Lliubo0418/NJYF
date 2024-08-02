@@ -55,18 +55,18 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pins : PG6 PG7 */
   GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 5, 0);
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 6, 0);
   HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 }
 
 /* USER CODE BEGIN 2 */
 
-//功能已实现，待调�??
+//功能已实现，待调�???
 
 //void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 

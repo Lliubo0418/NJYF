@@ -48,7 +48,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-//前四路为温度采集，后四路为电流采集
+//前四路为温度采集，后四路为电流采�?
 extern  uint32_t adc1_value[ADC1_BUFFER_SIZE];
 //电流采集
 extern  uint32_t adc3_value[ADC3_BUFFER_SIZE];
@@ -68,7 +68,7 @@ osThreadId_t ADCTaskHandle;
 const osThreadAttr_t ADCTask_attributes = {
   .name = "ADCTask",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for AudioTask */
 osThreadId_t AudioTaskHandle;
@@ -81,11 +81,6 @@ const osThreadAttr_t AudioTask_attributes = {
 osMessageQueueId_t FINQueueHandle;
 const osMessageQueueAttr_t FINQueue_attributes = {
   .name = "FINQueue"
-};
-/* Definitions for ADCQueue */
-osMessageQueueId_t ADCQueueHandle;
-const osMessageQueueAttr_t ADCQueue_attributes = {
-  .name = "ADCQueue"
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -124,9 +119,6 @@ void MX_FREERTOS_Init(void) {
   /* Create the queue(s) */
   /* creation of FINQueue */
   FINQueueHandle = osMessageQueueNew (2, sizeof(uint16_t), &FINQueue_attributes);
-
-  /* creation of ADCQueue */
-//  ADCQueueHandle = osMessageQueueNew (8, sizeof(uint32_t), &ADCQueue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -243,7 +235,7 @@ void StartADCTask(void *argument)
 			CalculateAverage(adc3_value, adc3Average, ADC3_CHANNEL_COUNT, SAMPLES_PER_CHANNEL);
 
 
-        // 计算当前通道的平均值
+        // 计算当前通道的平均�??
    
 //    if (xQueueReceive(ADCQueueHandle, &adcMessage, portMAX_DELAY) == pdPASS)
 //    {
@@ -287,9 +279,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
   BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     /* 将中断信号发送到队列 */
+	if(xTaskGetSchedulerState()!=taskSCHEDULER_NOT_STARTED){
     xQueueSendFromISR(FINQueueHandle, &GPIO_Pin, &xHigherPriorityTaskWoken);
-
+	
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	}
 }
 
 /* ADC转换完成回调函数 */
