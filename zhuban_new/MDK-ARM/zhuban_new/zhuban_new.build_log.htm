@@ -22,24 +22,19 @@ Dialog DLL:      TCM.DLL V1.14.8.0
  
 <h2>Project:</h2>
 C:\Users\52876\Desktop\cubemx\zhuban_new\MDK-ARM\zhuban_new.uvprojx
-Project File Date:  08/01/2024
+Project File Date:  08/02/2024
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 1 (build 61)', folder: 'F:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'zhuban_new'
 compiling adc.c...
-compiling freertos.c...
-../Core/Src/freertos.c(164): warning:  #550-D: variable "Freq1" was set but never used
-    static uint32_t Freq1 = 0, Freq2 = 0;
-../Core/Src/freertos.c(164): warning:  #550-D: variable "Freq2" was set but never used
-    static uint32_t Freq1 = 0, Freq2 = 0;
-../Core/Src/freertos.c: 2 warnings, 0 errors
-compiling main.c...
+../Core/Src/adc.c(423): warning:  #177-D: variable "ch" was declared but never referenced
+  	uint32_t ch,sample;
+../Core/Src/adc.c: 1 warning, 0 errors
 linking...
-zhuban_new\zhuban_new.axf: Error: L6218E: Undefined symbol adc1_value (referred from freertos.o).
-Not enough information to list image symbols.
-Finished: 1 information, 0 warning and 1 error messages.
-"zhuban_new\zhuban_new.axf" - 1 Error(s), 2 Warning(s).
+Program Size: Code=17184 RO-data=628 RW-data=168 ZI-data=21120  
+FromELF: creating hex file...
+"zhuban_new\zhuban_new.axf" - 0 Error(s), 1 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -60,8 +55,7 @@ Package Vendor: ARM
       Include file:  CMSIS\Core\Include\tz_context.h
       Source file:   CMSIS\Core\Template\ARMv8-M\main_s.c
       Source file:   CMSIS\Core\Template\ARMv8-M\tz_context.c
-Target not created.
-Build Time Elapsed:  00:00:03
+Build Time Elapsed:  00:00:02
 </pre>
 </body>
 </html>

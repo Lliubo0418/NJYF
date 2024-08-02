@@ -21,17 +21,12 @@
 #include "adc.h"
 
 /* USER CODE BEGIN 0 */
-
-
 //前四路为温度采集，后四路为电流采集
-static uint32_t adc1_value[ADC1_BUFFER_SIZE]={0};
+ uint32_t adc1_value[ADC1_BUFFER_SIZE]={0};
 //电流采集
-static uint32_t adc3_value[ADC3_BUFFER_SIZE]={0};
-
-
-
-
-
+ uint32_t adc3_value[ADC3_BUFFER_SIZE]={0};
+  float adc1Average[ADC1_CHANNEL_COUNT];
+  float adc3Average[ADC3_CHANNEL_COUNT];
 
 /* USER CODE END 0 */
 
@@ -272,8 +267,8 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     hdma_adc1.Init.Direction = DMA_PERIPH_TO_MEMORY;
     hdma_adc1.Init.PeriphInc = DMA_PINC_DISABLE;
     hdma_adc1.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_adc1.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-    hdma_adc1.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+    hdma_adc1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    hdma_adc1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     hdma_adc1.Init.Mode = DMA_CIRCULAR;
     hdma_adc1.Init.Priority = DMA_PRIORITY_MEDIUM;
     hdma_adc1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
@@ -318,8 +313,8 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     hdma_adc3.Init.Direction = DMA_PERIPH_TO_MEMORY;
     hdma_adc3.Init.PeriphInc = DMA_PINC_DISABLE;
     hdma_adc3.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_adc3.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-    hdma_adc3.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+    hdma_adc3.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    hdma_adc3.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     hdma_adc3.Init.Mode = DMA_CIRCULAR;
     hdma_adc3.Init.Priority = DMA_PRIORITY_MEDIUM;
     hdma_adc3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
@@ -423,18 +418,19 @@ void Adc_conv_start(void){
 }
 
 /* 计算平均值函数 */
-void CalculateAverage(uint32_t *buffer, uint32_t *average, uint32_t channelCount, uint32_t sampleCount)
+void CalculateAverage(uint32_t *buffer, float *average, uint32_t channelCount, uint32_t sampleCount)
 {
+	uint32_t ch,sample;
     for (uint32_t ch = 0; ch < channelCount; ch++)
     {
         uint32_t sum = 0;
-        for (uint32_t sample = 0; sample < sampleCount; sample++)
+        for ( sample = 0; sample < sampleCount; sample++)
         {
             sum += buffer[ch + sample * channelCount];
         }
         average[ch] = sum / sampleCount;
+				average[ch]=(float) average[ch]/4096*(float)3.3;
     }
 }
-
 
 /* USER CODE END 1 */

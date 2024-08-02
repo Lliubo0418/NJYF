@@ -28,6 +28,7 @@
 #include "tim.h"
 #include "queue.h"
 #include "adc.h"
+#include "string.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -51,6 +52,9 @@
 extern  uint32_t adc1_value[ADC1_BUFFER_SIZE];
 //电流采集
 extern  uint32_t adc3_value[ADC3_BUFFER_SIZE];
+extern  float adc1Average[ADC1_CHANNEL_COUNT];
+extern  float adc3Average[ADC3_CHANNEL_COUNT];
+ uint32_t Freq1 = 0, Freq2 = 0;
 /* USER CODE END Variables */
 /* Definitions for FINTask */
 osThreadId_t FINTaskHandle;
@@ -122,7 +126,7 @@ void MX_FREERTOS_Init(void) {
   FINQueueHandle = osMessageQueueNew (2, sizeof(uint16_t), &FINQueue_attributes);
 
   /* creation of ADCQueue */
-  ADCQueueHandle = osMessageQueueNew (8, sizeof(uint32_t), &ADCQueue_attributes);
+//  ADCQueueHandle = osMessageQueueNew (8, sizeof(uint32_t), &ADCQueue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -161,7 +165,7 @@ void StartFINTask(void *argument)
   uint16_t GPIO_Pin;
   uint32_t start_time_freq1 = 0, start_time_freq2 = 0;
   int state_freq1 = 0, state_freq2 = 0;
-  static uint32_t Freq1 = 0, Freq2 = 0;
+  
   /* Infinite loop */
   for(;;)
   {
@@ -228,25 +232,39 @@ void StartFINTask(void *argument)
 void StartADCTask(void *argument)
 {
   /* USER CODE BEGIN StartADCTask */
-  ADCMessage adcMessage;
-  uint32_t adc1Average[ADC1_CHANNEL_COUNT];
-  uint32_t adc3Average[ADC3_CHANNEL_COUNT];
+//  ADCMessage adcMessage;
+
+//	uint32_t adc1_sum[ADC1_CHANNEL_COUNT] = {0};
   /* Infinite loop */
   for(;;)
   {
-    if (xQueueReceive(ADCQueueHandle, &adcMessage, portMAX_DELAY) == pdPASS)
-    {
-      if (adcMessage.channelCount == ADC1_CHANNEL_COUNT)
-      {
-        CalculateAverage(adcMessage.buffer, adc1Average, ADC1_CHANNEL_COUNT, SAMPLES_PER_CHANNEL);
-        // 处理adc1Average数据
-      }
-      else if (adcMessage.channelCount == ADC3_CHANNEL_COUNT)
-      {
-        CalculateAverage(adcMessage.buffer, adc3Average, ADC3_CHANNEL_COUNT, SAMPLES_PER_CHANNEL);
-        // 处理adc3Average数据
-      }
-    }
+			CalculateAverage(adc1_value, adc1Average, ADC1_CHANNEL_COUNT, SAMPLES_PER_CHANNEL);
+			CalculateAverage(adc3_value, adc3Average, ADC3_CHANNEL_COUNT, SAMPLES_PER_CHANNEL);
+			// 循环遍历每个通道
+//    for (int channel = 0; channel < ADC1_CHANNEL_COUNT; channel++)
+//    {
+//        // 计算当前通道所有样本的总和
+//        for (int sample = 0; sample < SAMPLES_PER_CHANNEL; sample++)
+//        {
+//            adc1_sum[channel] += adc1_value[(ADC1_CHANNEL_COUNT*sample-1)+channel];
+//        }
+
+//        // 计算当前通道的平均值
+//        adc1Average[channel] = (float)adc1_sum[channel] / SAMPLES_PER_CHANNEL;
+//    }
+//    if (xQueueReceive(ADCQueueHandle, &adcMessage, portMAX_DELAY) == pdPASS)
+//    {
+//      if (adcMessage.channelCount == ADC1_CHANNEL_COUNT)
+//      {
+//        CalculateAverage(adcMessage.buffer, adc1Average, ADC1_CHANNEL_COUNT, SAMPLES_PER_CHANNEL);
+//        // 处理adc1Average数据
+//      }
+//      else if (adcMessage.channelCount == ADC3_CHANNEL_COUNT)
+//      {
+//        CalculateAverage(adcMessage.buffer, adc3Average, ADC3_CHANNEL_COUNT, SAMPLES_PER_CHANNEL);
+//        // 处理adc3Average数据
+//      }
+//    }
     osDelay(1);
   }
   /* USER CODE END StartADCTask */
@@ -282,21 +300,24 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 }
 
 /* ADC转换完成回调函数 */
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
-{
-    ADCMessage adcMessage;
-    if (hadc->Instance == ADC1)
-    {
-        adcMessage.buffer = adc1_value;
-        adcMessage.channelCount = ADC1_CHANNEL_COUNT;
-        xQueueSendFromISR(ADCQueueHandle, &adcMessage, NULL);
-    }
-    else if (hadc->Instance == ADC3)
-    {
-        adcMessage.buffer = adc1_value;
-        adcMessage.channelCount = ADC3_CHANNEL_COUNT;
-        xQueueSendFromISR(ADCQueueHandle, &adcMessage, NULL);
-    }
-}
+//void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+//{
+//    ADCMessage adcMessage;
+//		BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+//		memset(&adcMessage, 0, sizeof(ADCMessage));
+//	
+//    if (hadc->Instance == ADC1)
+//    {
+//        adcMessage.buffer = adc1_value;
+//        adcMessage.channelCount = ADC1_CHANNEL_COUNT;
+//        xQueueSendFromISR(ADCQueueHandle, &adcMessage, NULL);
+//    }
+//    else if (hadc->Instance == ADC3)
+//    {
+//        adcMessage.buffer = adc3_value;
+//        adcMessage.channelCount = ADC3_CHANNEL_COUNT;
+//        xQueueSendFromISR(ADCQueueHandle, &adcMessage, NULL);
+//    }
+//}
 /* USER CODE END Application */
 
