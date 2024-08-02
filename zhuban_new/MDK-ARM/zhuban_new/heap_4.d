@@ -1,0 +1,13 @@
+zhuban_new\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c
+zhuban_new\heap_4.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+zhuban_new\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+zhuban_new\heap_4.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+zhuban_new\heap_4.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+zhuban_new\heap_4.o: ../Core/Inc/FreeRTOSConfig.h
+zhuban_new\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+zhuban_new\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+zhuban_new\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
+zhuban_new\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F/portmacro.h
+zhuban_new\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
+zhuban_new\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
+zhuban_new\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h

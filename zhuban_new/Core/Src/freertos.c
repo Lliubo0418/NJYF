@@ -232,26 +232,19 @@ void StartFINTask(void *argument)
 void StartADCTask(void *argument)
 {
   /* USER CODE BEGIN StartADCTask */
-//  ADCMessage adcMessage;
+  ADCMessage adcMessage;
 
 //	uint32_t adc1_sum[ADC1_CHANNEL_COUNT] = {0};
   /* Infinite loop */
   for(;;)
   {
+
 			CalculateAverage(adc1_value, adc1Average, ADC1_CHANNEL_COUNT, SAMPLES_PER_CHANNEL);
 			CalculateAverage(adc3_value, adc3Average, ADC3_CHANNEL_COUNT, SAMPLES_PER_CHANNEL);
-			// 循环遍历每个通道
-//    for (int channel = 0; channel < ADC1_CHANNEL_COUNT; channel++)
-//    {
-//        // 计算当前通道所有样本的总和
-//        for (int sample = 0; sample < SAMPLES_PER_CHANNEL; sample++)
-//        {
-//            adc1_sum[channel] += adc1_value[(ADC1_CHANNEL_COUNT*sample-1)+channel];
-//        }
 
-//        // 计算当前通道的平均值
-//        adc1Average[channel] = (float)adc1_sum[channel] / SAMPLES_PER_CHANNEL;
-//    }
+
+        // 计算当前通道的平均值
+   
 //    if (xQueueReceive(ADCQueueHandle, &adcMessage, portMAX_DELAY) == pdPASS)
 //    {
 //      if (adcMessage.channelCount == ADC1_CHANNEL_COUNT)
