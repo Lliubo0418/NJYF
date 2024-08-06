@@ -21,7 +21,8 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "stdio.h"
+#include "string.h"
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart6;
@@ -39,7 +40,8 @@ void MX_USART6_UART_Init(void)
 
   /* USER CODE END USART6_Init 1 */
   huart6.Instance = USART6;
-  huart6.Init.BaudRate = 115200;
+//  huart6.Init.BaudRate = 115200;
+	huart6.Init.BaudRate = 9600;
   huart6.Init.WordLength = UART_WORDLENGTH_8B;
   huart6.Init.StopBits = UART_STOPBITS_1;
   huart6.Init.Parity = UART_PARITY_NONE;
@@ -115,5 +117,38 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
+struct __FILE
+{
+    int handle;
+    /* Whatever you require here. If the only file you are using is */
+    /* standard output using printf() for debugging, no file handling */
+    /* is required. */
+};
+FILE __stdout;
+void _sys_exit(int x)
+{
+    x = x;
+}
+int fputc(int ch, FILE *f)
+{      
+    HAL_UART_Transmit(&huart6,(uint8_t*)&ch,1,0xffff);
+    return ch;
+}
+
+void Uart_XFS_broadcast(uint8_t *Data_to_play){
+	uint8_t Data_XFS[60];
+	uint16_t len=0;
+	len=strlen(Data_to_play);
+	
+	Data_XFS[0] = 0xFD ; 			//构造帧头FD
+  Data_XFS[1] = 0x00 ; 			//构造数据区长度的高字节
+  Data_XFS[2] = len+2; 		//构造数据区长度的低字节
+  Data_XFS[3] = 0x01 ; 			//构造命令字：合成播放命令		 		 
+  Data_XFS[4] = 0x00;       //文本编码格式：GB2312
+  memcpy(&Data_XFS[5], Data_to_play, len);
+	HAL_UART_Transmit(&huart6,(uint8_t*)&Data_XFS,5+len,0xffff);
+	
+	
+}
 
 /* USER CODE END 1 */

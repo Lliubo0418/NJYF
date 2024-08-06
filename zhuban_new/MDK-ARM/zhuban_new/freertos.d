@@ -49,3 +49,4 @@ zhuban_new\freertos.o: ../Core/Inc/tim.h
 zhuban_new\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h
 zhuban_new\freertos.o: ../Core/Inc/adc.h
 zhuban_new\freertos.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+zhuban_new\freertos.o: ../Core/Inc/usart.h

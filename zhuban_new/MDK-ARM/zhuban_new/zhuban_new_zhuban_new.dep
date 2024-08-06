@@ -1,6 +1,6 @@
 Dependencies for Project 'zhuban_new', Target 'zhuban_new': (DO NOT MODIFY !)
-F (startup_stm32f407xx.s)(0x66AC9AA5)(--cpu Cortex-M4.fp -g --apcs=interwork -I ../Core/Inc-I C:\Users\52876\Desktop\cubemx\zhuban_new\MDK-ARM\RTE-I F:\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-I F:\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include--pd "__UVISION_VERSION SETA 518" --pd "_RTE_ SETA 1" --pd "STM32F407xx SETA 1"--list startup_stm32f407xx.lst --xref -o zhuban_new\startup_stm32f407xx.o --depend zhuban_new\startup_stm32f407xx.d)
-F (../Core/Src/main.c)(0x66AC9BDF)(--c99 -c --cpu Cortex-M4.fp -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F-I C:\Users\52876\Desktop\cubemx\zhuban_new\MDK-ARM\RTE-I F:\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-I F:\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="518" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o zhuban_new\main.o --omf_browse zhuban_new\main.crf --depend zhuban_new\main.d)
+F (startup_stm32f407xx.s)(0x66B1C607)(--cpu Cortex-M4.fp -g --apcs=interwork -I ../Core/Inc-I C:\Users\52876\Desktop\cubemx\zhuban_new\MDK-ARM\RTE-I F:\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-I F:\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include--pd "__UVISION_VERSION SETA 518" --pd "_RTE_ SETA 1" --pd "STM32F407xx SETA 1"--list startup_stm32f407xx.lst --xref -o zhuban_new\startup_stm32f407xx.o --depend zhuban_new\startup_stm32f407xx.d)
+F (../Core/Src/main.c)(0x66B1C74B)(--c99 -c --cpu Cortex-M4.fp -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F-I C:\Users\52876\Desktop\cubemx\zhuban_new\MDK-ARM\RTE-I F:\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-I F:\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="518" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o zhuban_new\main.o --omf_browse zhuban_new\main.crf --depend zhuban_new\main.d)
 I (../Core/Inc/main.h)(0x66A9E00F)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x66065466)
 I (../Core/Inc/stm32f4xx_hal_conf.h)(0x66A74D87)
@@ -46,10 +46,10 @@ I (../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h)(0x66065468
 I (../Middlewares/Third_Party/FreeRTOS/Source/include/task.h)(0x66065468)
 I (../Middlewares/Third_Party/FreeRTOS/Source/include/list.h)(0x66065468)
 I (../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h)(0x66065468)
-I (../Core/Inc/adc.h)(0x66AC6D20)
+I (../Core/Inc/adc.h)(0x66B17A50)
 I (../Core/Inc/dma.h)(0x66A8A0C6)
-I (../Core/Inc/tim.h)(0x66A84C73)
-I (../Core/Inc/usart.h)(0x66A74D86)
+I (../Core/Inc/tim.h)(0x66B1C604)
+I (../Core/Inc/usart.h)(0x66B1C69E)
 I (../Core/Inc/gpio.h)(0x66A74D84)
 F (../Core/Src/gpio.c)(0x66AC98A2)(--c99 -c --cpu Cortex-M4.fp -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F-I C:\Users\52876\Desktop\cubemx\zhuban_new\MDK-ARM\RTE-I F:\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-I F:\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="518" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o zhuban_new\gpio.o --omf_browse zhuban_new\gpio.crf --depend zhuban_new\gpio.d)
 I (../Core/Inc/gpio.h)(0x66A74D84)
@@ -87,8 +87,8 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h)(0x66065466)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h)(0x66065466)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h)(0x66065466)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x66065466)
-I (../Core/Inc/tim.h)(0x66A84C73)
-F (../Core/Src/freertos.c)(0x66ACA007)(--c99 -c --cpu Cortex-M4.fp -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F-I C:\Users\52876\Desktop\cubemx\zhuban_new\MDK-ARM\RTE-I F:\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-I F:\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="518" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o zhuban_new\freertos.o --omf_browse zhuban_new\freertos.crf --depend zhuban_new\freertos.d)
+I (../Core/Inc/tim.h)(0x66B1C604)
+F (../Core/Src/freertos.c)(0x66B1CD3D)(--c99 -c --cpu Cortex-M4.fp -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F-I C:\Users\52876\Desktop\cubemx\zhuban_new\MDK-ARM\RTE-I F:\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-I F:\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="518" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o zhuban_new\freertos.o --omf_browse zhuban_new\freertos.crf --depend zhuban_new\freertos.d)
 I (../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h)(0x66065468)
 I (F:\Keil_v5\ARM\ARMCC\include\stddef.h)(0x569DEA3A)
 I (F:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x569DEA3A)
@@ -134,12 +134,13 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h)(0x66065466)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x66065466)
 I (../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h)(0x66065468)
 I (../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h)(0x66065468)
-I (../Core/Inc/tim.h)(0x66A84C73)
+I (../Core/Inc/tim.h)(0x66B1C604)
 I (../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h)(0x66065468)
-I (../Core/Inc/adc.h)(0x66AC6D20)
+I (../Core/Inc/adc.h)(0x66B17A50)
 I (F:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
-F (../Core/Src/adc.c)(0x66AC71D0)(--c99 -c --cpu Cortex-M4.fp -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F-I C:\Users\52876\Desktop\cubemx\zhuban_new\MDK-ARM\RTE-I F:\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-I F:\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="518" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o zhuban_new\adc.o --omf_browse zhuban_new\adc.crf --depend zhuban_new\adc.d)
-I (../Core/Inc/adc.h)(0x66AC6D20)
+I (../Core/Inc/usart.h)(0x66B1C69E)
+F (../Core/Src/adc.c)(0x66B0264A)(--c99 -c --cpu Cortex-M4.fp -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F-I C:\Users\52876\Desktop\cubemx\zhuban_new\MDK-ARM\RTE-I F:\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-I F:\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="518" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o zhuban_new\adc.o --omf_browse zhuban_new\adc.crf --depend zhuban_new\adc.d)
+I (../Core/Inc/adc.h)(0x66B17A50)
 I (../Core/Inc/main.h)(0x66A9E00F)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x66065466)
 I (../Core/Inc/stm32f4xx_hal_conf.h)(0x66A74D87)
@@ -210,8 +211,8 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h)(0x66065466)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h)(0x66065466)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h)(0x66065466)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x66065466)
-F (../Core/Src/tim.c)(0x66A8763D)(--c99 -c --cpu Cortex-M4.fp -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F-I C:\Users\52876\Desktop\cubemx\zhuban_new\MDK-ARM\RTE-I F:\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-I F:\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="518" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o zhuban_new\tim.o --omf_browse zhuban_new\tim.crf --depend zhuban_new\tim.d)
-I (../Core/Inc/tim.h)(0x66A84C73)
+F (../Core/Src/tim.c)(0x66B1C603)(--c99 -c --cpu Cortex-M4.fp -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F-I C:\Users\52876\Desktop\cubemx\zhuban_new\MDK-ARM\RTE-I F:\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-I F:\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="518" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o zhuban_new\tim.o --omf_browse zhuban_new\tim.crf --depend zhuban_new\tim.d)
+I (../Core/Inc/tim.h)(0x66B1C604)
 I (../Core/Inc/main.h)(0x66A9E00F)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x66065466)
 I (../Core/Inc/stm32f4xx_hal_conf.h)(0x66A74D87)
@@ -246,8 +247,8 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h)(0x66065466)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h)(0x66065466)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h)(0x66065466)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x66065466)
-F (../Core/Src/usart.c)(0x66A87BCC)(--c99 -c --cpu Cortex-M4.fp -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F-I C:\Users\52876\Desktop\cubemx\zhuban_new\MDK-ARM\RTE-I F:\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-I F:\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="518" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o zhuban_new\usart.o --omf_browse zhuban_new\usart.crf --depend zhuban_new\usart.d)
-I (../Core/Inc/usart.h)(0x66A74D86)
+F (../Core/Src/usart.c)(0x66B1CA38)(--c99 -c --cpu Cortex-M4.fp -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F-I C:\Users\52876\Desktop\cubemx\zhuban_new\MDK-ARM\RTE-I F:\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-I F:\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="518" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o zhuban_new\usart.o --omf_browse zhuban_new\usart.crf --depend zhuban_new\usart.d)
+I (../Core/Inc/usart.h)(0x66B1C69E)
 I (../Core/Inc/main.h)(0x66A9E00F)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x66065466)
 I (../Core/Inc/stm32f4xx_hal_conf.h)(0x66A74D87)
@@ -282,6 +283,8 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h)(0x66065466)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h)(0x66065466)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h)(0x66065466)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x66065466)
+I (F:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x569DEA3A)
+I (F:\Keil_v5\ARM\ARMCC\include\string.h)(0x569DEA3A)
 F (../Core/Src/stm32f4xx_it.c)(0x66A9E00F)(--c99 -c --cpu Cortex-M4.fp -g -O3 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Middlewares/Third_Party/FreeRTOS/Source/include -I ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F-I C:\Users\52876\Desktop\cubemx\zhuban_new\MDK-ARM\RTE-I F:\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include-I F:\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="518" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o zhuban_new\stm32f4xx_it.o --omf_browse zhuban_new\stm32f4xx_it.crf --depend zhuban_new\stm32f4xx_it.d)
 I (../Core/Inc/main.h)(0x66A9E00F)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x66065466)

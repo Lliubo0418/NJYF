@@ -1,0 +1,26 @@
+--cpu Cortex-M4.fp
+"js_407vet6\startup_stm32f407xx.o"
+"js_407vet6\main.o"
+"js_407vet6\gpio.o"
+"js_407vet6\stm32f4xx_it.o"
+"js_407vet6\stm32f4xx_hal_msp.o"
+"js_407vet6\stm32f4xx_hal_tim.o"
+"js_407vet6\stm32f4xx_hal_tim_ex.o"
+"js_407vet6\stm32f4xx_hal_rcc.o"
+"js_407vet6\stm32f4xx_hal_rcc_ex.o"
+"js_407vet6\stm32f4xx_hal_flash.o"
+"js_407vet6\stm32f4xx_hal_flash_ex.o"
+"js_407vet6\stm32f4xx_hal_flash_ramfunc.o"
+"js_407vet6\stm32f4xx_hal_gpio.o"
+"js_407vet6\stm32f4xx_hal_dma_ex.o"
+"js_407vet6\stm32f4xx_hal_dma.o"
+"js_407vet6\stm32f4xx_hal_pwr.o"
+"js_407vet6\stm32f4xx_hal_pwr_ex.o"
+"js_407vet6\stm32f4xx_hal_cortex.o"
+"js_407vet6\stm32f4xx_hal.o"
+"js_407vet6\stm32f4xx_hal_exti.o"
+"js_407vet6\system_stm32f4xx.o"
+--strict --scatter "JS_407VET6\JS_407VET6.sct"
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "JS_407VET6.map" -o JS_407VET6\JS_407VET6.axf

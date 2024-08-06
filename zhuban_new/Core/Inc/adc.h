@@ -51,10 +51,10 @@ void MX_ADC3_Init(void);
 /* USER CODE BEGIN Prototypes */
 
 
-typedef struct {
-    uint32_t *buffer;
-    uint32_t channelCount;
-} ADCMessage;
+//typedef struct {
+//    uint32_t *buffer;
+//    uint32_t channelCount;
+//} ADCMessage;
 
 void CalculateAverage(uint32_t *buffer, float *average, uint32_t channelCount, uint32_t sampleCount);
 

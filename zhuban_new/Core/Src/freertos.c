@@ -29,6 +29,7 @@
 #include "queue.h"
 #include "adc.h"
 #include "string.h"
+#include "usart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,13 +49,15 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-//前四路为温度采集，后四路为电流采�?
+//前四路为温度采集，后四路为电流采�??
 extern  uint32_t adc1_value[ADC1_BUFFER_SIZE];
 //电流采集
 extern  uint32_t adc3_value[ADC3_BUFFER_SIZE];
 extern  float adc1Average[ADC1_CHANNEL_COUNT];
 extern  float adc3Average[ADC3_CHANNEL_COUNT];
  uint32_t Freq1 = 0, Freq2 = 0;
+ 
+ 
 /* USER CODE END Variables */
 /* Definitions for FINTask */
 osThreadId_t FINTaskHandle;
@@ -81,6 +84,11 @@ const osThreadAttr_t AudioTask_attributes = {
 osMessageQueueId_t FINQueueHandle;
 const osMessageQueueAttr_t FINQueue_attributes = {
   .name = "FINQueue"
+};
+/* Definitions for ADCQueue */
+osMessageQueueId_t ADCQueueHandle;
+const osMessageQueueAttr_t ADCQueue_attributes = {
+  .name = "ADCQueue"
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -119,6 +127,9 @@ void MX_FREERTOS_Init(void) {
   /* Create the queue(s) */
   /* creation of FINQueue */
   FINQueueHandle = osMessageQueueNew (2, sizeof(uint16_t), &FINQueue_attributes);
+
+  /* creation of ADCQueue */
+  ADCQueueHandle = osMessageQueueNew (2, sizeof(uint32_t), &ADCQueue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -166,7 +177,7 @@ void StartFINTask(void *argument)
       {
         if (state_freq1 == 0)
         {
-          start_time_freq1 = __HAL_TIM_GET_COUNTER(&htim2); // 获取起始时间
+          start_time_freq1 = __HAL_TIM_GET_COUNTER(&htim2); // 获取起�?�时�???
           state_freq1 = 1;
         }
         else
@@ -189,7 +200,7 @@ void StartFINTask(void *argument)
       {
         if (state_freq2 == 0)
         {
-          start_time_freq2 = __HAL_TIM_GET_COUNTER(&htim2); // 获取起始时间
+          start_time_freq2 = __HAL_TIM_GET_COUNTER(&htim2); // 获取起�?�时�???
           state_freq2 = 1;
         }
         else
@@ -224,7 +235,7 @@ void StartFINTask(void *argument)
 void StartADCTask(void *argument)
 {
   /* USER CODE BEGIN StartADCTask */
-  ADCMessage adcMessage;
+//  ADCMessage adcMessage;
 
 //	uint32_t adc1_sum[ADC1_CHANNEL_COUNT] = {0};
   /* Infinite loop */
@@ -234,22 +245,6 @@ void StartADCTask(void *argument)
 			CalculateAverage(adc1_value, adc1Average, ADC1_CHANNEL_COUNT, SAMPLES_PER_CHANNEL);
 			CalculateAverage(adc3_value, adc3Average, ADC3_CHANNEL_COUNT, SAMPLES_PER_CHANNEL);
 
-
-        // 计算当前通道的平均�??
-   
-//    if (xQueueReceive(ADCQueueHandle, &adcMessage, portMAX_DELAY) == pdPASS)
-//    {
-//      if (adcMessage.channelCount == ADC1_CHANNEL_COUNT)
-//      {
-//        CalculateAverage(adcMessage.buffer, adc1Average, ADC1_CHANNEL_COUNT, SAMPLES_PER_CHANNEL);
-//        // 处理adc1Average数据
-//      }
-//      else if (adcMessage.channelCount == ADC3_CHANNEL_COUNT)
-//      {
-//        CalculateAverage(adcMessage.buffer, adc3Average, ADC3_CHANNEL_COUNT, SAMPLES_PER_CHANNEL);
-//        // 处理adc3Average数据
-//      }
-//    }
     osDelay(1);
   }
   /* USER CODE END StartADCTask */
@@ -268,6 +263,9 @@ void StartAudioTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
+		Uart_XFS_broadcast("���߱���");
+		HAL_Delay(1500);
+		
     osDelay(1);
   }
   /* USER CODE END StartAudioTask */
@@ -286,25 +284,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	}
 }
 
-/* ADC转换完成回调函数 */
-//void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
-//{
-//    ADCMessage adcMessage;
-//		BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-//		memset(&adcMessage, 0, sizeof(ADCMessage));
-//	
-//    if (hadc->Instance == ADC1)
-//    {
-//        adcMessage.buffer = adc1_value;
-//        adcMessage.channelCount = ADC1_CHANNEL_COUNT;
-//        xQueueSendFromISR(ADCQueueHandle, &adcMessage, NULL);
-//    }
-//    else if (hadc->Instance == ADC3)
-//    {
-//        adcMessage.buffer = adc3_value;
-//        adcMessage.channelCount = ADC3_CHANNEL_COUNT;
-//        xQueueSendFromISR(ADCQueueHandle, &adcMessage, NULL);
-//    }
-//}
+
 /* USER CODE END Application */
 
