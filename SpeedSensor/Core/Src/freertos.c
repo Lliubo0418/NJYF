@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "tim.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -128,6 +128,8 @@ void StartFreq_outTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
+		HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_4);
+		HAL_Delay(10);
     osDelay(1);
   }
   /* USER CODE END StartFreq_outTask */
@@ -146,6 +148,8 @@ void StartCurrent_outTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
+		HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_11);
+		HAL_Delay(500);
     osDelay(1);
   }
   /* USER CODE END StartCurrent_outTask */

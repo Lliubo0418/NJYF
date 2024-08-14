@@ -1,0 +1,13 @@
+speedsensor\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c
+speedsensor\heap_4.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+speedsensor\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+speedsensor\heap_4.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+speedsensor\heap_4.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+speedsensor\heap_4.o: ../Core/Inc/FreeRTOSConfig.h
+speedsensor\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+speedsensor\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+speedsensor\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
+speedsensor\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3/portmacro.h
+speedsensor\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
+speedsensor\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
+speedsensor\heap_4.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h

@@ -37,3 +37,13 @@ zhuban_new\usart.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h
 zhuban_new\usart.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 zhuban_new\usart.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 zhuban_new\usart.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+zhuban_new\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+zhuban_new\usart.o: ../Core/Inc/FreeRTOSConfig.h
+zhuban_new\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+zhuban_new\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+zhuban_new\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
+zhuban_new\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F/portmacro.h
+zhuban_new\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
+zhuban_new\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
+zhuban_new\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h
+zhuban_new\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h

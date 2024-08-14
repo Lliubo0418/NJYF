@@ -31,6 +31,15 @@ speedsensor\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h
 speedsensor\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 speedsensor\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 speedsensor\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+speedsensor\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h
+speedsensor\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h
+speedsensor\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+speedsensor\main.o: ../Core/Inc/FreeRTOSConfig.h
+speedsensor\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+speedsensor\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+speedsensor\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
+speedsensor\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3/portmacro.h
+speedsensor\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
 speedsensor\main.o: ../Core/Inc/adc.h
 speedsensor\main.o: ../Core/Inc/spi.h
 speedsensor\main.o: ../Core/Inc/tim.h

@@ -51,6 +51,7 @@
 /* USER CODE BEGIN Variables */
 //鍓嶅洓璺负娓╁害閲囬泦锛屽悗鍥涜矾涓虹數娴侀噰锟??
 extern  uint32_t adc1_value[ADC1_BUFFER_SIZE];
+extern  uint8_t aRxBuffer[RXBUFFERSIZE];
 //鐢垫祦閲囬泦
 extern  uint32_t adc3_value[ADC3_BUFFER_SIZE];
 extern  float adc1Average[ADC1_CHANNEL_COUNT];
@@ -89,6 +90,11 @@ const osMessageQueueAttr_t FINQueue_attributes = {
 osMessageQueueId_t ADCQueueHandle;
 const osMessageQueueAttr_t ADCQueue_attributes = {
   .name = "ADCQueue"
+};
+/* Definitions for AudioQueue */
+osMessageQueueId_t AudioQueueHandle;
+const osMessageQueueAttr_t AudioQueue_attributes = {
+  .name = "AudioQueue"
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -130,6 +136,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of ADCQueue */
   ADCQueueHandle = osMessageQueueNew (2, sizeof(uint32_t), &ADCQueue_attributes);
+
+  /* creation of AudioQueue */
+  AudioQueueHandle = osMessageQueueNew (10, sizeof(uint16_t), &AudioQueue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -263,9 +272,32 @@ void StartAudioTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-		Uart_XFS_broadcast("沿线闭锁");
-		HAL_Delay(1500);
+#if 0
+
+		Uart_XFS_broadcast("[f0][s0][i1]嘀![s5][f1]前部运输机准备启动,请工作人员注意");
+//		xQueueSend(AudioQueueHandle, &aRxBuffer[0],200);
+		HAL_Delay(50);
+	if(xQueueReceive(AudioQueueHandle,&aRxBuffer, portMAX_DELAY)==pdPASS){
+		if(aRxBuffer[0]==0x4F){
+				Uart_XFS_broadcast("查询检测");
+			if(aRxBuffer[0]==0x4F){
+				break;
+			}
+		}
+
+//		Uart_XFS_broadcast("查询检测");
+//		HAL_Delay(3500);
+	}
+#endif
+	
+#if 1
+		Uart_XFS_broadcast("[f0][s0][i1]嘀![s5][f1]前部运输机准备启动,请工作人员注意");
 		
+		HAL_Delay(6000);
+		Uart_XFS_broadcast("查询检测");
+		HAL_Delay(3500);
+	
+#endif
     osDelay(1);
   }
   /* USER CODE END StartAudioTask */
@@ -283,6 +315,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 	}
 }
+
+
 
 
 /* USER CODE END Application */

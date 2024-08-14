@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "F:/LB/vscode"
+		},
+		{
+			"path": "G:/F407FreeRTOS例程"
 		}
 	],
 	"settings": {
@@ -25,7 +28,8 @@
 			"c8051f380_defs.h": "c",
 			"compiler_defs.h": "c",
 			"stdlib.h": "c",
-			"usbh_hid.h": "c"
+			"usbh_hid.h": "c",
+			"os.h": "c"
 		}
 	}
 }
