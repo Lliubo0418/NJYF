@@ -96,6 +96,8 @@ int main(void)
   MX_TIM4_Init();
   MX_TIM9_Init();
   MX_USART2_UART_Init();
+  MX_TIM6_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -116,8 +118,7 @@ int main(void)
   while (1)
   {
 		
-		HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_1);
-		HAL_Delay(2000);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -182,18 +183,18 @@ void SystemClock_Config(void)
   * @param  htim : TIM handle
   * @retval None
   */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  /* USER CODE BEGIN Callback 0 */
+// void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+// {
+//   /* USER CODE BEGIN Callback 0 */
 
-  /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM13) {
-    HAL_IncTick();
-  }
-  /* USER CODE BEGIN Callback 1 */
+//   /* USER CODE END Callback 0 */
+//   if (htim->Instance == TIM13) {
+//     HAL_IncTick();
+//   }
+//   /* USER CODE BEGIN Callback 1 */
 
-  /* USER CODE END Callback 1 */
-}
+//   /* USER CODE END Callback 1 */
+// }
 
 /**
   * @brief  This function is executed in case of error occurrence.

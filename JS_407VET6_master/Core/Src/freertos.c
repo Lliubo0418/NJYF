@@ -25,7 +25,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "tim.h"
+#include "gpio.h"
+#include "limits.h"
+#include "usart.h"
+#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,6 +49,11 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+/*同步信号*/
+extern uint32_t Sync_capture_Buf[3]; // 存放计数值
+extern uint8_t Sync_Cnt;             // 状态标志位
+extern uint32_t Sync_high_time;      // 高电平时间
+
 
 /* USER CODE END Variables */
 /* Definitions for SYNCTask */
@@ -147,10 +156,39 @@ void MX_FREERTOS_Init(void) {
 void StartSYNCTask(void *argument)
 {
   /* USER CODE BEGIN StartSYNCTask */
+//	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+		switch (Sync_Cnt)
+    {
+    case 0:
+      Sync_Cnt++;
+      __HAL_TIM_SET_CAPTUREPOLARITY(&htim2, TIM_CHANNEL_3, TIM_INPUTCHANNELPOLARITY_RISING);
+      HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_3); // 启动输入捕获       或者: __HAL_TIM_ENABLE(&htim5);
+      break;
+    case 3:
+      if (Sync_capture_Buf[1] < Sync_capture_Buf[0])
+      { // 不存在先捕获高电平后捕获低电平capture_Buf[1]<capture_Buf[0],肯定是有了溢出
+        Sync_high_time = 0xC350 + Sync_capture_Buf[1] - Sync_capture_Buf[0];
+      }
+      else
+      {
+        Sync_high_time = Sync_capture_Buf[1] - Sync_capture_Buf[0]; // 高电平时间
+      }
+
+      Sync_Cnt = 0;
+			 if (Sync_high_time == 0x1B)
+      {
+
+        Sync_Cnt = 5;
+				xTaskNotify((TaskHandle_t)StartICTask,NULL,eSetValueWithOverwrite);
+				xTaskNotify((TaskHandle_t)StartRec_switchTask,NULL,eSetValueWithOverwrite);
+				
+			}
+		}
+    osDelay(10);
   }
   /* USER CODE END StartSYNCTask */
 }
@@ -165,9 +203,26 @@ void StartSYNCTask(void *argument)
 void StartICTask(void *argument)
 {
   /* USER CODE BEGIN StartICTask */
+	BaseType_t ret;
+	uint32_t NotifyValue;
   /* Infinite loop */
   for(;;)
   {
+    ret = xTaskNotifyWait((uint32_t)0x00,
+                          (uint32_t)ULONG_MAX,
+                          (uint32_t *)&NotifyValue,
+                          (TickType_t)portMAX_DELAY);
+          if(ret==pdPASS){
+            //能否正确开启捕获？待测试
+            __HAL_TIM_ENABLE_IT(&htim1,TIM_IT_CC4);
+            __HAL_TIM_ENABLE_IT(&htim3,TIM_IT_CC1);
+            __HAL_TIM_ENABLE_IT(&htim4,TIM_IT_CC1);
+            __HAL_TIM_ENABLE_IT(&htim9,TIM_IT_CC1);
+
+          }
+					else{
+            printf("StartICTask任务通知获取失败\r\n");
+          }
     osDelay(1);
   }
   /* USER CODE END StartICTask */
@@ -183,9 +238,24 @@ void StartICTask(void *argument)
 void StartRec_switchTask(void *argument)
 {
   /* USER CODE BEGIN StartRec_switchTask */
+  BaseType_t ret;
+  uint32_t NotifyValue;
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
+    ret = xTaskNotifyWait((uint32_t)0x00,
+                          (uint32_t)ULONG_MAX,
+                          (uint32_t *)&NotifyValue,
+                          (TickType_t)portMAX_DELAY);
+    if (ret == pdPASS)
+    {
+      EN_R1_R2_open();
+      HAL_TIM_Base_Start_IT(&htim6);    //start timer for R1_channel switch
+    }
+    else
+    {
+      printf("StartRec_switchTask任务通知获取失败\r\n");
+    }
     osDelay(1);
   }
   /* USER CODE END StartRec_switchTask */

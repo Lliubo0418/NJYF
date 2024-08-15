@@ -42,3 +42,8 @@ js_407vet6\freertos.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.
 js_407vet6\freertos.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 js_407vet6\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h
 js_407vet6\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h
+js_407vet6\freertos.o: ../Core/Inc/tim.h
+js_407vet6\freertos.o: ../Core/Inc/gpio.h
+js_407vet6\freertos.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
+js_407vet6\freertos.o: ../Core/Inc/usart.h
+js_407vet6\freertos.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h

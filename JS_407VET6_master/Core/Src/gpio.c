@@ -109,5 +109,44 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 2 */
+void EN_R1_R2_open(void){
+		HAL_GPIO_WritePin(EN_R1_GPIO_Port,EN_R1_Pin,GPIO_PIN_SET);
+		HAL_GPIO_WritePin(EN_R2_GPIO_Port,EN_R2_Pin,GPIO_PIN_SET);
+}
+void EN_R1_R2_close(void){
+		HAL_GPIO_WritePin(EN_R1_GPIO_Port,EN_R1_Pin,GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(EN_R2_GPIO_Port,EN_R2_Pin,GPIO_PIN_RESET);
+}
+void R1Channel_Sel(uint8_t ch) { // MPC1通道切换
+    // 取低四位，ch % 16 可以简化为 ch & 0x0F
+    ch &= 0x0F;
 
+    // 用于生成 GPIO 引脚的状态，A3、A2、A1、A0 对应 ch 的位 3、2、1、0
+    GPIO_PinState pinA3 = (ch & 0x08) ? GPIO_PIN_SET : GPIO_PIN_RESET;
+    GPIO_PinState pinA2 = (ch & 0x04) ? GPIO_PIN_SET : GPIO_PIN_RESET;
+    GPIO_PinState pinA1 = (ch & 0x02) ? GPIO_PIN_SET : GPIO_PIN_RESET;
+    GPIO_PinState pinA0 = (ch & 0x01) ? GPIO_PIN_SET : GPIO_PIN_RESET;
+
+    // 一次性设置 GPIO 引脚状态
+    HAL_GPIO_WritePin(A3_R1_GPIO_Port, A3_R1_Pin, pinA3);
+    HAL_GPIO_WritePin(A2_R1_GPIO_Port, A2_R1_Pin, pinA2);
+    HAL_GPIO_WritePin(A1_R1_GPIO_Port, A1_R1_Pin, pinA1);
+    HAL_GPIO_WritePin(A0_R1_GPIO_Port, A0_R1_Pin, pinA0);
+}
+void R2Channel_Sel(uint8_t ch) { // MPC2通道切换
+    // 取低四位，ch % 16 可以简化为 ch & 0x0F
+    ch &= 0x0F;
+
+    // 用于生成 GPIO 引脚的状态，A3、A2、A1、A0 对应 ch 的位 3、2、1、0
+    GPIO_PinState pinA3 = (ch & 0x08) ? GPIO_PIN_SET : GPIO_PIN_RESET;
+    GPIO_PinState pinA2 = (ch & 0x04) ? GPIO_PIN_SET : GPIO_PIN_RESET;
+    GPIO_PinState pinA1 = (ch & 0x02) ? GPIO_PIN_SET : GPIO_PIN_RESET;
+    GPIO_PinState pinA0 = (ch & 0x01) ? GPIO_PIN_SET : GPIO_PIN_RESET;
+
+    // 一次性设置 GPIO 引脚状态
+    HAL_GPIO_WritePin(A3_R2_GPIO_Port, A3_R2_Pin, pinA3);
+    HAL_GPIO_WritePin(A2_R2_GPIO_Port, A2_R2_Pin, pinA2);
+    HAL_GPIO_WritePin(A1_R2_GPIO_Port, A1_R2_Pin, pinA1);
+    HAL_GPIO_WritePin(A0_R2_GPIO_Port, A0_R2_Pin, pinA0);
+}
 /* USER CODE END 2 */

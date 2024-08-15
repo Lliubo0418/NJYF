@@ -31,9 +31,9 @@
  uint8_t Signal_Cnt = 0;    //状态标志位
  uint32_t Signal_high_time;   //高电平时间
  
-  uint32_t start_time = 0;
-	uint32_t end_time = 0;
-	uint32_t duration = 0;
+ uint32_t start_time = 0;
+ uint32_t end_time = 0;
+ uint32_t duration = 0;
 
  uint16_t up_edge_cnt=0;
  uint16_t cnt=0;
