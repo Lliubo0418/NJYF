@@ -171,7 +171,7 @@ void StartSYNCTask(void *argument)
     case 3:
       if (Sync_capture_Buf[1] < Sync_capture_Buf[0])
       { // 不存在先捕获高电平后捕获低电平capture_Buf[1]<capture_Buf[0],肯定是有了溢出
-        Sync_high_time = 0xC350 + Sync_capture_Buf[1] - Sync_capture_Buf[0];
+        Sync_high_time = 0x186A0 + Sync_capture_Buf[1] - Sync_capture_Buf[0];    //100000
       }
       else
       {
@@ -214,8 +214,11 @@ void StartICTask(void *argument)
                           (TickType_t)portMAX_DELAY);
           if(ret==pdPASS){
             //能否正确开启捕获？待测试
-            __HAL_TIM_ENABLE_IT(&htim1,TIM_IT_CC4);
-            __HAL_TIM_ENABLE_IT(&htim3,TIM_IT_CC1);
+            //LTODO:待测试
+            //LHACK:如果不行更换为HAL_TIM_IC_Start_IT函数
+            //LXXX:按照所查资料提示，如果不行那就还是将同步引脚更改为其他引脚，TIM2作为主定时器通过事件触发从定时器同步捕获，硬件层面的同步捕获
+            __HAL_TIM_ENABLE_IT(&htim1,TIM_IT_CC4);    
+            __HAL_TIM_ENABLE_IT(&htim3,TIM_IT_CC1);    
             __HAL_TIM_ENABLE_IT(&htim4,TIM_IT_CC1);
             __HAL_TIM_ENABLE_IT(&htim9,TIM_IT_CC1);
 
