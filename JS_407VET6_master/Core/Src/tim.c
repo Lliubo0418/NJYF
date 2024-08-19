@@ -22,6 +22,9 @@
 
 /* USER CODE BEGIN 0 */
 #include "gpio.h"
+#include "FreeRTOS.h"
+#include "cmsis_os.h"
+#include "semphr.h"
 uint8_t Mpc1_Channel_Num = 0; // R1通道
 uint8_t Mpc2_Channel_Num = 0; // R2通道
 // sync
@@ -48,6 +51,7 @@ uint16_t Int4_starttime = 0;
 uint16_t Int4_endtime = 0;
 uint8_t Int4_first_flag = 0;
 uint16_t Int4_duration = 0;
+extern osSemaphoreId_t HolesCountingSemHandle;
 
 #if 0
 //定义结构体，增加代码的可读性，避免重复调用函数
@@ -166,7 +170,7 @@ void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
-  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_FALLING;
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
   sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
   sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
   sConfigIC.ICFilter = 0;
@@ -383,7 +387,7 @@ void MX_TIM9_Init(void)
   sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
   sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
   sConfigIC.ICFilter = 0;
-  if (HAL_TIM_IC_ConfigChannel(&htim9, &sConfigIC, TIM_CHANNEL_2) != HAL_OK)
+  if (HAL_TIM_IC_ConfigChannel(&htim9, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
   {
     Error_Handler();
   }
@@ -546,9 +550,10 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *tim_baseHandle)
 
     __HAL_RCC_GPIOE_CLK_ENABLE();
     /**TIM9 GPIO Configuration
+    PE5     ------> TIM9_CH1
     PE6     ------> TIM9_CH2
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_6;
+    GPIO_InitStruct.Pin = GPIO_PIN_5 | GPIO_PIN_6;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -690,9 +695,10 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *tim_baseHandle)
     __HAL_RCC_TIM9_CLK_DISABLE();
 
     /**TIM9 GPIO Configuration
+    PE5     ------> TIM9_CH1
     PE6     ------> TIM9_CH2
     */
-    HAL_GPIO_DeInit(GPIOE, GPIO_PIN_6);
+    HAL_GPIO_DeInit(GPIOE, GPIO_PIN_5 | GPIO_PIN_6);
 
     /* TIM9 interrupt Deinit */
     /* USER CODE BEGIN TIM9:TIM1_BRK_TIM9_IRQn disable */
@@ -744,7 +750,8 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
       switch (Sync_Cnt)
       {
       case 1:
-        Sync_capture_Buf[0] = HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_3);       // 获取当前的捕获值.
+        Sync_capture_Buf[0] = HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_3); // 获取当前的捕获值.
+        TIM_RESET_CAPTUREPOLARITY(&htim2, TIM_CHANNEL_3);
         __HAL_TIM_SET_CAPTUREPOLARITY(&htim2, TIM_CHANNEL_3, TIM_ICPOLARITY_FALLING); // 设置为下降沿捕获
         Sync_Cnt++;
         break;
@@ -756,110 +763,261 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
       }
     }
   }
+#if 0
+  //LNOTE:捕获单个脉宽
   else if (htim->Instance == TIM4)
   {
-    if (Int1_first_flag == 0)
+    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
     {
-      /*
-       *如果处理时间过长，尝试去除函数封装，直接操作寄存器
-       *__HAL_TIM_GET_COMPARE(htim, TIM_CHANNEL_4);或Int1_starttime = TIM1->CCR4;直接访问寄存器
-       */
-      Int1_starttime = HAL_TIM_ReadCapturedValue(&htim3, TIM_CHANNEL_1);
-      __HAL_TIM_SET_CAPTUREPOLARITY(&htim3, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
-      Int1_first_flag = 1;
-    }
-    else
-    {
-      Int1_endtime = HAL_TIM_ReadCapturedValue(&htim3, TIM_CHANNEL_1);
-      __HAL_TIM_SET_CAPTUREPOLARITY(&htim3, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
-      Int1_first_flag = 0;
-      if (Int1_endtime <= Int1_starttime)
+      if (Int1_first_flag == 0)
       {
-        Int1_duration = 50000 + Int1_endtime - Int1_starttime;
-        // printf("Int1_Duration: %d us\r\n", Int1_duration);
+        /*
+         *如果处理时间过长，尝试去除函数封装，直接操作寄存器
+         *__HAL_TIM_GET_COMPARE(htim, TIM_CHANNEL_4);或Int1_starttime = TIM1->CCR4;直接访问寄存器
+         */
+        Int1_starttime = HAL_TIM_ReadCapturedValue(&htim4, TIM_CHANNEL_1);
+        TIM_RESET_CAPTUREPOLARITY(&htim4, TIM_CHANNEL_1);
+        __HAL_TIM_SET_CAPTUREPOLARITY(&htim4, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
+        Int1_first_flag = 1;
       }
       else
       {
-        Int1_duration = Int1_endtime - Int1_starttime;
-        // printf("Int1_Duration: %d us\r\n", Int1_duration);
+        Int1_endtime = HAL_TIM_ReadCapturedValue(&htim4, TIM_CHANNEL_1);
+        TIM_RESET_CAPTUREPOLARITY(&htim4, TIM_CHANNEL_1);
+        __HAL_TIM_SET_CAPTUREPOLARITY(&htim4, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
+        Int1_first_flag = 0;
+        if (Int1_endtime <= Int1_starttime)
+        {
+          Int1_duration = 50000 + Int1_endtime - Int1_starttime;
+          // printf("Int1_Duration: %d us\r\n", Int1_duration);
+        }
+        else
+        {
+          Int1_duration = Int1_endtime - Int1_starttime;
+          // printf("Int1_Duration: %d us\r\n", Int1_duration);
+        }
       }
     }
   }
   else if (htim->Instance == TIM9)
   {
-    if (Int2_first_flag == 0)
+    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
     {
-      Int2_starttime = HAL_TIM_ReadCapturedValue(&htim3, TIM_CHANNEL_1);
-      __HAL_TIM_SET_CAPTUREPOLARITY(&htim3, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
-      Int2_first_flag = 1;
-    }
-    else
-    {
-      Int2_endtime = HAL_TIM_ReadCapturedValue(&htim3, TIM_CHANNEL_1);
-      __HAL_TIM_SET_CAPTUREPOLARITY(&htim3, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
-      Int2_first_flag = 0;
-      if (Int2_endtime <= Int2_starttime)
+      if (Int2_first_flag == 0)
       {
-        Int2_duration = 50000 + Int2_endtime - Int2_starttime;
-        // printf("Int2_Duration: %d us\r\n", Int2_duration);
+        Int2_starttime = HAL_TIM_ReadCapturedValue(&htim9, TIM_CHANNEL_1);
+        TIM_RESET_CAPTUREPOLARITY(&htim9, TIM_CHANNEL_1);
+        __HAL_TIM_SET_CAPTUREPOLARITY(&htim9, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
+        Int2_first_flag = 1;
       }
       else
       {
-        Int2_duration = Int2_endtime - Int2_starttime;
-        // printf("Int2_Duration: %d us\r\n", Int2_duration);
+        Int2_endtime = HAL_TIM_ReadCapturedValue(&htim9, TIM_CHANNEL_1);
+        TIM_RESET_CAPTUREPOLARITY(&htim9, TIM_CHANNEL_1);
+        __HAL_TIM_SET_CAPTUREPOLARITY(&htim9, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
+        Int2_first_flag = 0;
+        if (Int2_endtime <= Int2_starttime)
+        {
+          Int2_duration = 50000 + Int2_endtime - Int2_starttime;
+          // printf("Int2_Duration: %d us\r\n", Int2_duration);
+        }
+        else
+        {
+          Int2_duration = Int2_endtime - Int2_starttime;
+          // printf("Int2_Duration: %d us\r\n", Int2_duration);
+        }
       }
     }
   }
   else if (htim->Instance == TIM3)
   {
-    if (Int3_first_flag == 0)
+    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
     {
-      Int3_starttime = HAL_TIM_ReadCapturedValue(&htim3, TIM_CHANNEL_1);
-      __HAL_TIM_SET_CAPTUREPOLARITY(&htim3, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
-      Int3_first_flag = 1;
-    }
-    else
-    {
-      Int3_endtime = HAL_TIM_ReadCapturedValue(&htim3, TIM_CHANNEL_1);
-      __HAL_TIM_SET_CAPTUREPOLARITY(&htim3, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
-      Int3_first_flag = 0;
-      if (Int3_endtime <= Int3_starttime)
+      if (Int3_first_flag == 0)
       {
-        Int3_duration = 50000 + Int3_endtime - Int3_starttime;
-        // printf("Int3_Duration: %d us\r\n", Int3_duration);
+        Int3_starttime = HAL_TIM_ReadCapturedValue(&htim3, TIM_CHANNEL_1);
+        TIM_RESET_CAPTUREPOLARITY(&htim3, TIM_CHANNEL_1);
+        __HAL_TIM_SET_CAPTUREPOLARITY(&htim3, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
+        Int3_first_flag = 1;
       }
       else
       {
-        Int3_duration = Int3_endtime - Int3_starttime;
-        // printf("Int3_Duration: %d us\r\n", Int3_duration);
+        Int3_endtime = HAL_TIM_ReadCapturedValue(&htim3, TIM_CHANNEL_1);
+        TIM_RESET_CAPTUREPOLARITY(&htim3, TIM_CHANNEL_1);
+        __HAL_TIM_SET_CAPTUREPOLARITY(&htim3, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
+        Int3_first_flag = 0;
+        if (Int3_endtime <= Int3_starttime)
+        {
+          Int3_duration = 50000 + Int3_endtime - Int3_starttime;
+          // printf("Int3_Duration: %d us\r\n", Int3_duration);
+        }
+        else
+        {
+          Int3_duration = Int3_endtime - Int3_starttime;
+          // printf("Int3_Duration: %d us\r\n", Int3_duration);
+        }
       }
     }
   }
   else if (htim->Instance == TIM1)
   {
-    if (Int4_first_flag == 0)
+    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
     {
-      Int4_starttime = HAL_TIM_ReadCapturedValue(&htim3, TIM_CHANNEL_1);
-      __HAL_TIM_SET_CAPTUREPOLARITY(&htim3, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
-      Int4_first_flag = 1;
-    }
-    else
-    {
-      Int4_endtime = HAL_TIM_ReadCapturedValue(&htim3, TIM_CHANNEL_1);
-      __HAL_TIM_SET_CAPTUREPOLARITY(&htim3, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
-      Int4_first_flag = 0;
-      if (Int4_endtime <= Int4_starttime)
+      if (Int4_first_flag == 0)
       {
-        Int4_duration = 50000 + Int4_endtime - Int4_starttime;
-        // printf("Int4_Duration: %d us\r\n", Int4_duration);
+        Int4_starttime = HAL_TIM_ReadCapturedValue(&htim1, TIM_CHANNEL_4);
+        TIM_RESET_CAPTUREPOLARITY(&htim1, TIM_CHANNEL_4);
+        __HAL_TIM_SET_CAPTUREPOLARITY(&htim1, TIM_CHANNEL_4, TIM_INPUTCHANNELPOLARITY_FALLING);
+        Int4_first_flag = 1;
       }
       else
       {
-        Int4_duration = Int4_endtime - Int4_starttime;
-        // printf("Int4_Duration: %d us\r\n", Int4_duration);
+        Int4_endtime = HAL_TIM_ReadCapturedValue(&htim1, TIM_CHANNEL_4);
+        TIM_RESET_CAPTUREPOLARITY(&htim1, TIM_CHANNEL_4);
+        __HAL_TIM_SET_CAPTUREPOLARITY(&htim1, TIM_CHANNEL_4, TIM_INPUTCHANNELPOLARITY_RISING);
+        Int4_first_flag = 0;
+        if (Int4_endtime <= Int4_starttime)
+        {
+          Int4_duration = 50000 + Int4_endtime - Int4_starttime;
+          // printf("Int4_Duration: %d us\r\n", Int4_duration);
+        }
+        else
+        {
+          Int4_duration = Int4_endtime - Int4_starttime;
+          // printf("Int4_Duration: %d us\r\n", Int4_duration);
+        }
       }
     }
   }
+#endif
+#if 1
+  // LNOTE:捕获下降沿到下降沿，此时为捕获到两个脉冲，即一个孔
+  // LXXX:查看对应定时器初始化时IC是否为下降沿
+  else if (htim->Instance == TIM4)
+  {
+    BaseType_t xHigherPriorityTaskWoken;
+    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+    {
+      if (Int1_first_flag == 0)
+      {
+        /*
+         *如果处理时间过长，尝试去除函数封装，直接操作寄存器
+         *__HAL_TIM_GET_COMPARE(htim, TIM_CHANNEL_4);或Int1_starttime = TIM1->CCR4;直接访问寄存器
+         */
+        Int1_starttime = HAL_TIM_ReadCapturedValue(&htim4, TIM_CHANNEL_1);
+        Int1_first_flag = 1;
+      }
+      else
+      {
+        Int1_endtime = HAL_TIM_ReadCapturedValue(&htim4, TIM_CHANNEL_1);
+        Int1_first_flag = 0;
+        if (Int1_endtime <= Int1_starttime)
+        {
+          Int1_duration = 50000 + Int1_endtime - Int1_starttime;
+        }
+        else
+        {
+          Int1_duration = Int1_endtime - Int1_starttime;
+        }
+      }
+      if (Int1_duration == 0x05&&(xTaskGetSchedulerState()!=taskSCHEDULER_NOT_STARTED))
+      {
+        xSemaphoreGiveFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+      }
+    }
+  }
+  else if (htim->Instance == TIM9)
+  {
+    BaseType_t xHigherPriorityTaskWoken;
+    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+    {
+      if (Int2_first_flag == 0)
+      {
+        Int2_starttime = HAL_TIM_ReadCapturedValue(&htim9, TIM_CHANNEL_1);
+        Int2_first_flag = 1;
+      }
+      else
+      {
+        Int2_endtime = HAL_TIM_ReadCapturedValue(&htim9, TIM_CHANNEL_1);
+        Int2_first_flag = 0;
+        if (Int2_endtime <= Int2_starttime)
+        {
+          Int2_duration = 50000 + Int2_endtime - Int2_starttime;
+        }
+        else
+        {
+          Int2_duration = Int2_endtime - Int2_starttime;
+        }
+      }
+      if (Int2_duration == 0x05&&(xTaskGetSchedulerState()!=taskSCHEDULER_NOT_STARTED))
+      {
+        xSemaphoreGiveFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+      }
+    }
+  }
+  else if (htim->Instance == TIM3)
+  {
+    BaseType_t xHigherPriorityTaskWoken;
+    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+    {
+      if (Int3_first_flag == 0)
+      {
+        Int3_starttime = HAL_TIM_ReadCapturedValue(&htim3, TIM_CHANNEL_1);
+        Int3_first_flag = 1;
+      }
+      else
+      {
+        Int3_endtime = HAL_TIM_ReadCapturedValue(&htim3, TIM_CHANNEL_1);
+        Int3_first_flag = 0;
+        if (Int3_endtime <= Int3_starttime)
+        {
+          Int3_duration = 50000 + Int3_endtime - Int3_starttime;
+        }
+        else
+        {
+          Int3_duration = Int3_endtime - Int3_starttime;
+        }
+      }
+      if (Int3_duration == 0x05&&(xTaskGetSchedulerState()!=taskSCHEDULER_NOT_STARTED))
+      {
+        xSemaphoreGiveFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+      }
+    }
+  }
+  else if (htim->Instance == TIM1)
+  {
+    BaseType_t xHigherPriorityTaskWoken;
+    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+    {
+      if (Int4_first_flag == 0)
+      {
+        Int4_starttime = HAL_TIM_ReadCapturedValue(&htim1, TIM_CHANNEL_4);
+        Int4_first_flag = 1;
+      }
+      else
+      {
+        Int4_endtime = HAL_TIM_ReadCapturedValue(&htim1, TIM_CHANNEL_4);
+        Int4_first_flag = 0;
+        if (Int4_endtime <= Int4_starttime)
+        {
+          Int4_duration = 50000 + Int4_endtime - Int4_starttime;
+        }
+        else
+        {
+          Int4_duration = Int4_endtime - Int4_starttime;
+        }
+      }
+      if (Int4_duration == 0x05&&(xTaskGetSchedulerState()!=taskSCHEDULER_NOT_STARTED))
+      {
+        xSemaphoreGiveFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+      }
+    }
+  }
+#endif
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
@@ -878,11 +1036,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     {
       HAL_TIM_Base_Stop_IT(&htim6); // Stop timer for switch
       EN_R1_R2_close();             // 关闭接收
+      //LTODO: 查看宏定义能否生效
+      __HAL_TIM_DISABLE_IT(&htim1, TIM_IT_CC4);
+      __HAL_TIM_DISABLE_IT(&htim3, TIM_IT_CC1);
+      __HAL_TIM_DISABLE_IT(&htim4, TIM_IT_CC1);
+      __HAL_TIM_DISABLE_IT(&htim9, TIM_IT_CC1);
     }
   }
   if (htim->Instance == TIM7)
   {
-    
+    // LTODO: 孔的个数处理，500ms减一，释放二值信号量给继电器，PNP.NPN等
   }
 }
 /* USER CODE END 1 */

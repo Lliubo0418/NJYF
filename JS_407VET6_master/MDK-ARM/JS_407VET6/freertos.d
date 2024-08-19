@@ -47,3 +47,5 @@ js_407vet6\freertos.o: ../Core/Inc/gpio.h
 js_407vet6\freertos.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
 js_407vet6\freertos.o: ../Core/Inc/usart.h
 js_407vet6\freertos.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+js_407vet6\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h
+js_407vet6\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h

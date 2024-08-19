@@ -33,3 +33,16 @@ js_407vet6\tim.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
 js_407vet6\tim.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h
 js_407vet6\tim.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 js_407vet6\tim.o: ../Core/Inc/gpio.h
+js_407vet6\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+js_407vet6\tim.o: ../Core/Inc/FreeRTOSConfig.h
+js_407vet6\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+js_407vet6\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+js_407vet6\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
+js_407vet6\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F/portmacro.h
+js_407vet6\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
+js_407vet6\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h
+js_407vet6\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
+js_407vet6\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h
+js_407vet6\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h
+js_407vet6\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h
+js_407vet6\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h

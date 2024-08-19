@@ -68,6 +68,9 @@
 		  "LXXX"
 		],
 		"todo-tree.general.statusBar": "total",
+		"files.associations": {
+			"freertos.h": "c"
+		},
 	  
 
 	}

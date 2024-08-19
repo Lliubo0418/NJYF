@@ -43,6 +43,9 @@ void EN_R1_R2_open(void);
 void EN_R1_R2_close(void);
 void R1Channel_Sel(uint8_t ch);	
 void R2Channel_Sel(uint8_t ch);
+
+void Holes_output_alarm_Open(void );
+void Holes_output_alarm_Close(void );
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

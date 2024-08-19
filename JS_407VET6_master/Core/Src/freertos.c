@@ -30,6 +30,8 @@
 #include "limits.h"
 #include "usart.h"
 #include "stdio.h"
+#include "semphr.h"
+#include "portmacro.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -84,6 +86,11 @@ const osThreadAttr_t Holes_OutputTas_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
+/* Definitions for HolesCountingSem */
+osSemaphoreId_t HolesCountingSemHandle;
+const osSemaphoreAttr_t HolesCountingSem_attributes = {
+  .name = "HolesCountingSem"
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -110,6 +117,10 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
+
+  /* Create the semaphores(s) */
+  /* creation of HolesCountingSem */
+  HolesCountingSemHandle = osSemaphoreNew(8, 0, &HolesCountingSem_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
@@ -165,6 +176,7 @@ void StartSYNCTask(void *argument)
     {
     case 0:
       Sync_Cnt++;
+      TIM_RESET_CAPTUREPOLARITY(&htim2, TIM_CHANNEL_3);
       __HAL_TIM_SET_CAPTUREPOLARITY(&htim2, TIM_CHANNEL_3, TIM_INPUTCHANNELPOLARITY_RISING);
       HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_3); // 启动输入捕获       或者: __HAL_TIM_ENABLE(&htim5);
       break;
@@ -274,9 +286,18 @@ void StartRec_switchTask(void *argument)
 void StartHoles_OutputTask(void *argument)
 {
   /* USER CODE BEGIN StartHoles_OutputTask */
+	uint8_t semavalue=0;
   /* Infinite loop */
   for(;;)
   {
+    BaseType_t xHigherPriorityTaskWoken;
+    xSemaphoreTakeFromISR(HolesCountingSemHandle,&xHigherPriorityTaskWoken);
+		semavalue=uxSemaphoreGetCount(HolesCountingSemHandle);
+		if(semavalue>0){
+			Holes_output_alarm_Open();
+			HAL_Delay(500);
+			Holes_output_alarm_Close();
+		}
     osDelay(1);
   }
   /* USER CODE END StartHoles_OutputTask */

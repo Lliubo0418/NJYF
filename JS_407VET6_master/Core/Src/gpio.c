@@ -149,4 +149,17 @@ void R2Channel_Sel(uint8_t ch) { // MPC2Í¨µÀÇÐ»»
     HAL_GPIO_WritePin(A1_R2_GPIO_Port, A1_R2_Pin, pinA1);
     HAL_GPIO_WritePin(A0_R2_GPIO_Port, A0_R2_Pin, pinA0);
 }
+
+void Holes_output_alarm_Open(void ){
+    HAL_GPIO_WritePin(ACTION_GPIO_Port,ACTION_Pin,GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(ACTION1_GPIO_Port,ACTION1_Pin,GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(RELAY_CTRL_GPIO_Port,RELAY_CTRL_Pin,GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(Output_Led_GPIO_Port,Output_Led_Pin,GPIO_PIN_RESET);
+}
+void Holes_output_alarm_Close(void ){
+    HAL_GPIO_WritePin(ACTION_GPIO_Port,ACTION_Pin,GPIO_PIN_SET);
+    HAL_GPIO_WritePin(ACTION1_GPIO_Port,ACTION1_Pin,GPIO_PIN_SET);
+    HAL_GPIO_WritePin(RELAY_CTRL_GPIO_Port,RELAY_CTRL_Pin,GPIO_PIN_SET);
+    HAL_GPIO_WritePin(Output_Led_GPIO_Port,Output_Led_Pin,GPIO_PIN_SET);
+}
 /* USER CODE END 2 */
