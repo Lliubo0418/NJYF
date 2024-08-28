@@ -69,7 +69,8 @@
 		],
 		"todo-tree.general.statusBar": "total",
 		"files.associations": {
-			"freertos.h": "c"
+			"freertos.h": "c",
+			"timers.h": "c"
 		},
 	  
 

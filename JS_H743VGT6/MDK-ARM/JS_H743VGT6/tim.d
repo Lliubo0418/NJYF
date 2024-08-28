@@ -51,3 +51,5 @@ js_h743vgt6\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsi
 js_h743vgt6\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h
 js_h743vgt6\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h
 js_h743vgt6\tim.o: ../Core/Inc/gpio.h
+js_h743vgt6\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h
+js_h743vgt6\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h

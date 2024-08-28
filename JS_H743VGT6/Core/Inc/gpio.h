@@ -41,6 +41,8 @@ void MX_GPIO_Init(void);
 /* USER CODE BEGIN Prototypes */
 void EN_R1_R2_open(void);
 void EN_R1_R2_close(void);
+void EN_R3_R4_open(void);
+void EN_R3_R4_close(void);
 void R1Channel_Sel(uint8_t ch);	
 void R2Channel_Sel(uint8_t ch);
 

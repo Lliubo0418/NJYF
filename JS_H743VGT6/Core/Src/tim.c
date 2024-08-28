@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file    tim.c
-  * @brief   This file provides code for the configuration
-  *          of the TIM instances.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2024 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    tim.c
+ * @brief   This file provides code for the configuration
+ *          of the TIM instances.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2024 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "tim.h"
@@ -25,6 +25,7 @@
 #include "cmsis_os.h"
 #include "semphr.h"
 #include "gpio.h"
+#include "event_groups.h"
 extern osSemaphoreId_t HolesCountingSemHandle;
 
 uint8_t Mpc1_Channel_Num = 0; // R1通道
@@ -53,6 +54,20 @@ uint16_t Int4_starttime = 0;
 uint16_t Int4_endtime = 0;
 uint8_t Int4_first_flag = 0;
 uint16_t Int4_duration = 0;
+
+//根据镜片宽度设定循环次数
+uint8_t circulation = 0;
+
+//事件组
+uint32_t position_old =0;
+uint32_t position_new =0;
+uint32_t position_xor =0;
+
+extern osEventFlagsId_t PositionEvent1Handle;
+extern osEventFlagsId_t PositionEvent2Handle;
+extern osEventFlagsId_t PositionEvent3Handle;
+extern osEventFlagsId_t PositionEvent4Handle;
+
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim1;
@@ -60,6 +75,7 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim6;
+TIM_HandleTypeDef htim7;
 TIM_HandleTypeDef htim8;
 TIM_HandleTypeDef htim15;
 
@@ -298,6 +314,39 @@ void MX_TIM6_Init(void)
   /* USER CODE BEGIN TIM6_Init 2 */
 
   /* USER CODE END TIM6_Init 2 */
+
+}
+/* TIM7 init function */
+void MX_TIM7_Init(void)
+{
+
+  /* USER CODE BEGIN TIM7_Init 0 */
+
+  /* USER CODE END TIM7_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM7_Init 1 */
+
+  /* USER CODE END TIM7_Init 1 */
+  htim7.Instance = TIM7;
+  htim7.Init.Prescaler = 240-1;
+  htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim7.Init.Period = 600-1;
+  htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM7_Init 2 */
+
+  /* USER CODE END TIM7_Init 2 */
 
 }
 /* TIM8 init function */
@@ -541,6 +590,21 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
 
   /* USER CODE END TIM6_MspInit 1 */
   }
+  else if(tim_baseHandle->Instance==TIM7)
+  {
+  /* USER CODE BEGIN TIM7_MspInit 0 */
+
+  /* USER CODE END TIM7_MspInit 0 */
+    /* TIM7 clock enable */
+    __HAL_RCC_TIM7_CLK_ENABLE();
+
+    /* TIM7 interrupt Init */
+    HAL_NVIC_SetPriority(TIM7_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(TIM7_IRQn);
+  /* USER CODE BEGIN TIM7_MspInit 1 */
+
+  /* USER CODE END TIM7_MspInit 1 */
+  }
   else if(tim_baseHandle->Instance==TIM8)
   {
   /* USER CODE BEGIN TIM8_MspInit 0 */
@@ -696,6 +760,20 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 
   /* USER CODE END TIM6_MspDeInit 1 */
   }
+  else if(tim_baseHandle->Instance==TIM7)
+  {
+  /* USER CODE BEGIN TIM7_MspDeInit 0 */
+
+  /* USER CODE END TIM7_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_TIM7_CLK_DISABLE();
+
+    /* TIM7 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(TIM7_IRQn);
+  /* USER CODE BEGIN TIM7_MspDeInit 1 */
+
+  /* USER CODE END TIM7_MspDeInit 1 */
+  }
   else if(tim_baseHandle->Instance==TIM8)
   {
   /* USER CODE BEGIN TIM8_MspDeInit 0 */
@@ -760,7 +838,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
       }
     }
   }
-   else if (htim->Instance == TIM4)
+  else if (htim->Instance == TIM4)
   {
     BaseType_t xHigherPriorityTaskWoken;
     if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
@@ -787,8 +865,9 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
           Int1_duration = Int1_endtime - Int1_starttime;
         }
       }
-      if (Int1_duration == 0x05&&(xTaskGetSchedulerState()!=taskSCHEDULER_NOT_STARTED))
+      if (Int1_duration == 0x05 && (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED))
       {
+        xEventGroupSetBitsFromISR(PositionEvent1Handle,1<<((Mpc1_Channel_Num+15)%16),&xHigherPriorityTaskWoken);
         xSemaphoreGiveFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
       }
@@ -817,8 +896,9 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
           Int2_duration = Int2_endtime - Int2_starttime;
         }
       }
-      if (Int2_duration == 0x05&&(xTaskGetSchedulerState()!=taskSCHEDULER_NOT_STARTED))
+      if (Int2_duration == 0x05 && (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED))
       {
+        xEventGroupSetBitsFromISR(PositionEvent2Handle,1<<((Mpc1_Channel_Num+15)%16),&xHigherPriorityTaskWoken);
         xSemaphoreGiveFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
       }
@@ -847,8 +927,9 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
           Int3_duration = Int3_endtime - Int3_starttime;
         }
       }
-      if (Int3_duration == 0x05&&(xTaskGetSchedulerState()!=taskSCHEDULER_NOT_STARTED))
+      if (Int3_duration == 0x05 && (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED))
       {
+        xEventGroupSetBitsFromISR(PositionEvent3Handle,1<<((Mpc2_Channel_Num+15)%16),&xHigherPriorityTaskWoken);
         xSemaphoreGiveFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
       }
@@ -877,8 +958,9 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
           Int4_duration = Int4_endtime - Int4_starttime;
         }
       }
-      if (Int4_duration == 0x05&&(xTaskGetSchedulerState()!=taskSCHEDULER_NOT_STARTED))
+      if (Int4_duration == 0x05 && (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED))
       {
+        xEventGroupSetBitsFromISR(PositionEvent4Handle,1<<((Mpc2_Channel_Num+15)%16),&xHigherPriorityTaskWoken);
         xSemaphoreGiveFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
       }
@@ -888,30 +970,48 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  if (htim->Instance == TIM13)
+  if (htim->Instance == TIM17)
   {
     HAL_IncTick();
   }
   if (htim->Instance == TIM6)
   {
-                                         //开启SYNC捕获
+    // 开启SYNC捕获
     Mpc1_Channel_Num = (Mpc1_Channel_Num + 1) % 16;
     Mpc2_Channel_Num = (Mpc2_Channel_Num + 1) % 16;
     R1Channel_Sel(Mpc1_Channel_Num);
     R2Channel_Sel(Mpc2_Channel_Num);
     if (Mpc1_Channel_Num == 0 && Mpc2_Channel_Num == 0)
     {
-			Sync_Cnt=0;
+      Sync_Cnt = 0;
       HAL_TIM_Base_Stop_IT(&htim6); // Stop timer for switch
       EN_R1_R2_close();             // 关闭接收
-      //LTODO: 查看宏定义能否生效
-      // __HAL_TIM_DISABLE_IT(&htim1, TIM_IT_CC4);
-      // __HAL_TIM_DISABLE_IT(&htim3, TIM_IT_CC1);
-      // __HAL_TIM_DISABLE_IT(&htim4, TIM_IT_CC1);
-      // __HAL_TIM_DISABLE_IT(&htim9, TIM_IT_CC1);
-    HAL_TIM_IC_Stop_IT(&htim4,TIM_CHANNEL_1);
+      EN_R3_R4_close();
+      HAL_TIM_IC_Stop_IT(&htim4, TIM_CHANNEL_1);
+      HAL_TIM_IC_Stop_IT(&htim15, TIM_CHANNEL_2);
+      HAL_TIM_IC_Stop_IT(&htim3, TIM_CHANNEL_1);
+      HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_4);
     }
   }
-
+  //LTODO: 此处设置溢出中断周期为600us，根据需求更改,假设2个循环
+  if (htim->Instance == TIM7)
+  {
+    circulation++;
+    circulation %= 2;
+    if (circulation == 0)
+    {
+      // 2个循环完成，需要进行相关任务
+      // LTODO: 当前只对标志组1进行置位，后面加上其他标志位的
+      position_new = (osEventFlagsGet(PositionEvent1Handle) & 0xFFFF);
+      position_xor = position_old ^ position_new;
+      xEventGroupClearBitsFromISR(PositionEvent1Handle, 0xFFFF);    //循环结束，清楚所有标志位，以便新的一轮置位
+    }
+    else
+    {
+      // 1个循环完成，需要进行相关任务
+      position_old =  (osEventFlagsGet(PositionEvent1Handle) & 0xFFFF);
+      xEventGroupClearBitsFromISR(PositionEvent1Handle, 0xFFFF);     //循环结束，清楚所有标志位，以便新的一轮置位
+    }
+  }
 }
 /* USER CODE END 1 */

@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * File Name          : freertos.c
-  * Description        : Code for freertos applications
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2024 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * File Name          : freertos.c
+ * Description        : Code for freertos applications
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2024 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -33,9 +33,13 @@
 #include "semphr.h"
 #include "portmacro.h"
 
-extern uint32_t Sync_capture_Buf[3]; // 存放计数值
+extern uint32_t Sync_capture_Buf[2]; // 存放计数值
 extern uint8_t Sync_Cnt;             // 状态标志位
 extern uint32_t Sync_high_time;      // 高电平时间
+
+extern uint16_t position_xor;
+
+uint16_t semavalue = 0;
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -83,17 +87,39 @@ osThreadId_t AlarmTaskHandle;
 const osThreadAttr_t AlarmTask_attributes = {
   .name = "AlarmTask",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityNormal2,
+};
+/* Definitions for ledTask */
+osThreadId_t ledTaskHandle;
+const osThreadAttr_t ledTask_attributes = {
+  .name = "ledTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal3,
 };
 /* Definitions for HolesCountingSem */
 osSemaphoreId_t HolesCountingSemHandle;
 const osSemaphoreAttr_t HolesCountingSem_attributes = {
   .name = "HolesCountingSem"
 };
-/* Definitions for PositionEvent */
-osEventFlagsId_t PositionEventHandle;
-const osEventFlagsAttr_t PositionEvent_attributes = {
-  .name = "PositionEvent"
+/* Definitions for PositionEvent1 */
+osEventFlagsId_t PositionEvent1Handle;
+const osEventFlagsAttr_t PositionEvent1_attributes = {
+  .name = "PositionEvent1"
+};
+/* Definitions for PositionEvent2 */
+osEventFlagsId_t PositionEvent2Handle;
+const osEventFlagsAttr_t PositionEvent2_attributes = {
+  .name = "PositionEvent2"
+};
+/* Definitions for PositionEvent3 */
+osEventFlagsId_t PositionEvent3Handle;
+const osEventFlagsAttr_t PositionEvent3_attributes = {
+  .name = "PositionEvent3"
+};
+/* Definitions for PositionEvent4 */
+osEventFlagsId_t PositionEvent4Handle;
+const osEventFlagsAttr_t PositionEvent4_attributes = {
+  .name = "PositionEvent4"
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -105,6 +131,7 @@ void StartSyncTask(void *argument);
 void StartICTask(void *argument);
 void StartRec_SwitchTask(void *argument);
 void StartAlarmTask(void *argument);
+void StartledTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -151,13 +178,25 @@ void MX_FREERTOS_Init(void) {
   /* creation of AlarmTask */
   AlarmTaskHandle = osThreadNew(StartAlarmTask, NULL, &AlarmTask_attributes);
 
+  /* creation of ledTask */
+  ledTaskHandle = osThreadNew(StartledTask, NULL, &ledTask_attributes);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
   /* Create the event(s) */
-  /* creation of PositionEvent */
-  PositionEventHandle = osEventFlagsNew(&PositionEvent_attributes);
+  /* creation of PositionEvent1 */
+  PositionEvent1Handle = osEventFlagsNew(&PositionEvent1_attributes);
+
+  /* creation of PositionEvent2 */
+  PositionEvent2Handle = osEventFlagsNew(&PositionEvent2_attributes);
+
+  /* creation of PositionEvent3 */
+  PositionEvent3Handle = osEventFlagsNew(&PositionEvent3_attributes);
+
+  /* creation of PositionEvent4 */
+  PositionEvent4Handle = osEventFlagsNew(&PositionEvent4_attributes);
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
@@ -167,24 +206,24 @@ void MX_FREERTOS_Init(void) {
 
 /* USER CODE BEGIN Header_StartSyncTask */
 /**
-  * @brief  Function implementing the SyncTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
+ * @brief  Function implementing the SyncTask thread.
+ * @param  argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_StartSyncTask */
 void StartSyncTask(void *argument)
 {
   /* USER CODE BEGIN StartSyncTask */
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
-		switch (Sync_Cnt)
+    switch (Sync_Cnt)
     {
     case 0:
       Sync_Cnt++;
-      TIM_RESET_CAPTUREPOLARITY(&htim2, TIM_CHANNEL_3);
-      __HAL_TIM_SET_CAPTUREPOLARITY(&htim2, TIM_CHANNEL_3, TIM_INPUTCHANNELPOLARITY_RISING);
-      HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_3); // 启动输入捕获       或者: __HAL_TIM_ENABLE(&htim5);
+      TIM_RESET_CAPTUREPOLARITY(&htim1, TIM_CHANNEL_4);
+      __HAL_TIM_SET_CAPTUREPOLARITY(&htim1, TIM_CHANNEL_4, TIM_INPUTCHANNELPOLARITY_RISING);
+      HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_4); // 启动输入捕获       或者: __HAL_TIM_ENABLE(&htim5);
       break;
     case 3:
       if (Sync_capture_Buf[1] < Sync_capture_Buf[0])
@@ -209,7 +248,8 @@ void StartSyncTask(void *argument)
         xTaskNotifyGive((TaskHandle_t)Rec_SwitchTaskHandle);
 #endif
       }
-      else{
+      else
+      {
         Sync_Cnt = 0;
       }
     }
@@ -220,41 +260,42 @@ void StartSyncTask(void *argument)
 
 /* USER CODE BEGIN Header_StartICTask */
 /**
-* @brief Function implementing the ICTask thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the ICTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_StartICTask */
 void StartICTask(void *argument)
 {
   /* USER CODE BEGIN StartICTask */
-		BaseType_t ret;
-	uint32_t NotifyValue;
+  BaseType_t ret;
+  uint32_t NotifyValue;
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
-		#if 0
+#if 0
 
     ret = xTaskNotifyWait((uint32_t)0x00,
                           (uint32_t)ULONG_MAX,
                           (uint32_t *)&NotifyValue,
-                          (TickType_t)portMAX_DELAY); 
+                          (TickType_t)portMAX_DELAY);
 #endif
 
-
 #if 1
-    ret = ulTaskNotifyTake(pdFALSE,0);    
-#endif     
-          if(ret==pdPASS){
-
-            //LHACK:如果不行更换为HAL_TIM_IC_Start_IT函数
-            //LXXX:按照所查资料提示，如果不行那就还是将同步引脚更改为其他引脚，TIM2作为主定时器通过事件触发从定时器同步捕获，硬件层面的同步捕获
-
-            HAL_TIM_IC_Start_IT(&htim4,TIM_CHANNEL_1);
-          }
-					else{
-            printf("StartICTask任务通知获取失败\r\n");
-          }
+    ret = ulTaskNotifyTake(pdFALSE, 0);
+#endif
+    if (ret == pdPASS)
+    {
+      // LXXX:按照所查资料提示，如果不行那就还是将同步引脚更改为其他引脚，TIM2作为主定时器通过事件触发从定时器同步捕获，硬件层面的同步捕获
+      HAL_TIM_IC_Start_IT(&htim4, TIM_CHANNEL_1);
+      HAL_TIM_IC_Start_IT(&htim15, TIM_CHANNEL_2);
+      HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_1);
+      HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_4);
+    }
+    else
+    {
+      printf("StartICTask任务通知获取失败\r\n");
+    }
     osDelay(1);
   }
   /* USER CODE END StartICTask */
@@ -262,20 +303,20 @@ void StartICTask(void *argument)
 
 /* USER CODE BEGIN Header_StartRec_SwitchTask */
 /**
-* @brief Function implementing the Rec_SwitchTask thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the Rec_SwitchTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_StartRec_SwitchTask */
 void StartRec_SwitchTask(void *argument)
 {
   /* USER CODE BEGIN StartRec_SwitchTask */
-	  BaseType_t ret;
+  BaseType_t ret;
   uint32_t NotifyValue;
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
-		#if 0   
+#if 0   
 
     ret = xTaskNotifyWait((uint32_t)0x00,
                           (uint32_t)ULONG_MAX,
@@ -284,10 +325,11 @@ void StartRec_SwitchTask(void *argument)
 #endif
 #if 1
     ret = ulTaskNotifyTake(pdFALSE, 0);
-#endif    
+#endif
     if (ret == pdPASS)
     {
       EN_R1_R2_open();
+      EN_R3_R4_open();
       HAL_TIM_Base_Start_IT(&htim6); // start timer for R1_channel switch
     }
     else
@@ -301,29 +343,55 @@ void StartRec_SwitchTask(void *argument)
 
 /* USER CODE BEGIN Header_StartAlarmTask */
 /**
-* @brief Function implementing the AlarmTask thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the AlarmTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_StartAlarmTask */
 void StartAlarmTask(void *argument)
 {
   /* USER CODE BEGIN StartAlarmTask */
-	uint8_t semavalue=0;
+  
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
-		    BaseType_t xHigherPriorityTaskWoken;
-    xSemaphoreTakeFromISR(HolesCountingSemHandle,&xHigherPriorityTaskWoken);
-		semavalue=uxSemaphoreGetCount(HolesCountingSemHandle);
-		if(semavalue>0){
-			Holes_output_alarm_Open();
-			HAL_Delay(500);
-			Holes_output_alarm_Close();
-		}
+    #if 0
+    BaseType_t xHigherPriorityTaskWoken;
+    xSemaphoreTakeFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
+    semavalue = uxSemaphoreGetCount(HolesCountingSemHandle);
+    #endif
+    for(int i = 0; i <sizeof(position_xor);i++){
+      if(((position_xor>>i)&1)==1){
+      semavalue++;
+      }
+    }
+    if (semavalue > 0)
+    {
+      Holes_output_alarm_Open();
+      HAL_Delay(500);
+      Holes_output_alarm_Close();
+    }
     osDelay(1);
   }
   /* USER CODE END StartAlarmTask */
+}
+
+/* USER CODE BEGIN Header_StartledTask */
+/**
+ * @brief Function implementing the ledTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_StartledTask */
+void StartledTask(void *argument)
+{
+  /* USER CODE BEGIN StartledTask */
+  /* Infinite loop */
+  for (;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartledTask */
 }
 
 /* Private application code --------------------------------------------------*/

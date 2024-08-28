@@ -137,6 +137,14 @@ void EN_R1_R2_close(void){
 		HAL_GPIO_WritePin(EN_R1_GPIO_Port,EN_R1_Pin,GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(EN_R2_GPIO_Port,EN_R2_Pin,GPIO_PIN_RESET);
 }
+void EN_R3_R4_open(void){
+		HAL_GPIO_WritePin(EN_R3_GPIO_Port,EN_R3_Pin,GPIO_PIN_SET);
+		HAL_GPIO_WritePin(EN_R4_GPIO_Port,EN_R4_Pin,GPIO_PIN_SET);
+}
+void EN_R3_R4_close(void){
+		HAL_GPIO_WritePin(EN_R3_GPIO_Port,EN_R3_Pin,GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(EN_R4_GPIO_Port,EN_R4_Pin,GPIO_PIN_RESET);
+}
 void R1Channel_Sel(uint8_t ch) { // MPC1通道切换
     // 取低四位，ch % 16 可以简化为 ch & 0x0F
     ch &= 0x0F;
