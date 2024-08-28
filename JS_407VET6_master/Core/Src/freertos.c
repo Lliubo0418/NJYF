@@ -70,21 +70,21 @@ osThreadId_t ICTaskHandle;
 const osThreadAttr_t ICTask_attributes = {
   .name = "ICTask",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for Rec_SwitchTask */
 osThreadId_t Rec_SwitchTaskHandle;
 const osThreadAttr_t Rec_SwitchTask_attributes = {
   .name = "Rec_SwitchTask",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for Holes_OutputTas */
 osThreadId_t Holes_OutputTasHandle;
 const osThreadAttr_t Holes_OutputTas_attributes = {
-  .name = "Holes_OutputTas",
+  .name = "Holes_OutputTask",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for HolesCountingSem */
 osSemaphoreId_t HolesCountingSemHandle;
@@ -120,7 +120,7 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the semaphores(s) */
   /* creation of HolesCountingSem */
-  HolesCountingSemHandle = osSemaphoreNew(8, 0, &HolesCountingSem_attributes);
+  HolesCountingSemHandle = osSemaphoreNew(16, 16, &HolesCountingSem_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
@@ -134,9 +134,7 @@ void MX_FREERTOS_Init(void) {
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
-  /* Create the thread(s) */
-  /* creation of SYNCTask */
-  SYNCTaskHandle = osThreadNew(StartSYNCTask, NULL, &SYNCTask_attributes);
+
 
   /* creation of ICTask */
   ICTaskHandle = osThreadNew(StartICTask, NULL, &ICTask_attributes);
@@ -149,6 +147,9 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
+    /* Create the thread(s) */
+  /* creation of SYNCTask */
+  SYNCTaskHandle = osThreadNew(StartSYNCTask, NULL, &SYNCTask_attributes);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -170,9 +171,10 @@ void StartSYNCTask(void *argument)
 //	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
-		switch (Sync_Cnt)
+		
+    switch (Sync_Cnt)
     {
     case 0:
       Sync_Cnt++;
@@ -182,8 +184,8 @@ void StartSYNCTask(void *argument)
       break;
     case 3:
       if (Sync_capture_Buf[1] < Sync_capture_Buf[0])
-      { // 不存在先捕获高电平后捕获低电平capture_Buf[1]<capture_Buf[0],肯定是有了溢出
-        Sync_high_time = 0x186A0 + Sync_capture_Buf[1] - Sync_capture_Buf[0];    //100000
+      {                                                                       // 不存在先捕获高电平后捕获低电平capture_Buf[1]<capture_Buf[0],肯定是有了溢出
+        Sync_high_time = 0x186A0 + Sync_capture_Buf[1] - Sync_capture_Buf[0]; // 100000    0x186A0
       }
       else
       {
@@ -191,16 +193,23 @@ void StartSYNCTask(void *argument)
       }
 
       Sync_Cnt = 0;
-			 if (Sync_high_time == 0x1B)
+      if (Sync_high_time == 0x1B)
       {
-
         Sync_Cnt = 5;
-				xTaskNotify((TaskHandle_t)StartICTask,NULL,eSetValueWithOverwrite);
-				xTaskNotify((TaskHandle_t)StartRec_switchTask,NULL,eSetValueWithOverwrite);
-				
-			}
-		}
-    osDelay(10);
+#if 0        
+        xTaskNotify((TaskHandle_t)StartICTask, 0x01, eSetValueWithOverwrite);
+        xTaskNotify((TaskHandle_t)StartRec_switchTask, 0x01, eSetValueWithOverwrite);
+#endif
+#if 1
+        xTaskNotifyGive((TaskHandle_t)ICTaskHandle);
+        xTaskNotifyGive((TaskHandle_t)Rec_SwitchTaskHandle);
+#endif
+      }
+      else{
+        Sync_Cnt = 0;
+      }
+    }
+    osDelay(1);
   }
   /* USER CODE END StartSYNCTask */
 }
@@ -220,20 +229,29 @@ void StartICTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
+		
+#if 0
+
     ret = xTaskNotifyWait((uint32_t)0x00,
                           (uint32_t)ULONG_MAX,
                           (uint32_t *)&NotifyValue,
-                          (TickType_t)portMAX_DELAY);
+                          (TickType_t)portMAX_DELAY); 
+#endif
+
+
+#if 1
+    ret = ulTaskNotifyTake(pdFALSE,0);    
+#endif     
           if(ret==pdPASS){
             //能否正确开启捕获？待测试
             //LTODO:待测试
             //LHACK:如果不行更换为HAL_TIM_IC_Start_IT函数
             //LXXX:按照所查资料提示，如果不行那就还是将同步引脚更改为其他引脚，TIM2作为主定时器通过事件触发从定时器同步捕获，硬件层面的同步捕获
-            __HAL_TIM_ENABLE_IT(&htim1,TIM_IT_CC4);    
-            __HAL_TIM_ENABLE_IT(&htim3,TIM_IT_CC1);    
-            __HAL_TIM_ENABLE_IT(&htim4,TIM_IT_CC1);
-            __HAL_TIM_ENABLE_IT(&htim9,TIM_IT_CC1);
-
+            // __HAL_TIM_ENABLE_IT(&htim1,TIM_IT_CC4);    
+            // __HAL_TIM_ENABLE_IT(&htim3,TIM_IT_CC1);    
+            // __HAL_TIM_ENABLE_IT(&htim4,TIM_IT_CC1);
+            // __HAL_TIM_ENABLE_IT(&htim9,TIM_IT_CC1);
+            HAL_TIM_IC_Start_IT(&htim4,TIM_CHANNEL_1);
           }
 					else{
             printf("StartICTask任务通知获取失败\r\n");
@@ -258,14 +276,21 @@ void StartRec_switchTask(void *argument)
   /* Infinite loop */
   for (;;)
   {
+		
+#if 0   
+
     ret = xTaskNotifyWait((uint32_t)0x00,
                           (uint32_t)ULONG_MAX,
                           (uint32_t *)&NotifyValue,
                           (TickType_t)portMAX_DELAY);
+#endif
+#if 1
+    ret = ulTaskNotifyTake(pdFALSE, 0);
+#endif    
     if (ret == pdPASS)
     {
       EN_R1_R2_open();
-      HAL_TIM_Base_Start_IT(&htim6);    //start timer for R1_channel switch
+      HAL_TIM_Base_Start_IT(&htim6); // start timer for R1_channel switch
     }
     else
     {

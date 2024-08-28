@@ -17,21 +17,26 @@ Library Manager: ArmAr.exe V5.06 update 1 (build 61)
 Hex Converter:   FromElf.exe V5.06 update 1 (build 61)
 CPU DLL:         SARMCM3.DLL V5.18
 Dialog DLL:      DCM.DLL V1.13.6.0
-Target DLL:      Segger\JL2CM3.dll V2.99.18.0
+Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V2.0.18.0
 Dialog DLL:      TCM.DLL V1.14.8.0
  
 <h2>Project:</h2>
 C:\Users\52876\Desktop\cubemx\JS_407VET6_master\MDK-ARM\JS_407VET6.uvprojx
-Project File Date:  08/19/2024
+Project File Date:  08/20/2024
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 1 (build 61)', folder: 'F:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'JS_407VET6'
-compiling tim.c...
+compiling freertos.c...
+../Core/Src/freertos.c(228): warning:  #177-D: variable "NotifyValue" was declared but never referenced
+  	uint32_t NotifyValue;
+../Core/Src/freertos.c(275): warning:  #177-D: variable "NotifyValue" was declared but never referenced
+    uint32_t NotifyValue;
+../Core/Src/freertos.c: 2 warnings, 0 errors
 linking...
-Program Size: Code=18860 RO-data=680 RW-data=204 ZI-data=20940  
+Program Size: Code=24220 RO-data=684 RW-data=208 ZI-data=20936  
 FromELF: creating hex file...
-"JS_407VET6\JS_407VET6.axf" - 0 Error(s), 0 Warning(s).
+"JS_407VET6\JS_407VET6.axf" - 0 Error(s), 2 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -50,8 +55,8 @@ Package Vendor: ARM
 
    * Component: ARM::CMSIS:CORE:5.4.0
       Include file:  CMSIS\Core\Include\tz_context.h
-      Source file:   CMSIS\Core\Template\ARMv8-M\tz_context.c
       Source file:   CMSIS\Core\Template\ARMv8-M\main_s.c
+      Source file:   CMSIS\Core\Template\ARMv8-M\tz_context.c
 Build Time Elapsed:  00:00:02
 </pre>
 </body>

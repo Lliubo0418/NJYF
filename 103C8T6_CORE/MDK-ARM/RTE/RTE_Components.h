@@ -3,8 +3,8 @@
  * Auto generated Run-Time-Environment Component Configuration File
  *      *** Do not modify ! ***
  *
- * Project: '103C8T6_CORE' 
- * Target:  '103C8T6_CORE' 
+ * Project: 'TIM1_1PWM' 
+ * Target:  'TIM1_1PWM' 
  */
 
 #ifndef RTE_COMPONENTS_H

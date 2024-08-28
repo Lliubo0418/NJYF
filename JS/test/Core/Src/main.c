@@ -120,6 +120,7 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_1);
+  HAL_TIM_Base_Start_IT(&htim7);
   //	HAL_TIM_Base_Start(&htim2);
 
   /* USER CODE END 2 */
