@@ -282,10 +282,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
                 __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 5);       //5个全满脉冲后吃进去一个2us脉冲
                 break;
             case 5:
-                __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 2);
+							__HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 2);     //TIM4:SYNC  TIM2:PULSE
                 break;
 						case 6:                              //开启pulse脉冲
-								__HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 2);
+								__HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, 2);      
 								__HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_1, 0);
 						//HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_2);
 							break;

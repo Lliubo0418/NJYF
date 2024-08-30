@@ -40,6 +40,14 @@ extern uint32_t Sync_high_time;      // 高电平时间
 extern uint16_t position_xor;
 
 uint16_t semavalue = 0;
+
+uint8_t Isfirstcirculation = 1;
+
+// 事件组
+int32_t position_old = 0;
+int32_t position_new = 0;
+int32_t position_xor = 0;
+uint32_t position_new_plus_old = 0;
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -89,10 +97,10 @@ const osThreadAttr_t AlarmTask_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal2,
 };
-/* Definitions for ledTask */
-osThreadId_t ledTaskHandle;
-const osThreadAttr_t ledTask_attributes = {
-  .name = "ledTask",
+/* Definitions for Hole_ldentifica */
+osThreadId_t Hole_ldentificaHandle;
+const osThreadAttr_t Hole_ldentifica_attributes = {
+  .name = "Hole_ldentifica",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal3,
 };
@@ -101,25 +109,45 @@ osSemaphoreId_t HolesCountingSemHandle;
 const osSemaphoreAttr_t HolesCountingSem_attributes = {
   .name = "HolesCountingSem"
 };
-/* Definitions for PositionEvent1 */
-osEventFlagsId_t PositionEvent1Handle;
-const osEventFlagsAttr_t PositionEvent1_attributes = {
-  .name = "PositionEvent1"
+/* Definitions for PositionEvent1_MPC1 */
+osEventFlagsId_t PositionEvent1_MPC1Handle;
+const osEventFlagsAttr_t PositionEvent1_MPC1_attributes = {
+  .name = "PositionEvent1_MPC1"
 };
-/* Definitions for PositionEvent2 */
-osEventFlagsId_t PositionEvent2Handle;
-const osEventFlagsAttr_t PositionEvent2_attributes = {
-  .name = "PositionEvent2"
+/* Definitions for PositionEvent2_MPC1 */
+osEventFlagsId_t PositionEvent2_MPC1Handle;
+const osEventFlagsAttr_t PositionEvent2_MPC1_attributes = {
+  .name = "PositionEvent2_MPC1"
 };
-/* Definitions for PositionEvent3 */
-osEventFlagsId_t PositionEvent3Handle;
-const osEventFlagsAttr_t PositionEvent3_attributes = {
-  .name = "PositionEvent3"
+/* Definitions for PositionEvent3_MPC1 */
+osEventFlagsId_t PositionEvent3_MPC1Handle;
+const osEventFlagsAttr_t PositionEvent3_MPC1_attributes = {
+  .name = "PositionEvent3_MPC1"
 };
-/* Definitions for PositionEvent4 */
-osEventFlagsId_t PositionEvent4Handle;
-const osEventFlagsAttr_t PositionEvent4_attributes = {
-  .name = "PositionEvent4"
+/* Definitions for PositionEvent4_MPC1 */
+osEventFlagsId_t PositionEvent4_MPC1Handle;
+const osEventFlagsAttr_t PositionEvent4_MPC1_attributes = {
+  .name = "PositionEvent4_MPC1"
+};
+/* Definitions for PositionEvent1_MPC2 */
+osEventFlagsId_t PositionEvent1_MPC2Handle;
+const osEventFlagsAttr_t PositionEvent1_MPC2_attributes = {
+  .name = "PositionEvent1_MPC2"
+};
+/* Definitions for PositionEvent2_MPC2 */
+osEventFlagsId_t PositionEvent2_MPC2Handle;
+const osEventFlagsAttr_t PositionEvent2_MPC2_attributes = {
+  .name = "PositionEvent2_MPC2"
+};
+/* Definitions for PositionEvent3_MPC2 */
+osEventFlagsId_t PositionEvent3_MPC2Handle;
+const osEventFlagsAttr_t PositionEvent3_MPC2_attributes = {
+  .name = "PositionEvent3_MPC2"
+};
+/* Definitions for PositionEvent4_MPC2 */
+osEventFlagsId_t PositionEvent4_MPC2Handle;
+const osEventFlagsAttr_t PositionEvent4_MPC2_attributes = {
+  .name = "PositionEvent4_MPC2"
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -131,7 +159,7 @@ void StartSyncTask(void *argument);
 void StartICTask(void *argument);
 void StartRec_SwitchTask(void *argument);
 void StartAlarmTask(void *argument);
-void StartledTask(void *argument);
+void StartHole_ldentificationTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -178,25 +206,37 @@ void MX_FREERTOS_Init(void) {
   /* creation of AlarmTask */
   AlarmTaskHandle = osThreadNew(StartAlarmTask, NULL, &AlarmTask_attributes);
 
-  /* creation of ledTask */
-  ledTaskHandle = osThreadNew(StartledTask, NULL, &ledTask_attributes);
+  /* creation of Hole_ldentifica */
+  Hole_ldentificaHandle = osThreadNew(StartHole_ldentificationTask, NULL, &Hole_ldentifica_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
   /* Create the event(s) */
-  /* creation of PositionEvent1 */
-  PositionEvent1Handle = osEventFlagsNew(&PositionEvent1_attributes);
+  /* creation of PositionEvent1_MPC1 */
+  PositionEvent1_MPC1Handle = osEventFlagsNew(&PositionEvent1_MPC1_attributes);
 
-  /* creation of PositionEvent2 */
-  PositionEvent2Handle = osEventFlagsNew(&PositionEvent2_attributes);
+  /* creation of PositionEvent2_MPC1 */
+  PositionEvent2_MPC1Handle = osEventFlagsNew(&PositionEvent2_MPC1_attributes);
 
-  /* creation of PositionEvent3 */
-  PositionEvent3Handle = osEventFlagsNew(&PositionEvent3_attributes);
+  /* creation of PositionEvent3_MPC1 */
+  PositionEvent3_MPC1Handle = osEventFlagsNew(&PositionEvent3_MPC1_attributes);
 
-  /* creation of PositionEvent4 */
-  PositionEvent4Handle = osEventFlagsNew(&PositionEvent4_attributes);
+  /* creation of PositionEvent4_MPC1 */
+  PositionEvent4_MPC1Handle = osEventFlagsNew(&PositionEvent4_MPC1_attributes);
+
+  /* creation of PositionEvent1_MPC2 */
+  PositionEvent1_MPC2Handle = osEventFlagsNew(&PositionEvent1_MPC2_attributes);
+
+  /* creation of PositionEvent2_MPC2 */
+  PositionEvent2_MPC2Handle = osEventFlagsNew(&PositionEvent2_MPC2_attributes);
+
+  /* creation of PositionEvent3_MPC2 */
+  PositionEvent3_MPC2Handle = osEventFlagsNew(&PositionEvent3_MPC2_attributes);
+
+  /* creation of PositionEvent4_MPC2 */
+  PositionEvent4_MPC2Handle = osEventFlagsNew(&PositionEvent4_MPC2_attributes);
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
@@ -329,7 +369,6 @@ void StartRec_SwitchTask(void *argument)
     if (ret == pdPASS)
     {
       EN_R1_R2_open();
-      EN_R3_R4_open();
       HAL_TIM_Base_Start_IT(&htim6); // start timer for R1_channel switch
     }
     else
@@ -351,7 +390,7 @@ void StartRec_SwitchTask(void *argument)
 void StartAlarmTask(void *argument)
 {
   /* USER CODE BEGIN StartAlarmTask */
-  
+  BaseType_t ret;
   /* Infinite loop */
   for (;;)
   {
@@ -376,22 +415,45 @@ void StartAlarmTask(void *argument)
   /* USER CODE END StartAlarmTask */
 }
 
-/* USER CODE BEGIN Header_StartledTask */
+/* USER CODE BEGIN Header_StartHole_ldentificationTask */
 /**
- * @brief Function implementing the ledTask thread.
- * @param argument: Not used
- * @retval None
- */
-/* USER CODE END Header_StartledTask */
-void StartledTask(void *argument)
+* @brief Function implementing the Hole_ldentifica thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartHole_ldentificationTask */
+void StartHole_ldentificationTask(void *argument)
 {
-  /* USER CODE BEGIN StartledTask */
+  /* USER CODE BEGIN StartHole_ldentificationTask */
+  BaseType_t ret;
   /* Infinite loop */
-  for (;;)
+  for(;;)
   {
+    ret = ulTaskNotifyTake(pdFALSE, 0);
+    if(ret == pdPASS){
+          if (Isfirstcirculation)
+    {
+      position_old = (osEventFlagsGet(PositionEvent1_MPC1Handle) & 0xFFFF); // 上电第一次循环
+      Isfirstcirculation = 0;
+      xEventGroupClearBitsFromISR(PositionEvent1_MPC1Handle, 0xFFFF); // 必要的清0
+    }
+    else
+    {
+      position_new = (osEventFlagsGet(PositionEvent1_MPC1Handle) & 0xFFFF); // 除第一次外的每次循环
+      position_xor = position_old ^ position_new;
+      position_new_plus_old = position_new - position_old;
+      if ((position_xor != 0) && (position_new_plus_old < 65536) && (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)) // 有差异且位置检测从无到有算孔，从有到无不考虑
+      {
+        vTaskNotifyGiveFromISR(AlarmTaskHandle, &xHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+      }
+      position_old = position_new;
+      xEventGroupClearBitsFromISR(PositionEvent1_MPC1Handle, 0xFFFF); // 循环结束，清除所有标志位，以便新的一轮置位
+    }
+    }
     osDelay(1);
   }
-  /* USER CODE END StartledTask */
+  /* USER CODE END StartHole_ldentificationTask */
 }
 
 /* Private application code --------------------------------------------------*/

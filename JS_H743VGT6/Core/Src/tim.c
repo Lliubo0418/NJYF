@@ -55,18 +55,18 @@ uint16_t Int4_endtime = 0;
 uint8_t Int4_first_flag = 0;
 uint16_t Int4_duration = 0;
 
-//根据镜片宽度设定循环次数
+// 根据镜片宽度设定循环次数
 uint8_t circulation = 0;
 
-//事件组
-uint32_t position_old =0;
-uint32_t position_new =0;
-uint32_t position_xor =0;
+
 
 extern osEventFlagsId_t PositionEvent1Handle;
 extern osEventFlagsId_t PositionEvent2Handle;
 extern osEventFlagsId_t PositionEvent3Handle;
 extern osEventFlagsId_t PositionEvent4Handle;
+
+
+uint8_t IsMpc1 = 1;
 
 /* USER CODE END 0 */
 
@@ -332,7 +332,7 @@ void MX_TIM7_Init(void)
   htim7.Instance = TIM7;
   htim7.Init.Prescaler = 240-1;
   htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim7.Init.Period = 600-1;
+  htim7.Init.Period = 500-1;
   htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
   {
@@ -867,8 +867,16 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
       }
       if (Int1_duration == 0x05 && (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED))
       {
-        xEventGroupSetBitsFromISR(PositionEvent1Handle,1<<((Mpc1_Channel_Num+15)%16),&xHigherPriorityTaskWoken);
-        xSemaphoreGiveFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
+        if (IsMpc1)
+        {
+          xEventGroupSetBitsFromISR(PositionEvent1_MPC1Handle, 1 << ((Mpc1_Channel_Num + 15) % 16), &xHigherPriorityTaskWoken);
+        }
+        else
+        {
+          xEventGroupSetBitsFromISR(PositionEvent1_MPC2Handle, 1 << ((Mpc2_Channel_Num + 15) % 16), &xHigherPriorityTaskWoken);
+        }
+
+        // xSemaphoreGiveFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
       }
     }
@@ -898,8 +906,15 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
       }
       if (Int2_duration == 0x05 && (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED))
       {
-        xEventGroupSetBitsFromISR(PositionEvent2Handle,1<<((Mpc1_Channel_Num+15)%16),&xHigherPriorityTaskWoken);
-        xSemaphoreGiveFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
+        if (IsMpc1)
+        {
+          xEventGroupSetBitsFromISR(PositionEvent2_MPC1Handle, 1 << ((Mpc1_Channel_Num + 15) % 16), &xHigherPriorityTaskWoken);
+        }
+        else
+        {
+          xEventGroupSetBitsFromISR(PositionEvent2_MPC2Handle, 1 << ((Mpc2_Channel_Num + 15) % 16), &xHigherPriorityTaskWoken);
+        }
+        // xSemaphoreGiveFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
       }
     }
@@ -929,8 +944,15 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
       }
       if (Int3_duration == 0x05 && (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED))
       {
-        xEventGroupSetBitsFromISR(PositionEvent3Handle,1<<((Mpc2_Channel_Num+15)%16),&xHigherPriorityTaskWoken);
-        xSemaphoreGiveFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
+        if (IsMpc1)
+        {
+          xEventGroupSetBitsFromISR(PositionEvent3_MPC1Handle, 1 << ((Mpc1_Channel_Num + 15) % 16), &xHigherPriorityTaskWoken);
+        }
+        else
+        {
+          xEventGroupSetBitsFromISR(PositionEvent3_MPC2Handle, 1 << ((Mpc2_Channel_Num + 15) % 16), &xHigherPriorityTaskWoken);
+        }
+        // xSemaphoreGiveFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
       }
     }
@@ -960,8 +982,15 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
       }
       if (Int4_duration == 0x05 && (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED))
       {
-        xEventGroupSetBitsFromISR(PositionEvent4Handle,1<<((Mpc2_Channel_Num+15)%16),&xHigherPriorityTaskWoken);
-        xSemaphoreGiveFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
+        if (IsMpc1)
+        {
+          xEventGroupSetBitsFromISR(PositionEvent4_MPC1Handle, 1 << ((Mpc1_Channel_Num + 15) % 16), &xHigherPriorityTaskWoken);
+        }
+        else
+        {
+          xEventGroupSetBitsFromISR(PositionEvent4_MPC2Handle, 1 << ((Mpc2_Channel_Num + 15) % 16), &xHigherPriorityTaskWoken);
+        }
+        // xSemaphoreGiveFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
       }
     }
@@ -970,6 +999,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+  BaseType_t xHigherPriorityTaskWoken;
   if (htim->Instance == TIM17)
   {
     HAL_IncTick();
@@ -977,25 +1007,43 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   if (htim->Instance == TIM6)
   {
     // 开启SYNC捕获
-    Mpc1_Channel_Num = (Mpc1_Channel_Num + 1) % 16;
-    Mpc2_Channel_Num = (Mpc2_Channel_Num + 1) % 16;
-    R1Channel_Sel(Mpc1_Channel_Num);
-    R2Channel_Sel(Mpc2_Channel_Num);
-    if (Mpc1_Channel_Num == 0 && Mpc2_Channel_Num == 0)
+    if (IsMpc1)
     {
-      Sync_Cnt = 0;
-      HAL_TIM_Base_Stop_IT(&htim6); // Stop timer for switch
-      EN_R1_R2_close();             // 关闭接收
-      EN_R3_R4_close();
-      HAL_TIM_IC_Stop_IT(&htim4, TIM_CHANNEL_1);
-      HAL_TIM_IC_Stop_IT(&htim15, TIM_CHANNEL_2);
-      HAL_TIM_IC_Stop_IT(&htim3, TIM_CHANNEL_1);
-      HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_4);
+      Mpc1_Channel_Num = (Mpc1_Channel_Num + 1) % 16;
+      R1_R3_Channel_Sel(Mpc1_Channel_Num);
+      R2_R4_Channel_Sel(Mpc1_Channel_Num);
+      if (Mpc1_Channel_Num == 0)
+      {
+        EN_R1_R2_close(); // 关闭接收管1
+        EN_R3_R4_open();  // 打开接收管2
+        IsMpc1 = 0;
+      }
+    }
+    else
+    {
+      Mpc2_Channel_Num = (Mpc2_Channel_Num + 1) % 16;
+      R1_R3_Channel_Sel(Mpc2_Channel_Num);
+      R2_R4_Channel_Sel(Mpc2_Channel_Num);
+
+      if (Mpc1_Channel_Num == 0 && Mpc2_Channel_Num == 0)
+      {
+        Sync_Cnt = 0;
+        EN_R3_R4_close();
+        HAL_TIM_Base_Stop_IT(&htim6); // Stop timer for switch
+
+        HAL_TIM_IC_Stop_IT(&htim4, TIM_CHANNEL_1);
+        HAL_TIM_IC_Stop_IT(&htim15, TIM_CHANNEL_2);
+        HAL_TIM_IC_Stop_IT(&htim3, TIM_CHANNEL_1);
+        HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_4);
+        IsMpc1 = 1;
+        vTaskNotifyGiveFromISR(Hole_ldentificaHandle, &xHigherPriorityTaskWoken);
+      }
     }
   }
-  //LTODO: 此处设置溢出中断周期为600us，根据需求更改,假设2个循环
+  // LTODO: 此处设置溢出中断周期为500us，根据需求更改,假设2个循环
   if (htim->Instance == TIM7)
   {
+#if 0
     circulation++;
     circulation %= 2;
     if (circulation == 0)
@@ -1012,6 +1060,31 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       position_old =  (osEventFlagsGet(PositionEvent1Handle) & 0xFFFF);
       xEventGroupClearBitsFromISR(PositionEvent1Handle, 0xFFFF);     //循环结束，清楚所有标志位，以便新的一轮置位
     }
+
+#endif
+
+#if 0
+    if (Isfirstcirculation)
+    {
+      position_old = (osEventFlagsGet(PositionEvent1Handle) & 0xFFFF); // 上电第一次循环
+      Isfirstcirculation = 0;
+      xEventGroupClearBitsFromISR(PositionEvent1Handle, 0xFFFF); // 必要的清0
+    }
+    else
+    {
+      position_new = (osEventFlagsGet(PositionEvent1Handle) & 0xFFFF); // 除第一次外的每次循环
+      position_xor = position_old ^ position_new;
+      position_new_plus_old = position_new - position_old;
+      if ((position_xor != 0) && (position_new_plus_old < 65536) && (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)) // 有差异且位置检测从无到有算孔，从有到无不考虑
+      {
+        vTaskNotifyGiveFromISR(AlarmTaskHandle, &xHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+      }
+      position_old = position_new;
+      xEventGroupClearBitsFromISR(PositionEvent1Handle, 0xFFFF); // 循环结束，清除所有标志位，以便新的一轮置位
+    }
+
+#endif
   }
 }
 /* USER CODE END 1 */
