@@ -32,22 +32,41 @@
 #include "stdio.h"
 #include "semphr.h"
 #include "portmacro.h"
+#include "event_groups.h"
 
 extern uint32_t Sync_capture_Buf[2]; // 存放计数值
 extern uint8_t Sync_Cnt;             // 状态标志位
 extern uint32_t Sync_high_time;      // 高电平时间
 
-extern uint16_t position_xor;
-
 uint16_t semavalue = 0;
 
 uint8_t Isfirstcirculation = 1;
 
+#if 0
 // 事件组
-int32_t position_old = 0;
-int32_t position_new = 0;
-int32_t position_xor = 0;
-uint32_t position_new_plus_old = 0;
+int32_t position1_old = 0;
+int32_t position1_new = 0;
+int32_t position1_xor = 0;
+uint32_t position1_new_plus_old = 0;
+
+int32_t position2_old = 0;
+int32_t position2_new = 0;
+int32_t position2_xor = 0;
+uint32_t position2_new_plus_old = 0;
+
+int32_t position3_old = 0;
+int32_t position3_new = 0;
+int32_t position3_xor = 0;
+uint32_t position3_new_plus_old = 0;
+
+int32_t position4_old = 0;
+int32_t position4_new = 0;
+int32_t position4_xor = 0;
+uint32_t position4_new_plus_old = 0;
+#endif
+int32_t position_old[4] = {0};
+int32_t position_xor[4] = {0};
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -72,83 +91,74 @@ uint32_t position_new_plus_old = 0;
 /* Definitions for SyncTask */
 osThreadId_t SyncTaskHandle;
 const osThreadAttr_t SyncTask_attributes = {
-  .name = "SyncTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+    .name = "SyncTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal,
 };
 /* Definitions for ICTask */
 osThreadId_t ICTaskHandle;
 const osThreadAttr_t ICTask_attributes = {
-  .name = "ICTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal1,
+    .name = "ICTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal1,
 };
 /* Definitions for Rec_SwitchTask */
 osThreadId_t Rec_SwitchTaskHandle;
 const osThreadAttr_t Rec_SwitchTask_attributes = {
-  .name = "Rec_SwitchTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal1,
+    .name = "Rec_SwitchTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal1,
 };
 /* Definitions for AlarmTask */
 osThreadId_t AlarmTaskHandle;
 const osThreadAttr_t AlarmTask_attributes = {
-  .name = "AlarmTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal2,
+    .name = "AlarmTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal2,
 };
 /* Definitions for Hole_ldentifica */
 osThreadId_t Hole_ldentificaHandle;
 const osThreadAttr_t Hole_ldentifica_attributes = {
-  .name = "Hole_ldentifica",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal3,
+    .name = "Hole_ldentifica",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal3,
 };
 /* Definitions for HolesCountingSem */
 osSemaphoreId_t HolesCountingSemHandle;
 const osSemaphoreAttr_t HolesCountingSem_attributes = {
-  .name = "HolesCountingSem"
-};
+    .name = "HolesCountingSem"};
 /* Definitions for PositionEvent1_MPC1 */
 osEventFlagsId_t PositionEvent1_MPC1Handle;
 const osEventFlagsAttr_t PositionEvent1_MPC1_attributes = {
-  .name = "PositionEvent1_MPC1"
-};
+    .name = "PositionEvent1_MPC1"};
 /* Definitions for PositionEvent2_MPC1 */
 osEventFlagsId_t PositionEvent2_MPC1Handle;
 const osEventFlagsAttr_t PositionEvent2_MPC1_attributes = {
-  .name = "PositionEvent2_MPC1"
-};
+    .name = "PositionEvent2_MPC1"};
 /* Definitions for PositionEvent3_MPC1 */
 osEventFlagsId_t PositionEvent3_MPC1Handle;
 const osEventFlagsAttr_t PositionEvent3_MPC1_attributes = {
-  .name = "PositionEvent3_MPC1"
-};
+    .name = "PositionEvent3_MPC1"};
 /* Definitions for PositionEvent4_MPC1 */
 osEventFlagsId_t PositionEvent4_MPC1Handle;
 const osEventFlagsAttr_t PositionEvent4_MPC1_attributes = {
-  .name = "PositionEvent4_MPC1"
-};
+    .name = "PositionEvent4_MPC1"};
 /* Definitions for PositionEvent1_MPC2 */
 osEventFlagsId_t PositionEvent1_MPC2Handle;
 const osEventFlagsAttr_t PositionEvent1_MPC2_attributes = {
-  .name = "PositionEvent1_MPC2"
-};
+    .name = "PositionEvent1_MPC2"};
 /* Definitions for PositionEvent2_MPC2 */
 osEventFlagsId_t PositionEvent2_MPC2Handle;
 const osEventFlagsAttr_t PositionEvent2_MPC2_attributes = {
-  .name = "PositionEvent2_MPC2"
-};
+    .name = "PositionEvent2_MPC2"};
 /* Definitions for PositionEvent3_MPC2 */
 osEventFlagsId_t PositionEvent3_MPC2Handle;
 const osEventFlagsAttr_t PositionEvent3_MPC2_attributes = {
-  .name = "PositionEvent3_MPC2"
-};
+    .name = "PositionEvent3_MPC2"};
 /* Definitions for PositionEvent4_MPC2 */
 osEventFlagsId_t PositionEvent4_MPC2Handle;
 const osEventFlagsAttr_t PositionEvent4_MPC2_attributes = {
-  .name = "PositionEvent4_MPC2"
-};
+    .name = "PositionEvent4_MPC2"};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -164,11 +174,12 @@ void StartHole_ldentificationTask(void *argument);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /**
-  * @brief  FreeRTOS initialization
-  * @param  None
-  * @retval None
-  */
-void MX_FREERTOS_Init(void) {
+ * @brief  FreeRTOS initialization
+ * @param  None
+ * @retval None
+ */
+void MX_FREERTOS_Init(void)
+{
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -240,8 +251,8 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
-  /* USER CODE END RTOS_EVENTS */
 
+  /* USER CODE END RTOS_EVENTS */
 }
 
 /* USER CODE BEGIN Header_StartSyncTask */
@@ -394,21 +405,30 @@ void StartAlarmTask(void *argument)
   /* Infinite loop */
   for (;;)
   {
-    #if 0
+#if 0
     BaseType_t xHigherPriorityTaskWoken;
     xSemaphoreTakeFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
     semavalue = uxSemaphoreGetCount(HolesCountingSemHandle);
-    #endif
-    for(int i = 0; i <sizeof(position_xor);i++){
-      if(((position_xor>>i)&1)==1){
-      semavalue++;
-      }
-    }
-    if (semavalue > 0)
+#endif
+    ret = ulTaskNotifyTake(pdFALSE, 0);
+    if (ret == pdPASS)
     {
-      Holes_output_alarm_Open();
-      HAL_Delay(500);
-      Holes_output_alarm_Close();
+      for (int j = 0; j < 4; j++)
+      {
+        for (int i = 0; i < 32; i++)
+        {
+          if (((position_xor[j] >> i) & 1) == 1)
+          {
+            semavalue++;
+          }
+        }
+        if (semavalue > 0)
+        {
+          Holes_output_alarm_Open();
+          HAL_Delay(500);
+          Holes_output_alarm_Close();
+        }
+      }
     }
     osDelay(1);
   }
@@ -417,39 +437,150 @@ void StartAlarmTask(void *argument)
 
 /* USER CODE BEGIN Header_StartHole_ldentificationTask */
 /**
-* @brief Function implementing the Hole_ldentifica thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the Hole_ldentifica thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_StartHole_ldentificationTask */
 void StartHole_ldentificationTask(void *argument)
 {
   /* USER CODE BEGIN StartHole_ldentificationTask */
   BaseType_t ret;
+  int32_t position_new[4] = {0};
+
+  int32_t position_new_plus_old[4] = {0};
+  EventGroupHandle_t eventHandles[] = {
+      PositionEvent1_MPC1Handle, PositionEvent1_MPC2Handle,
+      PositionEvent2_MPC1Handle, PositionEvent2_MPC2Handle,
+      PositionEvent3_MPC1Handle, PositionEvent3_MPC2Handle,
+      PositionEvent4_MPC1Handle, PositionEvent4_MPC2Handle};
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
     ret = ulTaskNotifyTake(pdFALSE, 0);
-    if(ret == pdPASS){
-          if (Isfirstcirculation)
+    if (ret == pdPASS)
+
     {
-      position_old = (osEventFlagsGet(PositionEvent1_MPC1Handle) & 0xFFFF); // 上电第一次循环
-      Isfirstcirculation = 0;
-      xEventGroupClearBitsFromISR(PositionEvent1_MPC1Handle, 0xFFFF); // 必要的清0
-    }
-    else
-    {
-      position_new = (osEventFlagsGet(PositionEvent1_MPC1Handle) & 0xFFFF); // 除第一次外的每次循环
-      position_xor = position_old ^ position_new;
-      position_new_plus_old = position_new - position_old;
-      if ((position_xor != 0) && (position_new_plus_old < 65536) && (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)) // 有差异且位置检测从无到有算孔，从有到无不考虑
+#if 0
+      if (Isfirstcirculation) // 上电第一次循环
       {
-        vTaskNotifyGiveFromISR(AlarmTaskHandle, &xHigherPriorityTaskWoken);
-        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+        position1_old = (osEventFlagsGet(PositionEvent1_MPC2Handle) & 0xFFFF); // 低16位
+        position1_old |= (osEventFlagsGet(PositionEvent1_MPC1Handle) & 0xFFFF) << 16;
+        position2_old = (osEventFlagsGet(PositionEvent2_MPC2Handle) & 0xFFFF); // 低16位
+        position2_old |= (osEventFlagsGet(PositionEvent2_MPC1Handle) & 0xFFFF) << 16;
+        position3_old = (osEventFlagsGet(PositionEvent3_MPC2Handle) & 0xFFFF); // 低16位
+        position3_old |= (osEventFlagsGet(PositionEvent3_MPC1Handle) & 0xFFFF) << 16;
+        position4_old = (osEventFlagsGet(PositionEvent4_MPC2Handle) & 0xFFFF); // 低16位
+        position4_old |= (osEventFlagsGet(PositionEvent4_MPC1Handle) & 0xFFFF) << 16;
+
+        Isfirstcirculation = 0;
       }
-      position_old = position_new;
-      xEventGroupClearBitsFromISR(PositionEvent1_MPC1Handle, 0xFFFF); // 循环结束，清除所有标志位，以便新的一轮置位
+      else
+      {
+
+#if 0
+#define GET_POSITION_NEW(POSITION_NEW, HANDLE1, HANDLE2)       \
+  do                                                           \
+  {                                                            \
+    POSITION_NEW = (osEventFlagsGet(HANDLE2) & 0xFFFF);        \
+    POSITION_NEW |= (osEventFlagsGet(HANDLE1) & 0xFFFF) << 16; \
+  } while (0)
+
+        GET_POSITION_NEW(position1_new, PositionEvent1_MPC1Handle, PositionEvent1_MPC2Handle);
+        GET_POSITION_NEW(position2_new, PositionEvent2_MPC1Handle, PositionEvent2_MPC2Handle);
+        GET_POSITION_NEW(position3_new, PositionEvent3_MPC1Handle, PositionEvent3_MPC2Handle);
+        GET_POSITION_NEW(position4_new, PositionEvent4_MPC1Handle, PositionEvent4_MPC2Handle);
+
+#endif
+        position1_new = (osEventFlagsGet(PositionEvent1_MPC2Handle) & 0xFFFF); // 低16位
+        position1_new |= (osEventFlagsGet(PositionEvent1_MPC1Handle) & 0xFFFF) << 16;
+        position2_new = (osEventFlagsGet(PositionEvent2_MPC2Handle) & 0xFFFF); // 低16位
+        position2_new |= (osEventFlagsGet(PositionEvent2_MPC1Handle) & 0xFFFF) << 16;
+        position3_new = (osEventFlagsGet(PositionEvent3_MPC2Handle) & 0xFFFF); // 低16位
+        position3_new |= (osEventFlagsGet(PositionEvent3_MPC1Handle) & 0xFFFF) << 16;
+        position4_new = (osEventFlagsGet(PositionEvent4_MPC2Handle) & 0xFFFF); // 低16位
+        position4_new |= (osEventFlagsGet(PositionEvent4_MPC1Handle) & 0xFFFF) << 16;
+
+        // 计算异或以及差值
+        position1_xor = position1_old ^ position1_new;
+        position1_new_plus_old = position1_new - position1_old;
+
+        position2_xor = position2_old ^ position2_new;
+        position2_new_plus_old = position2_new - position2_old;
+
+        position3_xor = position3_old ^ position3_new;
+        position3_new_plus_old = position3_new - position3_old;
+
+        position4_xor = position4_old ^ position4_new;
+        position4_new_plus_old = position4_new - position4_old;
+
+        if ((position1_xor != 0) && (position1_new_plus_old > 0) && (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)) // 有差异且位置检测从无到有算孔，从有到无不考虑
+        {
+          xTaskNotifyGive(AlarmTaskHandle);
+        }
+        if ((position2_xor != 0) && (position2_new_plus_old > 0) && (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED))
+        {
+          xTaskNotifyGive(AlarmTaskHandle);
+        }
+        if ((position3_xor != 0) && (position3_new_plus_old > 0) && (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED))
+        {
+          xTaskNotifyGive(AlarmTaskHandle);
+        }
+        if ((position4_xor != 0) && (position4_new_plus_old > 0) && (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED))
+        {
+          xTaskNotifyGive(AlarmTaskHandle);
+        }
+        position1_old = position1_new;
+        position2_old = position2_new;
+        position3_old = position3_new;
+        position4_old = position4_new;
+
+        // 循环结束，清除所有标志位，以便新的一轮置位
+      }
+      for (int i = 0; i < sizeof(eventHandles) / sizeof(eventHandles[0]); i++)
+      {
+        xEventGroupClearBits(eventHandles[i], 0xFFFF);
+      }
     }
+#endif
+      if (Isfirstcirculation) // 上电第一次循环
+      {
+        for (int i = 0; i < 4; i++)
+        {
+          position_old[i] = (osEventFlagsGet(eventHandles[i * 2 + 1]) & 0xFFFF);
+          position_old[i] |= (osEventFlagsGet(eventHandles[i * 2]) & 0xFFFF) << 16;
+        }
+        Isfirstcirculation = 0;
+      }
+      else
+      {
+        // 更新position_new并计算
+        for (int i = 0; i < 4; i++)
+        {
+          // 获取新值
+          position_new[i] = (osEventFlagsGet(eventHandles[i * 2 + 1]) & 0xFFFF);
+          position_new[i] |= (osEventFlagsGet(eventHandles[i * 2]) & 0xFFFF) << 16;
+
+          // 计算异或和差值
+          position_xor[i] = position_old[i] ^ position_new[i];
+          position_new_plus_old[i] = position_new[i] - position_old[i];
+
+          // 条件检查和通知
+          if (position_xor[i] != 0 && position_new_plus_old[i] > 0 && xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
+          {
+            xTaskNotifyGive(AlarmTaskHandle);
+          }
+
+          // 更新old值
+          position_old[i] = position_new[i];
+        }
+
+        // 清除所有标志位，以便新的一轮置位
+        for (int i = 0; i < 8; i++)
+        {
+          xEventGroupClearBits(eventHandles[i], 0xFFFF);
+        }
+      }
     }
     osDelay(1);
   }
@@ -460,4 +591,3 @@ void StartHole_ldentificationTask(void *argument)
 /* USER CODE BEGIN Application */
 
 /* USER CODE END Application */
-

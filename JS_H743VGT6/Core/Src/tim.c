@@ -27,6 +27,7 @@
 #include "gpio.h"
 #include "event_groups.h"
 extern osSemaphoreId_t HolesCountingSemHandle;
+extern osThreadId_t Hole_ldentificaHandle;
 
 uint8_t Mpc1_Channel_Num = 0; // R1通道
 uint8_t Mpc2_Channel_Num = 0; // R2通道
@@ -60,11 +61,14 @@ uint8_t circulation = 0;
 
 
 
-extern osEventFlagsId_t PositionEvent1Handle;
-extern osEventFlagsId_t PositionEvent2Handle;
-extern osEventFlagsId_t PositionEvent3Handle;
-extern osEventFlagsId_t PositionEvent4Handle;
-
+extern osEventFlagsId_t PositionEvent1_MPC1Handle;
+extern osEventFlagsId_t PositionEvent2_MPC1Handle;
+extern osEventFlagsId_t PositionEvent3_MPC1Handle;
+extern osEventFlagsId_t PositionEvent4_MPC1Handle;
+extern osEventFlagsId_t PositionEvent1_MPC2Handle;
+extern osEventFlagsId_t PositionEvent2_MPC2Handle;
+extern osEventFlagsId_t PositionEvent3_MPC2Handle;
+extern osEventFlagsId_t PositionEvent4_MPC2Handle;
 
 uint8_t IsMpc1 = 1;
 
