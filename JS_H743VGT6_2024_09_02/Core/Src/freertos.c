@@ -45,6 +45,7 @@ uint8_t Isfirstcirculation = 1;
 int32_t position_old[4] = {0};
 int32_t position_xor[4] = {0};
 
+uint8_t position_num=0;
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -264,15 +265,12 @@ void StartSyncTask(void *argument)
         Sync_high_time = Sync_capture_Buf[1] - Sync_capture_Buf[0]; // 高电平时间
       }
 
-      Sync_Cnt = 0;
+     // Sync_Cnt = 0;
       if (Sync_high_time == 0x1B)
       {
         Sync_Cnt = 5;
-
-#if 1
         xTaskNotifyGive((TaskHandle_t)ICTaskHandle);
         xTaskNotifyGive((TaskHandle_t)Rec_SwitchTaskHandle);
-#endif
       }
       else
       {
@@ -299,10 +297,7 @@ void StartICTask(void *argument)
   /* Infinite loop */
   for (;;)
   {
-
-#if 1
     ret = ulTaskNotifyTake(pdFALSE, 0);
-#endif
     if (ret == pdPASS)
     {
       // LXXX:按照所查资料提示，如果不行那就还是将同步引脚更改为其他引脚，TIM2作为主定时器通过事件触发从定时器同步捕获，硬件层面的同步捕获
@@ -370,23 +365,21 @@ void StartAlarmTask(void *argument)
     ret = ulTaskNotifyTake(pdFALSE, 0);
     if (ret == pdPASS)
     {
-      for (int j = 0; j < 4; j++)
+      for (int j = 0; j < 32; j++)
       {
-        for (int i = 0; i < 32; i++)
+        while (((position_xor[position_num] >> j) & 1) == 1)
         {
-          if (((position_xor[j] >> i) & 1) == 1)
-          {
-            semavalue++;
-          }
-        }
-        if (semavalue > 0)
-        {
-          Holes_output_alarm_Open();
-          HAL_Delay(500);
-          Holes_output_alarm_Close();
+          semavalue++;
         }
       }
+      if (semavalue > 0)
+      {
+        Holes_output_alarm_Open();
+        HAL_Delay(500);
+        Holes_output_alarm_Close();
+      }
     }
+
     osDelay(1);
   }
   /* USER CODE END StartAlarmTask */
@@ -420,40 +413,40 @@ void StartHole_ldentificationTask(void *argument)
     {
       if (Isfirstcirculation) // 上电第一次循环
       {
-        for (int i = 0; i < 4; i++)
+        for (position_num = 0; position_num < 4; position_num++)
         {
-          position_old[i] = (osEventFlagsGet(eventHandles[i * 2 + 1]) & 0xFFFF);
-          position_old[i] |= (osEventFlagsGet(eventHandles[i * 2]) & 0xFFFF) << 16;
+          position_old[position_num] = (osEventFlagsGet(eventHandles[position_num * 2 + 1]) & 0xFFFF);
+          position_old[position_num] |= (osEventFlagsGet(eventHandles[position_num * 2]) & 0xFFFF) << 16;
         }
         Isfirstcirculation = 0;
       }
       else
       {
         // 更新position_new并计算
-        for (int i = 0; i < 4; i++)
+        for (position_num = 0; position_num < 4; position_num++)
         {
           // 获取新值
-          position_new[i] = (osEventFlagsGet(eventHandles[i * 2 + 1]) & 0xFFFF);
-          position_new[i] |= (osEventFlagsGet(eventHandles[i * 2]) & 0xFFFF) << 16;
+          position_new[position_num] = (osEventFlagsGet(eventHandles[position_num * 2 + 1]) & 0xFFFF);
+          position_new[position_num] |= (osEventFlagsGet(eventHandles[position_num * 2]) & 0xFFFF) << 16;
 
           // 计算异或和差值
-          position_xor[i] = position_old[i] ^ position_new[i];
-          position_new_plus_old[i] = position_new[i] - position_old[i];
+          position_xor[position_num] = position_old[position_num] ^ position_new[position_num];
+          position_new_plus_old[position_num] = position_new[position_num] - position_old[position_num];
 
           // 条件检查和通知
-          if (position_xor[i] != 0 && position_new_plus_old[i] > 0 && xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
+          if (position_xor[position_num] != 0 && position_new_plus_old[position_num] > 0 && xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
           {
             xTaskNotifyGive(AlarmTaskHandle);
           }
 
           // 更新old值
-          position_old[i] = position_new[i];
+          position_old[position_num] = position_new[position_num];
         }
 
         // 清除所有标志位，以便新的一轮置位
-        for (int i = 0; i < 8; i++)
+        for (position_num = 0; position_num < 8; position_num++)
         {
-          xEventGroupClearBits(eventHandles[i], 0xFFFF);
+          xEventGroupClearBits(eventHandles[position_num], 0xFFFF);
         }
       }
     }
