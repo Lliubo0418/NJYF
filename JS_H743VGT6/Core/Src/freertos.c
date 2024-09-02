@@ -587,7 +587,77 @@ void StartHole_ldentificationTask(void *argument)
   /* USER CODE END StartHole_ldentificationTask */
 }
 
+
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
+#if 0
+void StartHole_IdentificationTask(void *argument)
+{
+    /* USER CODE BEGIN StartHole_IdentificationTask */
+    BaseType_t ret;
 
+    // 定义事件句柄和位置变量的数组
+    EventGroupHandle_t eventHandlesMPC1[] = {
+        PositionEvent1_MPC1Handle, PositionEvent2_MPC1Handle,
+        PositionEvent3_MPC1Handle, PositionEvent4_MPC1Handle
+    };
+    EventGroupHandle_t eventHandlesMPC2[] = {
+        PositionEvent1_MPC2Handle, PositionEvent2_MPC2Handle,
+        PositionEvent3_MPC2Handle, PositionEvent4_MPC2Handle
+    };
+
+    uint32_t *positions_old[] = {&position1_old, &position2_old, &position3_old, &position4_old};
+    uint32_t *positions_new[] = {&position1_new, &position2_new, &position3_new, &position4_new};
+    uint32_t *positions_xor[] = {&position1_xor, &position2_xor, &position3_xor, &position4_xor};
+    int32_t *positions_diff[] = {&position1_new_plus_old, &position2_new_plus_old, &position3_new_plus_old, &position4_new_plus_old};
+
+    /* Infinite loop */
+    for (;;)
+    {
+        ret = ulTaskNotifyTake(pdFALSE, 0);
+        if (ret == pdPASS)
+        {
+            if (Isfirstcirculation) // 上电第一次循环
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    *positions_old[i]  = (osEventFlagsGet(eventHandlesMPC2[i]) & 0xFFFF);
+                    *positions_old[i] |= (osEventFlagsGet(eventHandlesMPC1[i]) & 0xFFFF) << 16;
+                }
+                Isfirstcirculation = 0;
+            }
+            else
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    *positions_new[i]  = (osEventFlagsGet(eventHandlesMPC2[i]) & 0xFFFF);
+                    *positions_new[i] |= (osEventFlagsGet(eventHandlesMPC1[i]) & 0xFFFF) << 16;
+
+                    // 计算异或以及差值
+                    *positions_xor[i] = *positions_old[i] ^ *positions_new[i];
+                    *positions_diff[i] = *positions_new[i] - *positions_old[i];
+
+                    if ((*positions_xor[i] != 0) && (*positions_diff[i] > 0) && (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED))
+                    {
+                        xTaskNotifyGive(AlarmTaskHandle);
+                    }
+
+                    // 更新旧值
+                    *positions_old[i] = *positions_new[i];
+                }
+            }
+
+            // 清除所有标志位，以便新的一轮置位
+            for (int i = 0; i < 4; i++)
+            {
+                xEventGroupClearBits(eventHandlesMPC1[i], 0xFFFF);
+                xEventGroupClearBits(eventHandlesMPC2[i], 0xFFFF);
+            }
+        }
+
+        osDelay(1);
+    }
+    /* USER CODE END StartHole_IdentificationTask */
+}
+#endif
 /* USER CODE END Application */

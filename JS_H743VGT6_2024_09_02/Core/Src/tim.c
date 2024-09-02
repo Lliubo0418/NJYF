@@ -32,7 +32,7 @@ extern osThreadId_t Hole_ldentificaHandle;
 uint8_t Mpc1_Channel_Num = 0; // R1通道
 uint8_t Mpc2_Channel_Num = 0; // R2通道
 // sync
-uint32_t Sync_capture_Buf[3] = {0}; // 存放计数值
+uint32_t Sync_capture_Buf[2] = {0}; // 存放计数值
 uint8_t Sync_Cnt = 0;               // 状态标志位
 uint32_t Sync_high_time;            // 高电平时间
 // int1
