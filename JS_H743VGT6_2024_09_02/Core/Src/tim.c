@@ -1044,7 +1044,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
       }
     }
   }
-  // LTODO: 此处设置溢出中断周期为500us，根据需求更改,假设2个循环
+  // LTODO: 此处设置溢出中断周期为500us，根据需求更改,假设2个循环，暂时用不到了，后续看是否更改或删除
   //LXXX:可删除tim7
   if (htim->Instance == TIM7)
   {

@@ -358,6 +358,12 @@ void StartAlarmTask(void *argument)
 {
   /* USER CODE BEGIN StartAlarmTask */
   BaseType_t ret;
+  TickType_t xLastWakeTime;
+
+  uint16_t semavaluefromslave = 0;
+
+  // 初始化xLastWakeTime为当前的tick计数
+  xLastWakeTime = xTaskGetTickCount();
   /* Infinite loop */
   for (;;)
   {
@@ -372,12 +378,16 @@ void StartAlarmTask(void *argument)
           semavalue++;
         }
       }
-      if (semavalue > 0)
-      {
-        Holes_output_alarm_Open();
-        HAL_Delay(500);
-        Holes_output_alarm_Close();
-      }
+    }
+    semavaluefromslave = uxSemaphoreGetCount(HolesCountingSemHandle); // Get number of semaphores
+    xSemaphoreTake(HolesCountingSemHandle, pdMS_TO_TICKS(10));        // 减一
+    semavalue += semavaluefromslave;
+    semavaluefromslave = 0;
+    if (semavalue > 0)
+    {
+      Holes_output_alarm_Open();
+      vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(500));
+      Holes_output_alarm_Close();
     }
 
     osDelay(1);
@@ -457,5 +467,21 @@ void StartHole_ldentificationTask(void *argument)
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
+//LTODO：添加JCOUT任务，是否由外部中断加上计数信号量来添加孔洞个数
 
+//LTODO:添加JCOUT，JCOUT1暂不添加
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+  if (GPIO_Pin == gpio_pin_1)
+  {
+
+    if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
+    {
+      xSemaphoreGiveFromISR(HolesCountingSemHandle, &xHigherPriorityTaskWoken);
+      portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
+  }
+
+}
 /* USER CODE END Application */
