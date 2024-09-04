@@ -45,7 +45,7 @@ uint8_t Isfirstcirculation = 1;
 int32_t position_old[4] = {0};
 int32_t position_xor[4] = {0};
 
-uint8_t position_num=0;
+uint8_t position_num = 0;
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -70,83 +70,74 @@ uint8_t position_num=0;
 /* Definitions for SyncTask */
 osThreadId_t SyncTaskHandle;
 const osThreadAttr_t SyncTask_attributes = {
-  .name = "SyncTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+    .name = "SyncTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal,
 };
 /* Definitions for ICTask */
 osThreadId_t ICTaskHandle;
 const osThreadAttr_t ICTask_attributes = {
-  .name = "ICTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal1,
+    .name = "ICTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal1,
 };
 /* Definitions for Rec_SwitchTask */
 osThreadId_t Rec_SwitchTaskHandle;
 const osThreadAttr_t Rec_SwitchTask_attributes = {
-  .name = "Rec_SwitchTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal1,
+    .name = "Rec_SwitchTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal1,
 };
 /* Definitions for AlarmTask */
 osThreadId_t AlarmTaskHandle;
 const osThreadAttr_t AlarmTask_attributes = {
-  .name = "AlarmTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal2,
+    .name = "AlarmTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal2,
 };
 /* Definitions for Hole_ldentifica */
 osThreadId_t Hole_ldentificationTaskHandle;
 const osThreadAttr_t Hole_ldentifica_attributes = {
-  .name = "Hole_ldentificationTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal3,
+    .name = "Hole_ldentificationTask",
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityNormal3,
 };
 /* Definitions for HolesCountingSem */
 osSemaphoreId_t HolesCountingSemHandle;
 const osSemaphoreAttr_t HolesCountingSem_attributes = {
-  .name = "HolesCountingSem"
-};
+    .name = "HolesCountingSem"};
 /* Definitions for PositionEvent1_MPC1 */
 osEventFlagsId_t PositionEvent1_MPC1Handle;
 const osEventFlagsAttr_t PositionEvent1_MPC1_attributes = {
-  .name = "PositionEvent1_MPC1"
-};
+    .name = "PositionEvent1_MPC1"};
 /* Definitions for PositionEvent2_MPC1 */
 osEventFlagsId_t PositionEvent2_MPC1Handle;
 const osEventFlagsAttr_t PositionEvent2_MPC1_attributes = {
-  .name = "PositionEvent2_MPC1"
-};
+    .name = "PositionEvent2_MPC1"};
 /* Definitions for PositionEvent3_MPC1 */
 osEventFlagsId_t PositionEvent3_MPC1Handle;
 const osEventFlagsAttr_t PositionEvent3_MPC1_attributes = {
-  .name = "PositionEvent3_MPC1"
-};
+    .name = "PositionEvent3_MPC1"};
 /* Definitions for PositionEvent4_MPC1 */
 osEventFlagsId_t PositionEvent4_MPC1Handle;
 const osEventFlagsAttr_t PositionEvent4_MPC1_attributes = {
-  .name = "PositionEvent4_MPC1"
-};
+    .name = "PositionEvent4_MPC1"};
 /* Definitions for PositionEvent1_MPC2 */
 osEventFlagsId_t PositionEvent1_MPC2Handle;
 const osEventFlagsAttr_t PositionEvent1_MPC2_attributes = {
-  .name = "PositionEvent1_MPC2"
-};
+    .name = "PositionEvent1_MPC2"};
 /* Definitions for PositionEvent2_MPC2 */
 osEventFlagsId_t PositionEvent2_MPC2Handle;
 const osEventFlagsAttr_t PositionEvent2_MPC2_attributes = {
-  .name = "PositionEvent2_MPC2"
-};
+    .name = "PositionEvent2_MPC2"};
 /* Definitions for PositionEvent3_MPC2 */
 osEventFlagsId_t PositionEvent3_MPC2Handle;
 const osEventFlagsAttr_t PositionEvent3_MPC2_attributes = {
-  .name = "PositionEvent3_MPC2"
-};
+    .name = "PositionEvent3_MPC2"};
 /* Definitions for PositionEvent4_MPC2 */
 osEventFlagsId_t PositionEvent4_MPC2Handle;
 const osEventFlagsAttr_t PositionEvent4_MPC2_attributes = {
-  .name = "PositionEvent4_MPC2"
-};
+    .name = "PositionEvent4_MPC2"};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -162,11 +153,12 @@ void StartHole_ldentificationTask(void *argument);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /**
-  * @brief  FreeRTOS initialization
-  * @param  None
-  * @retval None
-  */
-void MX_FREERTOS_Init(void) {
+ * @brief  FreeRTOS initialization
+ * @param  None
+ * @retval None
+ */
+void MX_FREERTOS_Init(void)
+{
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -240,7 +232,6 @@ void MX_FREERTOS_Init(void) {
   /* add events, ... */
 
   /* USER CODE END RTOS_EVENTS */
-
 }
 
 /* USER CODE BEGIN Header_StartSyncTask */
@@ -274,7 +265,7 @@ void StartSyncTask(void *argument)
         Sync_high_time = Sync_capture_Buf[1] - Sync_capture_Buf[0]; // 高电平时间
       }
 
-     // Sync_Cnt = 0;
+      // Sync_Cnt = 0;
       if (Sync_high_time == 0x1B)
       {
         Sync_Cnt = 5;
@@ -368,8 +359,6 @@ void StartAlarmTask(void *argument)
   /* USER CODE BEGIN StartAlarmTask */
   BaseType_t ret;
   TickType_t xLastWakeTime;
-
-
 
   // 初始化xLastWakeTime为当前的tick计数
   xLastWakeTime = xTaskGetTickCount();
@@ -474,4 +463,3 @@ void StartHole_ldentificationTask(void *argument)
 /* USER CODE BEGIN Application */
 
 /* USER CODE END Application */
-
