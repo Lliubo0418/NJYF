@@ -27,7 +27,7 @@
 #include "gpio.h"
 #include "event_groups.h"
 extern osSemaphoreId_t HolesCountingSemHandle;
-extern osThreadId_t Hole_ldentificaHandle;
+extern osThreadId_t Hole_ldentifyHandle;
 
 uint8_t Mpc1_Channel_Num = 0; // R1通道
 uint8_t Mpc2_Channel_Num = 0; // R2通道
@@ -1040,7 +1040,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         HAL_TIM_IC_Stop_IT(&htim3, TIM_CHANNEL_1);
         HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_4);
         IsMpc1 = 1;
-        vTaskNotifyGiveFromISR(Hole_ldentificaHandle, &xHigherPriorityTaskWoken);
+        vTaskNotifyGiveFromISR(Hole_ldentifyHandle, &xHigherPriorityTaskWoken);    
       }
     }
   }

@@ -140,19 +140,19 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
-struct __FILE
-{
-  int handle;
-};
-FILE __stdout;
+// struct __FILE
+// {
+//   int handle;
+// };
+// FILE __stdout;
 
-void _sys_exit(int x)
-{
-  x = x;
-}
-int fputc(int ch, FILE *f)
-{
-  HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xffff);
-  return ch;
-}
+// void _sys_exit(int x)
+// {
+//   x = x;
+// }
+// int fputc(int ch, FILE *f)
+// {
+//   HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xffff);
+//   return ch;
+// }
 /* USER CODE END 1 */
