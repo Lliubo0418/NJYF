@@ -69,8 +69,8 @@ void Error_Handler(void);
 #define DOUT_GPIO_Port GPIOA
 #define DIN_Pin GPIO_PIN_7
 #define DIN_GPIO_Port GPIOA
-#define K1_4_Pin GPIO_PIN_1
-#define K1_4_GPIO_Port GPIOB
+#define K1_1_Pin GPIO_PIN_1
+#define K1_1_GPIO_Port GPIOB
 #define LED_Pin GPIO_PIN_11
 #define LED_GPIO_Port GPIOA
 #define Freq_out_Pin GPIO_PIN_9

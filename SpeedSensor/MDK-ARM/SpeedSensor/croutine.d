@@ -1,0 +1,14 @@
+speedsensor\croutine.o: ../Middlewares/Third_Party/FreeRTOS/Source/croutine.c
+speedsensor\croutine.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+speedsensor\croutine.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+speedsensor\croutine.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+speedsensor\croutine.o: ../Core/Inc/FreeRTOSConfig.h
+speedsensor\croutine.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+speedsensor\croutine.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+speedsensor\croutine.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
+speedsensor\croutine.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3/portmacro.h
+speedsensor\croutine.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
+speedsensor\croutine.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
+speedsensor\croutine.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h
+speedsensor\croutine.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/croutine.h
+speedsensor\croutine.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h

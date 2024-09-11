@@ -70,7 +70,11 @@
 		"todo-tree.general.statusBar": "total",
 		"files.associations": {
 			"freertos.h": "c",
-			"timers.h": "c"
+			"timers.h": "c",
+			"freertos_mpool.h": "c",
+			"tim.h": "c",
+			"gpio.h": "c",
+			"event_groups.h": "c"
 		},
 	  
 

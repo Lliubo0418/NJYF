@@ -41,7 +41,8 @@ extern SPI_HandleTypeDef hspi1;
 void MX_SPI1_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+HAL_StatusTypeDef SPI_DAC8560_Write(uint8_t DATA_CMD, uint16_t DATA);
+HAL_StatusTypeDef SPI_DAC8560_Read(uint8_t DATA_CMD, uint16_t Address, uint16_t* Read_DATA);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
