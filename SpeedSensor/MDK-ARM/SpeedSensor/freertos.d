@@ -47,3 +47,4 @@ speedsensor\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semph
 speedsensor\freertos.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h
 speedsensor\freertos.o: ../Core/Inc/tim.h
 speedsensor\freertos.o: ../Core/Inc/spi.h
+speedsensor\freertos.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h

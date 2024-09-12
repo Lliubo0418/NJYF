@@ -27,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "tim.h"
 #include "spi.h"
+#include "math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -241,14 +242,14 @@ void PWM_SetFrequencyDutyCycle(uint16_t frequency)
 
   // 计算周期值
 
-  period = (uint32_t)(1000000 / (10 * frequency + 200)) - 1;
+  period = (uint32_t)round((1000000.0 / (10 * frequency + 200))) - 1;
 
   // 更新定时器的预分频器和周期
 
   htim4.Instance->ARR = period; // 设置自动重装载寄存器（周期）
 
   // 设置PWM占空比
-  htim4.Instance->CCR4 = (uint32_t)((float)(period + 1) / 2); // 设置比较寄存器（占空比）
+  htim4.Instance->CCR4 = (uint32_t)round(((float)(period + 1) / 2)); // 设置比较寄存器（占空比）
 
   // 启动PWM
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_4); // 启动TIM4通道4的PWM

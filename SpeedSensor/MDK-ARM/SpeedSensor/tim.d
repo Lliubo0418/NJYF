@@ -46,3 +46,4 @@ speedsensor\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h
 speedsensor\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h
 speedsensor\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h
 speedsensor\tim.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h
+speedsensor\tim.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h

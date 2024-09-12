@@ -24,6 +24,7 @@
 #include "FreeRTOS.h"
 #include "cmsis_os.h"
 #include "task.h"
+#include "math.h"
 uint8_t IsFisrtEdge = 1;
 uint16_t CaptureEdge1Time = 0;
 uint16_t CaptureEdge2Time = 0;
@@ -271,11 +272,11 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
       // LTODO:后续计算可以放在任务中执行
       if (CaptureEdge2Time > CaptureEdge1Time)
       {
-        Frequency = (uint16_t)(100000 / (CaptureEdge2Time - CaptureEdge1Time)); // Calculate frequency in Hz
+        Frequency = (uint16_t)round((100000.0 / (CaptureEdge2Time - CaptureEdge1Time))); // Calculate frequency in Hz
       }
       else
       {
-        Frequency = (uint16_t)(100000 / (0xC350 - CaptureEdge1Time + CaptureEdge2Time)); // Calculate frequency in Hz    周期500ms
+        Frequency = (uint16_t)round((100000.0 / (0xC350 - CaptureEdge1Time + CaptureEdge2Time))); // Calculate frequency in Hz    周期500ms
       }
       vTaskNotifyGiveFromISR(Freq_ICTaskHandle, &xHigherPriorityTaskWoken);
 //      Frequency =0;
