@@ -32,11 +32,13 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
+uint16_t power_on_init = 1;
 extern uint16_t Frequency;
 const float DAC_COEFFICIENT = 65536.0 / 2.5;
 const uint8_t DAC_DEFAULT_MODE = 0;
 uint16_t Frequency_old = 0;
-uint32_t period = 0;                //LTODO:测试后改回PWM_SetFrequencyDutyCycle内
+const uint8_t Frequency_Input_Max = 80;
+uint32_t period = 0; // LTODO:测试后改回PWM_SetFrequencyDutyCycle内
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -198,6 +200,12 @@ void StartFreq_ICTask(void const *argument)
   /* Infinite loop */
   for (;;)
   {
+    if (power_on_init)
+    {
+      DATA = (uint16_t)(0.4 * DAC_COEFFICIENT); // 4mA
+      SPI_DAC8560_Write(DAC_DEFAULT_MODE, DATA);
+      power_on_init = 0;
+    }
     ret = ulTaskNotifyTake(pdFALSE, 0);
     if (ret == pdPASS)
     {
@@ -217,11 +225,14 @@ void StartFreq_ICTask(void const *argument)
           SPI_DAC8560_Write(DAC_DEFAULT_MODE, DATA);
           Frequency_old = Frequency;
         }
-        else if (Frequency > 80)
+        else if (Frequency > Frequency_Input_Max)
         {
-          // LTODO:超速报警，关闭一切输出
-          HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_4); // 关闭TIM4通道4的PWM
-          SPI_DAC8560_Write(DAC_DEFAULT_MODE, 0);
+          // // LTODO:超速报警，关闭一切输出
+          // HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_4); // 关闭TIM4通道4的PWM
+          // SPI_DAC8560_Write(DAC_DEFAULT_MODE, 0);
+          DATA = (uint16_t)(2 * DAC_COEFFICIENT); // 20mA
+          SPI_DAC8560_Write(DAC_DEFAULT_MODE, DATA);
+          PWM_SetFrequencyDutyCycle(Frequency_Input_Max);
         }
       }
     }
@@ -237,8 +248,6 @@ void PWM_SetFrequencyDutyCycle(uint16_t frequency)
 {
   HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_4); // 关闭TIM4通道4的PWM
   // 计算定时器的时钟频率
-
-  
 
   // 计算周期值
 
