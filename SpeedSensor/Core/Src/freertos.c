@@ -58,6 +58,7 @@ void PWM_SetFrequencyDutyCycle(uint16_t frequency);
 osThreadId Freq_outTaskHandle;
 osThreadId Current_outTaskHandle;
 osThreadId Freq_ICTaskHandle;
+osThreadId ADCTaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -67,6 +68,7 @@ osThreadId Freq_ICTaskHandle;
 void StartFreq_outTask(void const *argument);
 void StartCurrent_outTask(void const *argument);
 void StartFreq_ICTask(void const *argument);
+void StartADCTask(void const *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -125,6 +127,10 @@ void MX_FREERTOS_Init(void)
   /* definition and creation of Freq_ICTask */
   osThreadDef(Freq_ICTask, StartFreq_ICTask, osPriorityAboveNormal, 0, 128);
   Freq_ICTaskHandle = osThreadCreate(osThread(Freq_ICTask), NULL);
+
+  /* definition and creation of ADCTask */
+  osThreadDef(ADCTask, StartADCTask, osPriorityNormal, 0, 128);
+  ADCTaskHandle = osThreadCreate(osThread(ADCTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -227,9 +233,10 @@ void StartFreq_ICTask(void const *argument)
         }
         else if (Frequency > Frequency_Input_Max)
         {
-          // // LTODO:超速报警，关闭一切输出
+        
           // HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_4); // 关闭TIM4通道4的PWM
           // SPI_DAC8560_Write(DAC_DEFAULT_MODE, 0);
+          //LXXX:超速后限定在最大值
           DATA = (uint16_t)(2 * DAC_COEFFICIENT); // 20mA
           SPI_DAC8560_Write(DAC_DEFAULT_MODE, DATA);
           PWM_SetFrequencyDutyCycle(Frequency_Input_Max);
@@ -240,6 +247,29 @@ void StartFreq_ICTask(void const *argument)
     osDelay(10);
   }
   /* USER CODE END StartFreq_ICTask */
+}
+
+/* USER CODE BEGIN Header_StartADCTask */
+/**
+ * @brief Function implementing the ADCTask thread.
+ * @param argument: Not used
+ * @retval None
+ */
+/* USER CODE END Header_StartADCTask */
+void StartADCTask(void const *argument)
+{
+  /* USER CODE BEGIN StartADCTask */
+  TickType_t PreviousWakeTime;
+  PreviousWakeTime = xTaskGetTickCount(); // 获取当前的系统节拍值
+  /* Infinite loop */
+  for (;;)
+  {
+    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//    vTaskDelayUntil(&PreviousWakeTime, pdMS_TO_TICKS(500));
+		vTaskDelay(500);
+    osDelay(1);
+  }
+  /* USER CODE END StartADCTask */
 }
 
 /* Private application code --------------------------------------------------*/
