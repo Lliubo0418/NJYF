@@ -330,7 +330,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
   {
     if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
     {
-      __HAL_TIM_SET_COUNTER(&htim3, 0);
+      __HAL_TIM_SET_COUNTER(&htim3, 0);            //检测是否有输入
       if (IsFisrtEdge)
       {
         CaptureEdge1Time = HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_3);
@@ -352,7 +352,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
         //LXXX:是否考虑干扰，是否加前后判断
         vTaskNotifyGiveFromISR(Freq_ICTaskHandle, &xHigherPriorityTaskWoken);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-        //      Frequency =0;
+        
         IsFisrtEdge = 1;
       }
     }

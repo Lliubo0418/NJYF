@@ -75,7 +75,8 @@
 			"tim.h": "c",
 			"gpio.h": "c",
 			"event_groups.h": "c",
-			"math.h": "c"
+			"math.h": "c",
+			"adc.h": "c"
 		},
 	  
 

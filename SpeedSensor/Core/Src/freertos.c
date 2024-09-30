@@ -37,7 +37,7 @@ extern uint16_t Frequency;
 const float DAC_COEFFICIENT = 65536.0 / 2.5;
 const uint8_t DAC_DEFAULT_MODE = 0;
 uint16_t Frequency_old = 0;
-const uint8_t Frequency_Input_Max = 80;
+const uint16_t Frequency_Input_Max = 80;
 uint32_t period = 0; // LTODO:测试后改回PWM_SetFrequencyDutyCycle内
 /* USER CODE END PTD */
 
@@ -259,8 +259,9 @@ void StartFreq_ICTask(void const *argument)
 void StartADCTask(void const *argument)
 {
   /* USER CODE BEGIN StartADCTask */
-  TickType_t PreviousWakeTime;
-  PreviousWakeTime = xTaskGetTickCount(); // 获取当前的系统节拍值
+  // TickType_t PreviousWakeTime;
+  // PreviousWakeTime = xTaskGetTickCount(); // 获取当前的系统节拍值
+  
   /* Infinite loop */
   for (;;)
   {
@@ -281,7 +282,7 @@ void PWM_SetFrequencyDutyCycle(uint16_t frequency)
 
   // 计算周期值
 
-  period = (uint32_t)round((1000000.0 / (10 * frequency + 200))) - 1;
+  period = (uint32_t)round((1000000.0 / (10 * frequency + 200))) - 1;      //float->uint32_t
 
   // 更新定时器的预分频器和周期
 
