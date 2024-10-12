@@ -310,10 +310,10 @@ void StartICTask(void *argument)
     if (ret == pdPASS)
     {
       // LXXX:按照所查资料提示，如果不行那就还是将同步引脚更改为其他引脚，TIM2作为主定时器通过事件触发从定时器同步捕获，硬件层面的同步捕获
-      HAL_TIM_IC_Start_IT(&htim4, TIM_CHANNEL_1);
-      HAL_TIM_IC_Start_IT(&htim15, TIM_CHANNEL_2);
-      HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_1);
-      HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_4);
+//      HAL_TIM_IC_Start_IT(&htim4, TIM_CHANNEL_1);
+//      HAL_TIM_IC_Start_IT(&htim15, TIM_CHANNEL_2);
+//      HAL_TIM_IC_Start_IT(&htim3, TIM_CHANNEL_1);
+//      HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_4);
     }
     else
     {

@@ -183,7 +183,7 @@
           <Type>0</Type>
           <LineNumber>204</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134227710</Address>
+          <Address>134230164</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -199,7 +199,7 @@
           <Type>0</Type>
           <LineNumber>105</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134229380</Address>
+          <Address>134232480</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -209,22 +209,6 @@
           <Filename>../Core/Src/main.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression>\\SpeedSensor\../Core/Src/main.c\105</Expression>
-        </Bp>
-        <Bp>
-          <Number>2</Number>
-          <Type>0</Type>
-          <LineNumber>202</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134227696</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>../Core/Src/freertos.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\SpeedSensor\../Core/Src/freertos.c\202</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>

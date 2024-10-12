@@ -1,0 +1,27 @@
+
+T3AC8 000:288 SEGGER J-Link V5.10h Log File (0000ms, 0274ms total)
+T3AC8 000:288 DLL Compiled: Jan 21 2016 19:24:29 (0000ms, 0274ms total)
+T3AC8 000:288 Logging started @ 2024-10-09 08:55 (0000ms, 0274ms total)
+T3AC8 000:288 JLINK_SetWarnOutHandler(...) (0000ms, 0274ms total)
+T3AC8 000:288 JLINK_OpenEx(...)
+Firmware: J-Link V9 compiled May  7 2021 16:26:12
+Hardware: V9.40
+S/N: 69405154
+Feature(s): RDI, GDB, FlashDL, FlashBP, JFlash  returns O.K. (0268ms, 0542ms total)
+T3AC8 000:556 JLINK_SetErrorOutHandler(...) (0000ms, 0542ms total)
+T3AC8 000:556 JLINK_ExecCommand("ProjectFile = "C:\Users\52876\Desktop\cubemx\JS_H743VGT6_master\MDK-ARM\JLinkSettings.ini"", ...)Device "CORTEX-M7" selected.  returns 0x00 (0002ms, 0544ms total)
+T3AC8 000:564 JLINK_ExecCommand("Device = STM32H743VGTx", ...)Device "CORTEX-M7" selected.  returns 0x00 (0006ms, 0550ms total)
+T3AC8 000:570 JLINK_ExecCommand("DisableConnectionTimeout", ...)  returns 0x01 (0000ms, 0550ms total)
+T3AC8 000:570 JLINK_GetHardwareVersion()  returns 0x16F30 (0000ms, 0550ms total)
+T3AC8 000:570 JLINK_GetDLLVersion()  returns 51008 (0000ms, 0550ms total)
+T3AC8 000:570 JLINK_GetFirmwareString(...) (0000ms, 0550ms total)
+T3AC8 000:576 JLINK_GetDLLVersion()  returns 51008 (0000ms, 0550ms total)
+T3AC8 000:576 JLINK_GetCompileDateTime() (0000ms, 0550ms total)
+T3AC8 000:577 JLINK_GetFirmwareString(...) (0000ms, 0550ms total)
+T3AC8 000:578 JLINK_GetHardwareVersion()  returns 0x16F30 (0001ms, 0551ms total)
+T3AC8 000:583 JLINK_TIF_Select(JLINKARM_TIF_JTAG)  returns 0x00 (0002ms, 0553ms total)
+T3AC8 000:585 JLINK_SetSpeed(5000) (0001ms, 0554ms total)
+T3AC8 000:586 JLINK_GetIdData(...) >0x2F8 JTAG>TotalIRLen = ?, IRPrint = 0x..000000000000000000000000 >0x30 JTAG> (0003ms, 0557ms total)
+T3AC8 001:878 JLINK_Close() (0001ms, 0558ms total)
+T3AC8 001:878  (0001ms, 0558ms total)
+T3AC8 001:878 Closed (0001ms, 0558ms total)
