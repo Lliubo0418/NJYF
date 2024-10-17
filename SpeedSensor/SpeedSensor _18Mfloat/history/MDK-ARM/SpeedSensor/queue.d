@@ -1,0 +1,15 @@
+speedsensor\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/queue.c
+speedsensor\queue.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+speedsensor\queue.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+speedsensor\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+speedsensor\queue.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+speedsensor\queue.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+speedsensor\queue.o: ../Core/Inc/FreeRTOSConfig.h
+speedsensor\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+speedsensor\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+speedsensor\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
+speedsensor\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3/portmacro.h
+speedsensor\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
+speedsensor\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
+speedsensor\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h
+speedsensor\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h
