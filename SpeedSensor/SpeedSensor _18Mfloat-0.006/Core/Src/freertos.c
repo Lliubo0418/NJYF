@@ -207,7 +207,7 @@ void StartCurrent_outTask(void const * argument)
     if (ret == pdPASS)
     {
       Vout = 0.02 * Frequency_old + 0.4;
-      Vout = Vout-0.0066;
+      Vout = Vout-0.006;
       DATA = (float)(Vout * DAC_COEFFICIENT);
       SPI_DAC8560_Write(DAC_DEFAULT_MODE, DATA);
     }

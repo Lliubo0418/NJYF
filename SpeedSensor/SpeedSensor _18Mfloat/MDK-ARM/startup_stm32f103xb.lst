@@ -473,11 +473,11 @@ ARM Macro Assembler    Page 8
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
 ork --depend=speedsensor\startup_stm32f103xb.d -ospeedsensor\startup_stm32f103x
-b.o -I../Core/Inc -I"C:\Users\52876\Desktop\SpeedSensor _18Mfloat\MDK-ARM\RTE" 
--IF:\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include -IF:\Packs\Keil\STM32F1xx_DFP\2.3
-.0\Device\Include --predefine="__UVISION_VERSION SETA 518" --predefine="_RTE_ S
-ETA 1" --predefine="STM32F10X_MD SETA 1" --list=startup_stm32f103xb.lst startup
-_stm32f103xb.s
+b.o -I../Core/Inc -I"C:\Users\52876\Desktop\cubemx\SpeedSensor\SpeedSensor _18M
+float\MDK-ARM\RTE" -IF:\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include -IF:\Packs\Kei
+l\STM32F1xx_DFP\2.3.0\Device\Include --predefine="__UVISION_VERSION SETA 518" -
+-predefine="_RTE_ SETA 1" --predefine="STM32F10X_MD SETA 1" --list=startup_stm3
+2f103xb.lst startup_stm32f103xb.s
 
 
 

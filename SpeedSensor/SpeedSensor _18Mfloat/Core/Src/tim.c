@@ -380,11 +380,77 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
     }
   }
 }
+//void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+//{
+//    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+//    static float frequencyBuffer[5] = {0}; // 存储最近五次的频率值
+//    static uint8_t bufferIndex = 0;       // 当前存储索引
+//    static uint8_t isBufferFull = 0;      // 标志位，表示缓冲区是否已满
+//    float currentFrequency = 0;           // 当前计算的频率
+
+//    if (htim->Instance == TIM2)
+//    {
+//        if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
+//        {
+//            __HAL_TIM_SET_COUNTER(&htim3, 0); // 检测是否有输入
+//            if (IsFisrtEdge)
+//            {
+//                CaptureEdge1Time = HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_3);
+//                IsFisrtEdge = 0;
+//            }
+//            else
+//            {
+//                CaptureEdge2Time = HAL_TIM_ReadCapturedValue(&htim2, TIM_CHANNEL_3);
+
+//                // 计算当前频率
+//                if (CaptureEdge2Time > CaptureEdge1Time)
+//                {
+//                    currentFrequency = 100000.0f / (CaptureEdge2Time - CaptureEdge1Time); // Hz
+//                }
+//                else
+//                {
+//                    currentFrequency = 100000.0f / (0xFFFF - CaptureEdge1Time + CaptureEdge2Time); // Hz
+//                }
+
+//                // 将当前频率存入缓冲区
+//                frequencyBuffer[bufferIndex] = currentFrequency;
+//                bufferIndex++;
+
+//                // 如果索引达到 5，循环存储
+//                if (bufferIndex >= 5)
+//                {
+//                    bufferIndex = 0;
+//                    isBufferFull = 1; // 缓冲区已满，开始计算平均值
+//                }
+
+//                // 如果缓冲区已满，计算平均值
+//                if (isBufferFull)
+//                {
+//                    float sum = 0;
+//                    for (uint8_t i = 0; i < 5; i++)
+//                    {
+//                        sum += frequencyBuffer[i];
+//                    }
+//                    Frequency = sum / 5.0f; // 计算平均值
+
+//                    // 上报或通知任务
+//                    vTaskNotifyGiveFromISR(Freq_ICTaskHandle, &xHigherPriorityTaskWoken);
+//                    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+//                }
+
+//                IsFisrtEdge = 1; // 准备下一次捕获
+//            }
+//        }
+//    }
+//}
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   BaseType_t xHigherPriorityTaskWoken;
-  if (htim->Instance == TIM3)
+  if (htim->Instance == TIM1) {
+    HAL_IncTick();
+  }
+  else if (htim->Instance == TIM3)
   {
     Frequency = 0.0;
     if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
