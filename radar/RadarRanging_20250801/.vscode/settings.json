@@ -1,0 +1,20 @@
+{
+    "files.associations": {
+        "stm32f4xx_hal_sram.h": "c",
+        "sram.h": "c",
+        "sys.h": "c",
+        "stm32f427xx.h": "c",
+        "stm32f4xx_hal.h": "c",
+        "stm32f4xx.h": "c",
+        "data_process.h": "c",
+        "fpga.h": "c",
+        "com_process.h": "c",
+        "usbd_cdc_if.h": "c",
+        "stm32f4xx_hal_conf.h": "c",
+        "stm32f4xx_hal_flash.h": "c",
+        "spi.h": "c",
+        "cmsis_os2.h": "c",
+        "usbd_cdc_interface.h": "c",
+        "delay.h": "c"
+    }
+}

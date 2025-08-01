@@ -1,0 +1,497 @@
+#include <math.h>
+#include <string.h>
+#include "data_process.h"
+#include "com_process.h"
+#include "flash.h"
+
+
+int16_t amplitude[PEAK_OFFSET*2+1]; // 幅值
+
+uint32_t peak_pos;
+ParameterFrame par_params = { .header = {0x01, 0x01, 0xFE} },par_temp_params; /* 参数存储实例 */
+
+
+ST_RSP_PARAMETER    gst_rsp_parameter;
+uint32_t            param_changed = 0;
+
+extern uint8_t ws_ds_flag;                        /* 0: DS, 1: WS */
+extern uint16_t sin_data[200], cos_data[200];
+
+static float arctan(float x);
+
+void data_process_init(void)
+{
+    memset(&par_params, 0, sizeof(ParameterFrame));
+    memset(&gst_rsp_parameter, 0, sizeof(ST_RSP_PARAMETER));
+
+    #if 1
+    par_params.strip_gate_line_left_1  = 51712;
+    par_params.strip_gate_line_right_1 = 51712 + 9728;
+    par_params.ws_distance_from_zero_position    = 200;
+    par_params.ds_distance_from_zero_position    = 500;
+    par_params.ws_zero_position  = 3401;
+    par_params.ds_zero_position  = 1319;
+    par_params.ws_roll_out       = 150;
+    par_params.ds_roll_out       = 150;
+    par_params.theta_offset      = 1409;
+    par_params.filter_a          = 100;
+    par_params.filter_c          = 2;
+    par_params.wait_counter      = 4;
+    par_params.iq0_iq1_threshold        = 120;
+    par_params.theta0_theta1_threshold  = 70;
+    par_params.iq_theta_threshold       = 20;
+    par_params.iq_theta_long_time_count  = 3;
+    par_params.max_id_number             = 15;
+    par_params.emw_number                = 1;
+    par_params.sin_gain                  = 60;
+    par_params.cos_gain                  = 60;
+    par_params.data_disposal_count       = 60000;
+    par_params.data_read_count           = 40000;
+    #endif
+
+    // FLASH_ReadMoreData(CONFIGURATION_BASE_ADDR, &par_params, sizeof(ST_PARAMETER));
+}
+
+void updata_peak_last_offset(uint8_t peak_flag, int16_t data)
+{
+    static uint16_t head = 0, tail = 0, cnt = 0, is_peak = 0, after_cnt = 0;
+    static int16_t  last_amp_arr[PEAK_OFFSET] = {0};
+
+    // 更新到临时数组
+    if (peak_flag == 0)
+    {
+        last_amp_arr[tail] = data;
+        tail = (tail + 1) % PEAK_OFFSET;
+        cnt ++;
+
+        if (cnt <= PEAK_OFFSET)
+        {
+            head = 0;
+        }
+        else
+        {
+            head = (head == tail) ? tail : head;
+        }
+
+        if (is_peak == 1)
+        {
+            if (after_cnt < PEAK_RANGE_COUNT)
+            {
+                amplitude[PEAK_OFFSET + 1 + after_cnt] = data;
+                after_cnt ++;
+            }
+        }
+    }
+    else if (peak_flag == 1)
+    {
+        // 保存到幅值数组
+        cnt = (cnt < PEAK_OFFSET) ? cnt : PEAK_OFFSET;
+        for (int i = 1, j = tail - 1; i < cnt + 1; i++)
+        {
+            amplitude[PEAK_OFFSET - i] = last_amp_arr[j];
+            j = (j == 0) ? (PEAK_OFFSET - 1) : (j - 1);
+        }
+
+        is_peak = 1;
+        after_cnt = 0;
+    }
+}
+/**
+ * @brief       计算幅值
+ * @param       
+ * @retval      峰值位置
+ */
+uint32_t cal_amplitude(void)
+{
+    uint32_t i, last_cnt = 0;
+    int16_t a, b, ampli, max = 0;
+    uint16_t data_cnt = DATA_COUNT;
+    uint16_t begin_idx, end_idx;
+
+    for (i = 0; i < data_cnt; i++)
+    {
+        a = (sin_data[i] <= 0x07FF) ? sin_data[i] : -(0x0FFF - sin_data[i] + 1);
+        b = (cos_data[i] <= 0x07FF) ? cos_data[i] : -(0x0FFF - cos_data[i] + 1);
+
+        ampli = sqrt(a * a + b * b);
+        if (ampli > max)
+        {
+            max = ampli;
+            peak_pos = i;
+            // updata_peak_last_offset(1, ampli);
+        }
+        else
+        {
+            // updata_peak_last_offset(0, ampli);
+        }
+    }
+
+    if (peak_pos <= PEAK_OFFSET)
+    {
+        begin_idx = 0;
+    }
+    else
+    {
+        begin_idx = peak_pos - PEAK_OFFSET;
+    }
+    
+    if (peak_pos >= (data_cnt - PEAK_OFFSET))
+    {
+        end_idx = data_cnt;
+    }
+    else
+    {
+        end_idx = peak_pos + PEAK_OFFSET;
+    }
+
+    for (i = begin_idx; i <= end_idx; i++)
+    {
+        a = (sin_data[i] <= 0x07FF) ? sin_data[i] : -(0x0FFF - sin_data[i] + 1);
+        b = (cos_data[i] <= 0x07FF) ? cos_data[i] : -(0x0FFF - cos_data[i] + 1);
+        amplitude[i - begin_idx] = sqrt(a * a + b * b);
+    }
+
+    return peak_pos;
+}
+
+/**
+ * @brief       利用反正切麦克劳林展开式求解arctan
+ * @param       x: 计算的数值，范围（-1，1）
+ * @retval      arctan函数求解的弧度
+ * @note        阶数越高，值越准确   70°以内是准确的
+ */
+float arctan(float x)
+{
+    float t = x;
+    float result = 0;
+    float X2 = x * x;
+    unsigned char cnt = 1;
+
+    do
+    {
+        result += t / ((cnt << 1) - 1);
+        t = -t;
+        t *= X2;
+        cnt++;
+    } while (cnt <= 6); // 仅计算前6项
+
+    return result;
+}
+
+/**
+ * @brief       计算弧度(* 10)
+ * @param       峰值位置
+ * @retval      峰值弧度的平均值 (unit: 0.1°)
+ * @note        
+ * */ 
+int16_t cal_phase(uint16_t peak_pos)
+{
+    uint32_t i, phase_cnt, peak_left, peak_right;
+    int16_t phase_sum, phase_avr, phase_offset;
+    int16_t last_phase;
+
+	last_phase = (ws_ds_flag == DEVICE_SIDE_DS) ? gst_rsp_parameter.ds_last_phase : gst_rsp_parameter.ws_last_phase;
+
+    if (peak_pos >= PEAK_OFFSET)
+    {
+        peak_left = peak_pos - PEAK_OFFSET;
+    }
+    else
+    {
+        peak_left = 0;
+    }
+    peak_right = peak_pos + PEAK_OFFSET;
+    phase_cnt = peak_right - peak_left + 1;
+
+    for (i = peak_left; i <= peak_right; i++)
+    {
+        if ((cos_data[i] != 0) && (sin_data[i] != 0))
+            phase_sum += (int16_t)(arctan(((float)(sin_data[i]) / (float)(cos_data[i]))) * 10);
+        else if (cos_data[i] == 0)
+        {
+            if (sin_data[i] > 0)
+                phase_sum += 0;
+            else
+                phase_sum += 180;
+        }
+        else if (sin_data[i] == 0)
+        {
+            if (cos_data[i] > 0)
+                phase_sum += 90;
+            else
+                phase_sum += 270;
+        }
+    }
+
+    phase_avr = phase_sum / phase_cnt;
+
+    // 计算相位累计偏移量, 超过360°时，则翻转计数加1或减1
+    if (last_phase == 0)
+        last_phase = phase_avr;
+    phase_offset = phase_avr - last_phase;
+
+	if (ws_ds_flag == DEVICE_SIDE_DS)
+	{
+		gst_rsp_parameter.ds_phase_offset_sum = phase_offset;
+		if (gst_rsp_parameter.ds_phase_offset_sum >= 3600)
+		{
+			par_params.ds_rotate_n_data++;
+		}
+
+		if (gst_rsp_parameter.ds_phase_offset_sum <= -3600)
+		{
+			par_params.ds_rotate_n_data--;
+		}
+	}
+	else
+	{
+		gst_rsp_parameter.ws_phase_offset_sum = phase_offset;
+		if (gst_rsp_parameter.ws_phase_offset_sum >= 3600)
+		{
+			par_params.ws_rotate_n_data++;
+		}
+
+		if (gst_rsp_parameter.ws_phase_offset_sum <= -3600)
+		{
+			par_params.ws_rotate_n_data--;
+		}
+	}
+
+    return phase_avr;
+}
+
+/**
+ * @brief       伪码测距
+ * @param       
+ * @retval      距离, unit: 0.1mm
+ * @note        
+ * */ 
+uint16_t distance_by_pseudocode(uint16_t peak_pos)
+{
+    uint16_t dp = 6;    // unit: 0.1mm.     dp=c*tu/N2/2=3*108/2*106/125000/2=0.006m
+    uint16_t distance;
+    uint16_t zero_position;
+    
+    zero_position = (ws_ds_flag == DEVICE_SIDE_DS) ? par_params.ds_zero_position : par_params.ws_zero_position;
+
+    distance = dp * (peak_pos - zero_position); 
+    return distance;
+}
+
+
+ /**
+ * @brief       相位测距
+ * @param       cur_distance, 伪码测距结果 （0.1mm)
+ *              cur_theta,    当前相位 (0.1°)
+ * @retval      距离, unit: 0.1mm
+ * @note        
+ * */ 
+uint16_t distance_by_phase(uint16_t cur_distance, uint16_t cur_theta)
+{
+    uint32_t distance;
+    uint16_t base_position, base_theta, rotate_n;
+    uint16_t theta_offset;         // unit: 0.01mm, 14.02mm is default.
+
+    if (ws_ds_flag == DEVICE_SIDE_DS)
+    {
+		theta_offset = par_params.theta_offset;
+        base_position = par_params.ds_base_position;
+        base_theta = par_params.ds_theta_base;               // uint: 0.1°
+        rotate_n = par_params.ds_rotate_n_data;
+    }
+    else
+    {
+		theta_offset = par_params.theta_offset;
+
+        base_position = par_params.ws_base_position;
+        base_theta = par_params.ws_theta_base;               // uint: 0.1°
+        rotate_n = par_params.ws_rotate_n_data;
+    }
+
+    // 距离单位： 0.01mm
+    distance = base_position * 10 + theta_offset * ((cur_theta - base_theta) / 3600 + rotate_n);
+
+    return distance / 10;
+}
+
+ /**
+ * @brief       毛刺滤波
+ * @param       
+ * @retval      正确的距离 （unit: 0.1mm)
+ * @note        
+ * */
+uint16_t distance_filter(uint16_t cur_distance)
+{
+    static uint16_t last_distance = 0;
+    static uint16_t filter_cnt = 0;
+    uint16_t distance_offset = 0, distance;
+
+    if (last_distance != 0)
+    {
+        // 如果测试结果偏差超过 Filter_A, 且连续次数超过 Filter_C 次，认为测试结果正确;
+        distance_offset = (cur_distance >= last_distance) ? (cur_distance - last_distance) : (last_distance - cur_distance);
+        if (distance_offset > par_params.filter_a)
+        {
+            filter_cnt++;
+            if (filter_cnt > par_params.filter_c)
+            {
+                last_distance = cur_distance;
+            }
+            else
+            {
+                cur_distance = last_distance;
+            }
+        }
+        else
+        {
+            filter_cnt = 0;
+        }
+    }
+    else
+    {
+        last_distance = cur_distance;
+    }
+
+    return cur_distance;
+}
+
+ /**
+ * @brief       相位测距
+ * @param       
+ * @retval      
+ * @note        
+ * */ 
+void data_process(void)
+{
+    uint16_t IQ_Data, strip_edge_position;
+    uint16_t cur_phase, cur_distance;
+    uint16_t base_position, base_phase;
+    uint16_t distance_offset;
+    ParameterFrame * p_rsp_param; 
+
+    if (param_changed == 1)
+    {
+        // 参数改变，需要重新初始化数据
+        memcpy(&par_params, &par_temp_params, sizeof(ParameterFrame));
+        // FLASH_WriteMoreData(CONFIGURATION_BASE_ADDR, (uint16_t*)&par_params, sizeof(ST_PARAMETER));
+    }
+    p_rsp_param= &par_params;
+
+    // 基准相位和基准距离
+    if (ws_ds_flag == DEVICE_SIDE_DS)
+    {
+        base_position   = p_rsp_param->ds_base_position;
+        base_phase      = p_rsp_param->ds_theta_base;
+    }
+    else
+    {
+        base_position   = p_rsp_param->ws_base_position;
+        base_phase      = p_rsp_param->ws_theta_base;
+    }
+
+    // 计算幅值, 找到峰值位置
+    cal_amplitude();
+
+    // 计算弧度
+    cur_phase = cal_phase(peak_pos);
+
+    // 计算伪码测距
+    IQ_Data = distance_by_pseudocode(peak_pos);
+
+    // 第一次上电，可能会有误差，需要校准
+    if (base_position == 0)     base_position = IQ_Data;
+    if (base_phase == 0)        base_phase = cur_phase;
+
+    // 超限校准1 (IQ0-IQ1 THRESHHOLD)
+    distance_offset = (IQ_Data >= base_position) ? (IQ_Data - base_position) : (base_position - IQ_Data);
+    if (distance_offset > par_params.iq0_iq1_threshold)
+    {
+        base_position = IQ_Data;
+        base_phase = cur_phase;
+
+        if (ws_ds_flag == DEVICE_SIDE_DS)
+        {
+            gst_rsp_parameter.ds_phase_offset_sum = 0;
+            par_params.ds_rotate_n_data = 0;
+            gst_rsp_parameter.ds_last_phase = 0;
+        }
+        else
+        {
+            gst_rsp_parameter.ws_phase_offset_sum = 0;
+            par_params.ws_rotate_n_data = 0;
+            gst_rsp_parameter.ws_last_phase = 0;
+        }
+    }
+
+    // 计算相位测距
+    strip_edge_position = distance_by_phase(IQ_Data, cur_phase);
+
+    // 超限校准2 (θ0-θ1 THRESHHOLD)
+    distance_offset = (strip_edge_position >= base_position) ? (strip_edge_position - base_position) : (base_position - strip_edge_position);
+    if (distance_offset > par_params.theta0_theta1_threshold)
+    {
+        base_position = IQ_Data;
+        base_phase = cur_phase;
+
+        if (ws_ds_flag == DEVICE_SIDE_DS)
+        {
+            gst_rsp_parameter.ds_phase_offset_sum = 0;
+            par_params.ds_rotate_n_data = 0;
+            gst_rsp_parameter.ds_last_phase = 0;
+        }
+        else
+        {
+            gst_rsp_parameter.ws_phase_offset_sum = 0;
+            par_params.ws_rotate_n_data = 0;
+            gst_rsp_parameter.ws_last_phase = 0;
+        }
+    }
+
+    // 超限校准3 (IQ-θTHRESHHOLD)
+    distance_offset = (strip_edge_position >= IQ_Data) ? (strip_edge_position - IQ_Data) : (base_position - IQ_Data);
+    if (distance_offset > par_params.iq_theta_threshold)
+    {
+        base_position = IQ_Data;
+        base_phase = cur_phase;
+
+        if (ws_ds_flag == DEVICE_SIDE_DS)
+        {
+            gst_rsp_parameter.ds_phase_offset_sum = 0;
+            par_params.ds_rotate_n_data = 0;
+            gst_rsp_parameter.ds_last_phase = 0;
+        }
+        else
+        {
+            gst_rsp_parameter.ws_phase_offset_sum = 0;
+            par_params.ws_rotate_n_data = 0;
+            gst_rsp_parameter.ws_last_phase = 0;
+        }
+    }
+
+    // 毛刺滤波 
+    cur_distance = distance_filter(strip_edge_position);
+
+    if (ws_ds_flag == DEVICE_SIDE_DS)
+    {
+        p_rsp_param->ds_strip_edge_position = cur_distance;
+        p_rsp_param->ds_base_position = base_position;
+        p_rsp_param->ds_theta_base = base_phase;
+        p_rsp_param->ds_theta_current = cur_phase;
+        p_rsp_param->ds_iq_data = IQ_Data;
+        p_rsp_param->ds_strip_edge_line = strip_edge_position;
+    }
+    else
+    {
+        p_rsp_param->ws_strip_edge_position = cur_distance;
+        p_rsp_param->ws_base_position = base_position;
+        p_rsp_param->ws_theta_base = base_phase;
+        p_rsp_param->ws_theta_current = cur_phase;
+        p_rsp_param->ws_iq_data = IQ_Data;
+        p_rsp_param->ws_strip_edge_line = strip_edge_position;
+    }
+		
+		Save_Parameter(0,0);
+		
+		
+}
+

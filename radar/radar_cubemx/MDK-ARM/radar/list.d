@@ -1,0 +1,12 @@
+radar\list.o: ../Middlewares/Third_Party/FreeRTOS/Source/list.c
+radar\list.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+radar\list.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+radar\list.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+radar\list.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+radar\list.o: ../Core/Inc/FreeRTOSConfig.h
+radar\list.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+radar\list.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+radar\list.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
+radar\list.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F/portmacro.h
+radar\list.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
+radar\list.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h

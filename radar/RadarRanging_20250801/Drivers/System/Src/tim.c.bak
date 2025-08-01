@@ -1,0 +1,85 @@
+
+#include "fpga.h"
+#include "tim.h"
+
+TIM_HandleTypeDef g_timx_handler;
+void tim_init(void)
+{
+
+    g_timx_handler.Instance = BTIM_TIMX_INT;              /* 定时器x */
+    g_timx_handler.Init.Prescaler = 8399;                 /* 分频 */
+    g_timx_handler.Init.CounterMode = TIM_COUNTERMODE_UP; /* 递增计数模式 */
+    g_timx_handler.Init.Period = 49;                    /* 自动装载值 */
+    g_timx_handler.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+    HAL_TIM_Base_Init(&g_timx_handler);
+
+    HAL_TIM_Base_Start_IT(&g_timx_handler); /* 使能定时器x和定时器更新中断 */
+}
+
+void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *tim_baseHandle)
+{
+
+    if (tim_baseHandle->Instance == BTIM_TIMX_INT)
+    {
+        /* USER CODE BEGIN TIM6_MspInit 0 */
+
+        /* USER CODE END TIM6_MspInit 0 */
+        /* TIM6 clock enable */
+        BTIM_TIMX_INT_CLK_ENABLE();                     /* 使能TIMx时钟 */
+        HAL_NVIC_SetPriority(BTIM_TIMX_INT_IRQn, 1, 3); /* 抢占1，子优先级3 */
+        HAL_NVIC_EnableIRQ(BTIM_TIMX_INT_IRQn);         /* 开启ITMx中断 */
+    
+        /* USER CODE BEGIN TIM6_MspInit 1 */
+
+        /* USER CODE END TIM6_MspInit 1 */
+    }
+}
+
+void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *tim_baseHandle)
+{
+
+    if (tim_baseHandle->Instance == BTIM_TIMX_INT)
+    {
+        /* USER CODE BEGIN TIM6_MspDeInit 0 */
+
+        /* USER CODE END TIM6_MspDeInit 0 */
+        /* Peripheral clock disable */
+        __HAL_RCC_TIM6_CLK_DISABLE();
+        /* USER CODE BEGIN TIM6_MspDeInit 1 */
+
+        /* USER CODE END TIM6_MspDeInit 1 */
+    }
+}
+
+/**
+ * @brief       基本定时器TIMX中断服务函数
+ * @param       无
+ * @retval      无
+ */
+void BTIM_TIMX_INT_IRQHandler(void)
+{
+    HAL_TIM_IRQHandler(&g_timx_handler);  /* 定时器回调函数 */
+}
+
+/**
+ * @brief       回调函数，定时器中断服务函数调用
+ * @param       无
+ * @retval      无
+ */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    static flag = 0;
+    if (htim->Instance == BTIM_TIMX_INT)
+    {
+        if (flag == 0)
+        {
+            flag = 1;
+            FPGA_RUN_FLAG(1);
+        }
+        else
+        {
+            flag = 0;
+            FPGA_RUN_FLAG(0);
+        }
+    }
+}

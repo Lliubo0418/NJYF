@@ -1,0 +1,28 @@
+--cpu=Cortex-M4.fp.sp
+"spi_test407master\startup_stm32f407xx.o"
+"spi_test407master\main.o"
+"spi_test407master\gpio.o"
+"spi_test407master\spi.o"
+"spi_test407master\stm32f4xx_it.o"
+"spi_test407master\stm32f4xx_hal_msp.o"
+"spi_test407master\stm32f4xx_hal_spi.o"
+"spi_test407master\stm32f4xx_hal_rcc.o"
+"spi_test407master\stm32f4xx_hal_rcc_ex.o"
+"spi_test407master\stm32f4xx_hal_flash.o"
+"spi_test407master\stm32f4xx_hal_flash_ex.o"
+"spi_test407master\stm32f4xx_hal_flash_ramfunc.o"
+"spi_test407master\stm32f4xx_hal_gpio.o"
+"spi_test407master\stm32f4xx_hal_dma_ex.o"
+"spi_test407master\stm32f4xx_hal_dma.o"
+"spi_test407master\stm32f4xx_hal_pwr.o"
+"spi_test407master\stm32f4xx_hal_pwr_ex.o"
+"spi_test407master\stm32f4xx_hal_cortex.o"
+"spi_test407master\stm32f4xx_hal.o"
+"spi_test407master\stm32f4xx_hal_exti.o"
+"spi_test407master\stm32f4xx_hal_tim.o"
+"spi_test407master\stm32f4xx_hal_tim_ex.o"
+"spi_test407master\system_stm32f4xx.o"
+--library_type=microlib --strict --scatter "SPI_TEST407MASTER\SPI_TEST407MASTER.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "SPI_TEST407MASTER.map" -o SPI_TEST407MASTER\SPI_TEST407MASTER.axf

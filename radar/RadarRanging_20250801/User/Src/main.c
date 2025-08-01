@@ -1,0 +1,347 @@
+/* USER CODE BEGIN Header */
+/**
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
+/* USER CODE END Header */
+/* Includes ------------------------------------------------------------------*/
+#include "sys.h"
+#include "usart.h"
+#include "delay.h"
+#include "sram.h"
+#include "fpga.h"
+#include "flash.h"
+#include "spi.h"
+#include "tim.h"
+#include "malloc.h"
+#include "usbd_core.h"
+#include "usbd_desc.h"
+#include "usbd_cdc.h"
+#include "usbd_cdc_interface.h"
+
+#include "com_process.h"
+#include "data_process.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+
+/* USER CODE END Includes */
+
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
+
+/* USER CODE END PTD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+#define  SRAM_SIZE  (1 << 19)  
+#define  buf_len     1024
+#define  data_num    (buf_len / sizeof(uint16_t))
+/* USER CODE END PD */
+uint16_t spi_ctrl = 0x00, disposal_cnt = 60000, read_cnt = 40000, spi_buf[8];
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
+// CAN_HandleTypeDef hcan1;
+
+// DAC_HandleTypeDef hdac;
+
+/* USER CODE BEGIN PV */
+extern USBD_HandleTypeDef USBD_Device;  /* USB Device处理结构体 */
+extern volatile uint8_t g_device_state; /* USB连接 情况 */
+
+uint8_t ws_ds_flag; /* 0: DS, 1: WS */
+extern uint8_t fpga_read_flag;
+volatile uint16_t peak_pos_l,peak_pos_h;
+uint32_t peak_pos;
+extern uint8_t sram_read_flag;
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+void PeriphCommonClock_Config(void);
+
+/* USER CODE BEGIN PFP */
+static TIM_HandleTypeDef htim2;
+
+// static void MX_CAN1_Init(void);
+// static void MX_DAC_Init(void);
+
+static void TIM2_Init(void);
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+
+#define DBG_FPGA_SRAM_USB    1                    //读取SRAM，python绘图
+
+/* USER CODE END 0 */
+
+/**
+ * @brief  The application entry point.
+ * @retval int
+ */
+int main(void)
+{
+
+    /* USER CODE BEGIN 1 */
+    
+
+    
+//	  uint16_t spi_ctrl = 0x00, disposal_cnt = 60000, read_cnt = 40000, spi_buf[8];
+    uint16_t * p_data;
+
+
+    uint32_t addr = 0;
+
+    /* USER CODE END 1 */
+
+    /* MCU Configuration--------------------------------------------------------*/
+
+    /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+    HAL_Init(); /* 初始化HAL库 */
+
+    /* Configure the system clock */
+    SystemClock_Config();
+    PeriphCommonClock_Config();
+
+    /* Initialize all configured peripherals */
+    /* USER CODE BEGIN 2 */
+
+    /* 延时初始化 */
+    delay_init(168);
+
+    // sram initialization
+    sram_init();
+
+    // spi initialization
+    spi1_init(); /* 初始化SPI1 */
+    spi2_init();
+    /* USB初始化 */
+    USBD_Init(&USBD_Device, &VCP_Desc, 0);                    /* 初始化USB */
+    USBD_RegisterClass(&USBD_Device, USBD_CDC_CLASS);         /* 添加类 */
+    USBD_CDC_RegisterInterface(&USBD_Device, &USBD_CDC_fops); /* 为MSC类添加回调函数 */
+    USBD_Start(&USBD_Device);                                 /* 开启USB */
+
+    // TIM2_Init();
+		MX_TIM3_Init();
+    // fpga initialization
+    fpga_init();
+
+    // usart6 initialization
+    usart_init(115200); /* 串口初始化为115200 */
+    usart_printf("system init...");
+
+    // 配置电位器 AD5290
+    spi2_write_byte(80);
+
+    // FPGA加载程序较慢约6s+, 延时10s
+    delay_ms(10000);      // 10000
+
+    // 参数初始化
+    data_process_init();
+
+   
+
+/* USER CODE END 2 */
+
+/* Infinite loop */
+/* USER CODE BEGIN WHILE */
+
+
+
+    /**
+     * MCU拉高PF7，持续100ns；
+     * FPGA采样存储ADC数据，并写入SRAM；拉高PE6；
+     * MCU读取ADC数据，并进行处理； */
+    while (1)
+    {
+        spi_ctrl = 0;
+        spi_ctrl &= 0x7FFF;           // bit15, 0-write data, 1-read data;
+        spi_ctrl |= 1 << 14;           // bit14, disposal_cnt flag;
+        spi1_write_bit16(spi_ctrl & 0xFFFF);
+        spi1_write_bit16(disposal_cnt & 0xFFFF);
+			        
+			  spi_ctrl = 0;
+        spi_ctrl &= 0x7FFF;           // bit15, 0-write data, 1-read data;
+        spi_ctrl |= 1 << 13;           // bit13, DATA READCOUNT flag;
+        spi1_write_bit16(spi_ctrl & 0xFFFF);
+        spi1_write_bit16(read_cnt & 0xFFFF);
+
+
+        FPGA_RUN_FLAG(1);
+        delay_us(1000);
+        FPGA_RUN_FLAG(0);
+
+        // 等待中断触发后置1
+        while (fpga_read_flag == 0)  
+					delay_us(1);
+        fpga_read_flag = 0;
+				
+				spi_ctrl = 0x8000;
+        peak_pos_h = spi1_write_bit16(spi_ctrl & 0xFFFF);
+        peak_pos_l = spi1_write_bit16(0);
+				peak_pos = (peak_pos_h & 0x03)<<16 | peak_pos_l ;
+				data_process();
+				
+		if(sram_read_flag){				
+				#if DBG_FPGA_SRAM_USB
+				// read sin data
+
+        FPGA_RAM_FLAG(0);           // ram-0 flag
+				delay_us(100);
+
+        for (addr = 0; addr < SRAM_SIZE; addr += buf_len)
+        {
+						memset(g_usart_rx_buf, 0, sizeof(g_usart_rx_buf));
+            sram_read_u16((uint16_t *)g_usart_rx_buf, addr, data_num);      // read sin data
+            udbd_cdc_tx_data(g_usart_rx_buf, buf_len);
+
+            delay_us(1000);
+        }
+        for (int i = 0; i < buf_len; i++)   g_usart_rx_buf[i] = 0x01;
+        udbd_cdc_tx_data(g_usart_rx_buf, 8);
+				delay_ms(45000);
+
+
+        // read cos data
+        FPGA_RAM_FLAG(1);           // ram-1 flag
+				delay_us(100);
+
+        for (addr = 0; addr < SRAM_SIZE; addr += buf_len)
+        {
+						memset(g_usart_rx_buf, 0, sizeof(g_usart_rx_buf));
+            sram_read_u16((uint16_t *)g_usart_rx_buf, addr, data_num);      // read cos data
+            udbd_cdc_tx_data(g_usart_rx_buf, buf_len);
+
+            delay_us(1000);
+        }
+        for (int i = 0; i < buf_len; i++)   g_usart_rx_buf[i] = 0x02;
+        udbd_cdc_tx_data(g_usart_rx_buf, 8);
+
+        delay_ms(45000);
+        #endif
+				
+				sram_read_flag = 0;
+			}
+			
+			
+			delay_ms(5000);
+    }
+
+
+
+
+
+
+
+
+
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+    /*  */
+
+    /* USER CODE END 3 */
+}
+
+/**
+ * @brief System Clock Configuration
+ * @retval None
+ */
+void SystemClock_Config(void)
+{
+    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+    /** Configure the main internal regulator output voltage
+     */
+    __HAL_RCC_PWR_CLK_ENABLE();
+    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+    /** Initializes the RCC Oscillators according to the specified parameters
+     * in the RCC_OscInitTypeDef structure.
+     */
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+    RCC_OscInitStruct.PLL.PLLM = 8;
+    RCC_OscInitStruct.PLL.PLLN = 336;
+    RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+    RCC_OscInitStruct.PLL.PLLQ = 7;
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+    {
+        return;
+    }
+
+    /** Initializes the CPU, AHB and APB buses clocks
+     */
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1; // HCLK = 168MHz
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;  // APB1 = 42MHz
+    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;  // APB2 = 84MHz
+
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
+    {
+        // Error_Handler();
+        return;
+    }
+    // HAL_RCC_MCOConfig(RCC_MCO2, RCC_MCO2SOURCE_SYSCLK, RCC_MCODIV_1);
+}
+
+void PeriphCommonClock_Config(void)
+{
+    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_TIM;
+    PeriphClkInitStruct.TIMPresSelection = RCC_TIMPRES_ACTIVATED;
+    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+    {
+        // Error_Handler();
+        return;
+    }
+}
+
+/* USER CODE BEGIN 4 */
+/**
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
+void Error_Handler(void)
+{
+    /* USER CODE BEGIN Error_Handler_Debug */
+    /* User can add his own implementation to report the HAL error return state */
+
+    /* USER CODE END Error_Handler_Debug */
+}
+
+void TIM2_Init(void)
+{
+    __HAL_RCC_TIM2_CLK_ENABLE();
+
+    htim2.Instance = TIM2;
+    htim2.Init.Prescaler = (SystemCoreClock / 1000000) - 1; // 1MHz时钟
+    htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+    htim2.Init.Period = 0xFFFFFFFF;
+    htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+    HAL_TIM_Base_Init(&htim2);
+    HAL_TIM_Base_Start(&htim2);
+}
+
+/* USER CODE END 4 */

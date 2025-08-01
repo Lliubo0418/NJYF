@@ -1,0 +1,15 @@
+radar\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/queue.c
+radar\queue.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+radar\queue.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+radar\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
+radar\queue.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+radar\queue.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+radar\queue.o: ../Core/Inc/FreeRTOSConfig.h
+radar\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
+radar\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
+radar\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
+radar\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F/portmacro.h
+radar\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
+radar\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
+radar\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h
+radar\queue.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h

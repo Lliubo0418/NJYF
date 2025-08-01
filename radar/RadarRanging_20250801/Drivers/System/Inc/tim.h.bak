@@ -1,0 +1,22 @@
+#ifndef     __TIM_H
+#define     __TIM_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "sys.h"
+
+#define BTIM_TIMX_INT                       TIM6
+#define BTIM_TIMX_INT_IRQn                  TIM6_DAC_IRQn
+#define BTIM_TIMX_INT_IRQHandler            TIM6_DAC_IRQHandler
+#define BTIM_TIMX_INT_CLK_ENABLE()          __HAL_RCC_TIM6_CLK_ENABLE();  /* TIM6 时钟使能 */
+
+
+void tim_init(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  // __TIM_H

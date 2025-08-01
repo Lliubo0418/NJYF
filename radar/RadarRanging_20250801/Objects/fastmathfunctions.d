@@ -1,0 +1,30 @@
+./objects/fastmathfunctions.o: \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\FastMathFunctions.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_cos_f32.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Include\dsp\fast_math_functions.h \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Include\arm_math_types.h \
+  F:\Packs\ARM\CMSIS\6.1.0\CMSIS\Core\Include\cmsis_compiler.h \
+  F:\Packs\ARM\CMSIS\6.1.0\CMSIS\Core\Include\cmsis_armclang.h \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Include\arm_math_memory.h \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Include\dsp\none.h \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Include\dsp\utils.h \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Include\dsp\basic_math_functions.h \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Include\arm_common_tables.h \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_cos_q15.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_cos_q31.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_sin_f32.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_sin_q15.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_sin_q31.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_sqrt_q31.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_sqrt_q15.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_vexp_f32.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_vexp_f64.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_vlog_f32.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_vlog_f64.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_divide_q15.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_divide_q31.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_vlog_q31.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_vlog_q15.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_atan2_f32.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_atan2_q31.c \
+  F:\Packs\ARM\CMSIS-DSP\1.16.2\Source\FastMathFunctions\arm_atan2_q15.c
