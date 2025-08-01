@@ -357,7 +357,7 @@ uint16_t distance_filter(uint16_t cur_distance)
 			last_distance = cur_distance;
 			filter_cnt = 0;
 		}
-
+	}
 
     return cur_distance;
 }
